@@ -1,0 +1,7 @@
+[deps]
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
+DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
