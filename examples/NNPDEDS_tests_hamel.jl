@@ -1,11 +1,11 @@
 cd(@__DIR__)
-# using Pkg; Pkg.activate(".")
+# using Pkg; Pkg.activate("../.")
 using Flux, Zygote, LinearAlgebra, Statistics
 # println("NNPDE_deepsplitting_tests")
 using Test
 # println("Starting Soon!")
 using Revise
-include("pde_solve_deepsplitting_4.jl")
+include("../src/pde_solve_deepsplitting_4.jl")
 # using NeuralPDE
 
 using Random

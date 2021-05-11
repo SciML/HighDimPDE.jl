@@ -4,7 +4,6 @@ using Flux, Zygote, LinearAlgebra
 using ProgressMeter: @showprogress
 using CUDA
 
-## this one is in fact not used!
 """
     PIDEProblem(g,f, μ, σ, x0, tspan)
 A non local non linear PDE problem.
