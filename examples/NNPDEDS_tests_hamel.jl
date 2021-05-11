@@ -54,4 +54,7 @@ u1 = solve(prob, alg, mc_sample,
             batch_size=batch_size,
             use_cuda = true)
 
-println("u1 = ", u1)
+println("u1 = ", u1[end])
+
+using Plots
+Plots.plot(u1)

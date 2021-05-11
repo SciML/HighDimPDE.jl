@@ -43,17 +43,15 @@ function Base.show(io::IO, A::PIDEProblem)
 end
 
 """
+struct NNPDEDS{C1,O} <: NeuralPDEAlgorithm
+
 Deep splitting algorithm for solving non local non linear PDES.
 
 Arguments:
-* `chain`: a Flux.jl chain with a d-dimensional input and a 1-dimensional output,
-* `strategy`: determines which training strategy will be used,
-* `init_params`: the initial parameter of the neural network,
-* `phi`: a trial solution,
-* `derivative`: method that calculates the derivative.
-
+* `nn`: a Flux.jl chain with a d-dimensional input and a 1-dimensional output,
+* `K`: the number of Monte Carlo integration
+* `opt`: optimiser to be use
 """
-
 struct NNPDEDS{C1,O} <: NeuralPDEAlgorithm
     nn::C1
     K::Int
@@ -139,7 +137,7 @@ function DiffEqBase.solve(
     # preallocate y0, y1
     y0 = repeat(X0[:],1,batch_size)
     y1 = repeat(X0[:],1,batch_size)
-
+    sol = [g(prob.X0)[1] for i in 1:N]
     for net in 1:N
         # preallocate dWall
         dWall = zeros(Float32, d, batch_size, N + 1 - net) |> _device
@@ -170,8 +168,8 @@ function DiffEqBase.solve(
             end
         end
         vi = deepcopy(vj)
+        sol[net] = mean(vj(X0))
     end
-
-    mean(vj(X0))
+    sol
     # save_everystep ? iters : u0(X0)[1]
 end
