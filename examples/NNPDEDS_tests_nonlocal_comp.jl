@@ -5,7 +5,7 @@ using Flux, Zygote, LinearAlgebra, Statistics
 using Test
 # println("Starting Soon!")
 using Revise
-include("pde_solve_deepsplitting_4.jl")
+include("../src/pde_solve_deepsplitting_4.jl")
 # using NeuralPDE
 
 using Random
@@ -44,7 +44,7 @@ prob = PIDEProblem(g, f, μ_f, σ_f, X0, tspan)
 
 alg = NNPDEDS(nn, K=1, opt = opt )
 
-u1 = solve(prob, alg, mc_sample,
+sol = solve(prob, alg, mc_sample,
             dt=dt,
             verbose = true,
             abstol=1e-3,

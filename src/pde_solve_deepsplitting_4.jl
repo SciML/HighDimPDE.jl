@@ -4,6 +4,11 @@ using Flux, Zygote, LinearAlgebra
 using ProgressMeter: @showprogress
 using CUDA
 
+struct DSFunction <: AbstractODEFunction{false}
+    f::F
+end
+(f::ODEFunction)(args...) = f.f(args...)
+
 """
     PIDEProblem(g,f, μ, σ, x0, tspan)
 A non local non linear PDE problem.
@@ -16,22 +21,25 @@ Consider `du/dt = l(u) + \\int f(u,x) dx`; where l is the nonlinear Lipschitz fu
 * `x0`: The initial X for the problem.
 * `tspan`: The timespan of the problem.
 """
-struct PIDEProblem{G,F,Mu,Sigma,X,T,P,A,UD,K} <: DiffEqBase.DEProblem
-    g::G
-    f::F
+struct PIDEProblem{X0Type,uType,tType,G,F,Mu,Sigma,P,A,UD,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false}
+    u0::uType
+    g::G # initial condition
+    f::F # nonlinear part
     μ::Mu
     σ::Sigma
-    X0::X
-    tspan::Tuple{T,T}
+    X0::X0Type
+    tspan::tType
     p::P
     A::A
     u_domain::UD
     kwargs::K
-    PIDEProblem(g,f,μ,σ,X0,tspan,p=nothing;A=nothing,u_domain=nothing,kwargs...) = new{typeof(g),typeof(f),
+    PIDEProblem(g,f,μ,σ,X0,tspan,p=nothing;A=nothing,u_domain=nothing,kwargs...) = new{typeof(X0),
+                                                         typeof(g(X0)),
+                                                         typeof(tspan),
+                                                         DSFunction,DSFunction,
                                                          typeof(μ),typeof(σ),
-                                                         typeof(X0),eltype(tspan),
                                                          typeof(p),typeof(A),typeof(u_domain),typeof(kwargs)}(
-                                                         g,f,μ,σ,X0,tspan,p,A,u_domain,kwargs)
+                                                         g(X0),DSFunction(g),DSFunction(f),μ,σ,X0,tspan,p,A,u_domain,kwargs)
 end
 
 Base.summary(prob::PIDEProblem) = string(nameof(typeof(prob)))
@@ -59,7 +67,8 @@ struct NNPDEDS{C1,O} <: NeuralPDEAlgorithm
 end
 NNPDEDS(nn;K=1,opt=Flux.ADAM(0.1)) = NNPDEDS(nn,K,opt)
 
-function DiffEqBase.solve(
+
+function DiffEqBase.__solve(
     # prob::PIDEProblem,
     prob::PIDEProblem,
     alg::NNPDEDS,
@@ -137,7 +146,7 @@ function DiffEqBase.solve(
     # preallocate y0, y1
     y0 = repeat(X0[:],1,batch_size)
     y1 = repeat(X0[:],1,batch_size)
-    sol = [g(prob.X0)[1] for i in 1:N]
+    usol = [g(prob.X0)[1] for i in 1:N]
     for net in 1:N
         # preallocate dWall
         dWall = zeros(Float32, d, batch_size, N + 1 - net) |> _device
@@ -168,8 +177,8 @@ function DiffEqBase.solve(
             end
         end
         vi = deepcopy(vj)
-        sol[net] = mean(vj(X0))
+        usol[net] = mean(vj(X0))
     end
-    sol
+    sol = DiffEqBase.build_solution(prob,alg,ts,usol)
     # save_everystep ? iters : u0(X0)[1]
 end
