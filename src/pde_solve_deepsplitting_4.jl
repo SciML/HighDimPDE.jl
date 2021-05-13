@@ -4,10 +4,10 @@ using Flux, Zygote, LinearAlgebra
 using ProgressMeter: @showprogress
 using CUDA
 
-struct DSFunction <: AbstractODEFunction{false}
+struct DSFunction{F} <: DiffEqBase.AbstractODEFunction{false}
     f::F
 end
-(f::ODEFunction)(args...) = f.f(args...)
+(f::DSFunction)(args...) = f.f(args...)
 
 """
     PIDEProblem(g,f, μ, σ, x0, tspan)
@@ -69,7 +69,6 @@ NNPDEDS(nn;K=1,opt=Flux.ADAM(0.1)) = NNPDEDS(nn,K,opt)
 
 
 function DiffEqBase.__solve(
-    # prob::PIDEProblem,
     prob::PIDEProblem,
     alg::NNPDEDS,
     mc_sample;
@@ -146,7 +145,7 @@ function DiffEqBase.__solve(
     # preallocate y0, y1
     y0 = repeat(X0[:],1,batch_size)
     y1 = repeat(X0[:],1,batch_size)
-    usol = [g(prob.X0)[1] for i in 1:N]
+    usol = [g(prob.X0)[1] for i in 1:(N+1)]
     for net in 1:N
         # preallocate dWall
         dWall = zeros(Float32, d, batch_size, N + 1 - net) |> _device
@@ -173,11 +172,11 @@ function DiffEqBase.__solve(
                 l = loss(y0,y1,t)
                 verbose && println("Current loss is: $l")
                 # we change abstol as we can not get more precise over time
-                abstol = 1.05 * l
+                abstol = 1.0 * l
             end
         end
         vi = deepcopy(vj)
-        usol[net] = mean(vj(X0))
+        usol[net+1] = mean(vj(X0))
     end
     sol = DiffEqBase.build_solution(prob,alg,ts,usol)
     # save_everystep ? iters : u0(X0)[1]

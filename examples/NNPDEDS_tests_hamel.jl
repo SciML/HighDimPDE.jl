@@ -11,15 +11,15 @@ include("../src/pde_solve_deepsplitting_4.jl")
 using Random
 # Random.seed!(100)
 
-d = 10 # number of dimensions
+d = 1 # number of dimensions
 # one-dimensional heat equation
 X0 = fill(0.0f0,d)  # initial points
 tspan = (0.0f0,1f0)
-dt = 0.05f0   # time step
+dt = 0.1f0   # time step
 batch_size = 8192
-train_steps = 16000
+train_steps = 8000
 σ_sampling = 0.1f0
-K = 100f0
+K = 20
 
 hls = d + 50 #hidden layer size
 
@@ -44,9 +44,9 @@ mc_sample(x) = CUDA.randn(d, batch_size) * σ_sampling
 ## One should look at InitialPDEProblem, this would surely be more appropriate
 prob = PIDEProblem(g, f, μ, σ, X0, tspan)
 
-alg = NNPDEDS(nn,K=1,opt = opt )
+alg = NNPDEDS(nn,K=K,opt = opt )
 
-u1 = solve(prob, alg, mc_sample,
+sol = solve(prob, alg, mc_sample,
             dt=dt,
             verbose = true,
             abstol=1e-3,
@@ -54,7 +54,7 @@ u1 = solve(prob, alg, mc_sample,
             batch_size=batch_size,
             use_cuda = true)
 
-println("u1 = ", u1[end])
+println("u1 = ", sol[end])
 
 using Plots
-Plots.plot(u1)
+Plots.plot(sol)

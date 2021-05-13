@@ -9,7 +9,7 @@ include("../src/pde_solve_deepsplitting_4.jl")
 using Random
 Random.seed!(100)
 
-d = 10 # number of dimensions
+d = 1 # number of dimensions
 # one-dimensional heat equation
 X0 = fill(0.0f0,d)  # initial points
 tspan = (0.0f0,1f0)
@@ -32,9 +32,9 @@ opt = Flux.Optimiser(ExpDecay(0.1,
                 ADAM())
 
 g(X) = exp.(-0.5f0 * sum(X.^2,dims=1))   # terminal condition
-f(y,z,v_y,v_z,∇v_y,∇v_z,p,t) = v_y .* (1f0 .- v_z .* Float32(π^(d/2) * σ_sampling^d) ) # function from solved equation
+f(y,z,v_y,v_z,∇v_y,∇v_z,p,t) = - min(v_y,0f0) - v_z .* Float32(π^(d/2) * σ_sampling^d) # function from solved equation
 μ_f(X,p,t) = 0.0f0
-σ_f(X,p,t) = 0.1f0
+σ_f(X,p,t) = sqrt(2f0)
 mc_sample(x) = x + CUDA.randn(d,batch_size) * σ_sampling / sqrt(2f0)
 
 ## One should look at InitialPDEProble, this would surely be more appropriate
@@ -51,5 +51,5 @@ sol = solve(prob, alg, mc_sample,
             use_cuda = true)
 println("u1 = ", sol.u[end])
 
-using Plots
-Plots.plot(sol)
+# using Plots
+# Plots.plot(sol)

@@ -4,14 +4,12 @@ using Flux, Zygote, LinearAlgebra, Statistics
 # println("NNPDE_deepsplitting_tests")
 using Test
 # println("Starting Soon!")
-using Revise
-include("pde_solve_deepsplitting_2.jl")
-# using NeuralPDE
+include("../src/pde_solve_deepsplitting_4.jl")
 
 using Random
 Random.seed!(100)
 
-d = 10 # number of dimensions
+d = 1 # number of dimensions
 # one-dimensional heat equation
 X0 = fill(0.0f0,d)  # initial points
 tspan = (0.0f0,1f0)
@@ -19,7 +17,7 @@ dt = 0.1f0   # time step
 batch_size = 8192
 train_steps = 8000
 σ_sampling = 0.1f0
-K = 1f0
+K = 20
 
 hls = d + 50 #hidden layer size
 
@@ -42,13 +40,16 @@ mc_sample(x) = x + CUDA.randn(d,batch_size) * σ_sampling / sqrt(2f0)
 ## One should look at InitialPDEProble, this would surely be more appropriate
 prob = PIDEProblem(g, f, μ_f, σ_f, X0, tspan)
 
-alg = NNPDEDS(nn, K=1, opt = opt )
+alg = NNPDEDS(nn, K=K, opt = opt )
 
-u1 = solve(prob, alg, mc_sample,
+sol = solve(prob, alg, mc_sample,
             dt=dt,
             verbose = true,
-            abstol=1e-3,
+            abstol=1e-5,
             maxiters = train_steps,
             batch_size=batch_size,
             use_cuda = true)
-println("u1 = ", u1)
+println("u1 = ", sol.u[end])
+
+# using Plots
+# Plots.plot(sol)
