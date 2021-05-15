@@ -9,7 +9,7 @@ It aims at solving non-local, non-linear Partial Differential Equations, where t
 
 The scheme is particularly performant when the domain D is highly dimensional, as it overcomes the so called *curse of dimensionality*.
 
-## Installation
+<!-- ## Installation
 Open Julia in your favorite REPL and type the following
 
 ```julia
@@ -17,7 +17,7 @@ using Pkg;
 Pkg.add("https://github.com/vboussange/DeepSplitting.jl.git")
 ```
 
-This will download latest version from git repo and download all dependencies.
+This will download latest version from git repo and download all dependencies. -->
 
 ## Getting started
 Checkout the folder `examples/allen_cahn_nonlocal.jl` to see how it works.
