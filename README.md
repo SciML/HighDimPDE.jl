@@ -4,7 +4,7 @@ This package provides the Deep Splitting algorithm (paper in prep.), built upon 
 It aims at solving non-local, non-linear Partial Differential Equations, where the solution $u \colon \R^d \times \R^+ \to \R$ satisfies equations of the form
 
 <div style="overflow-x: scroll" align=center>                          
-<img src="docs/equation.png" style="max-width:400px !important;"/>
+<img src="docs/equation.png" style="max-width:300px !important;"/>
 </div>
 
 # Acknowledgements
