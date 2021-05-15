@@ -5,38 +5,40 @@ using Flux, Zygote, LinearAlgebra, Statistics
 # println("NNPDE_deepsplitting_tests")
 using Test
 # println("Starting Soon!")
-include("../src/pde_solve_deepsplitting_4.jl")
+include("../src/pde_solve_deepsplitting_4.jl")  #latest version of the DeepSplitting scheme
 
 using Random
 Random.seed!(100)
 
 function allen_cahn_nonlocal(;d,tspan,dt,batch_size,train_steps,σ_sampling,K)
-        X0 = fill(0.0f0,d)  # initial points
+        X0 = fill(0.0f0,d)  # initial point
 
         hls = d + 50 #hidden layer size
 
         nn = Flux.Chain(Dense(d,hls,tanh),
                         Dense(hls,hls,tanh),
-                        Dense(hls,1))
+                        Dense(hls,1)) # Neural network used by the scheme
 
         opt = Flux.Optimiser(ExpDecay(0.1,
                         0.1,
                         2000,
                         1e-4),
-                        ADAM())
+                        ADAM() )#optimiser
 
-        g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # terminal condition
+        g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
         a(u) = u - u^3
-        f(y,z,v_y,v_z,∇v_y,∇v_z,p,t) = a.(v_y) .- a.(v_z) .* Float32(π^(d/2) * σ_sampling^d) # function from solved equation
-        μ_f(X,p,t) = 0.0f0
-        σ_f(X,p,t) = sqrt(2f0)
-        mc_sample(x) = x + CUDA.randn(d,batch_size) * σ_sampling / sqrt(2f0)
+        f(y,z,v_y,v_z,∇v_y,∇v_z,p,t) = a.(v_y) .- a.(v_z) .* Float32(π^(d/2) * σ_sampling^d) # nonlocal nonlinear part of the
+        μ_f(X,p,t) = 0.0f0 # advection coefficients
+        σ_f(X,p,t) = sqrt(2f0) # diffusion coefficients
+        mc_sample(x) = x + CUDA.randn(d,batch_size) * σ_sampling / sqrt(2f0) #montecarlo samples
 
-        ## One should look at InitialPDEProble, this would surely be more appropriate
-        prob = PIDEProblem(g, f, μ_f, σ_f, X0, tspan)
+        # defining the problem
+        prob    = PIDEProblem(g, f, μ_f, σ_f, X0, tspan)
 
+        # using the Deep Splitting algorithm
         alg = NNPDEDS(nn, K=K, opt = opt )
 
+        # solving
         sol = solve(prob, alg, mc_sample,
                     dt=dt,
                     verbose = true,
@@ -48,8 +50,8 @@ function allen_cahn_nonlocal(;d,tspan,dt,batch_size,train_steps,σ_sampling,K)
 
         sol
 end
-# using Plots
-# Plots.plot(sol)
+
+## Basic example
 if false
         sol = allen_cahn_nonlocal(
                 d = 3, # number of dimensions
@@ -61,10 +63,11 @@ if false
                 σ_sampling = 1f0,
                 K = 5,
                 )
+        Plots.plot(sol)
 end
 
 ########################
-###### For publication #######
+### For publication ####
 ########################
 if true
         using DataFrames
@@ -79,7 +82,7 @@ if true
                 dt = Float32(T / N)
                 for i in 1:5
                         sol = allen_cahn_nonlocal(
-                                d = 3, # number of dimensions
+                                d = 3, # dimension of the domain (D = \R^d)
                                 # one-dimensional heat equation
                                 tspan = (0.0f0,T),
                                 dt = dt,   # time step
