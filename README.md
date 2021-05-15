@@ -1,7 +1,7 @@
 # DeepSplitting.jl
 
 This package provides the Deep Splitting algorithm (paper in prep.), built upon DiffEqBase.jl and SciMLBase.jl.
-It aims at solving non-local, non-linear Partial Differential Equations, where the solution $`u \colon \R^d \times \R^+ \to \R`$ satisfies equations of the form
+It aims at solving non-local, non-linear Partial Differential Equations, where the solution $u \colon \R^d \times \R^+ \to \R$ satisfies equations of the form
 
 ```math
 \begin{aligned}
