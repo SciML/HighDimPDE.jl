@@ -20,7 +20,7 @@ Pkg.add("https://github.com/vboussange/DeepSplitting.jl.git")
 This will download latest version from git repo and download all dependencies. -->
 
 ## Getting started
-Checkout the folder `examples/allen_cahn_nonlocal.jl` to see how it works.
+Check out the folder `examples/allen_cahn_nonlocal.jl` to see how it works.
 
 # Acknowledgements
 Sebastian Becker, who wrote the original script in TensorFlow.
