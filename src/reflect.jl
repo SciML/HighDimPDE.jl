@@ -129,8 +129,8 @@ reflection of the vector (b-a) from a on the cube [s,e]^2
 function _reflect_GPU2(a,b,s,e,d,batch_size)
     out1 = b .< s
     out2 = b .> e
-    rtemp1 = @. (a - s) #left 
-    rtemp2 = @. (e - a) #right
+    rtemp1 = @. (a - s) / (a - b) #left 
+    rtemp2 = @. (e - a) / (b - a) #right
     rtemp = fill(2.,size(a))
     rtemp[out1] .= rtemp1[out1]
     rtemp[out2] .= rtemp2[out2]
@@ -140,8 +140,8 @@ function _reflect_GPU2(a,b,s,e,d,batch_size)
     n = sparse(imin,1:batch_size,1,d,batch_size)
 
     while sum(rmin) .> 0.
-        c = @. (a + ( * rmin) * n)
-        b = @.( b - 2 * n * (c-b) )
+        c = @. (a + ((b-a) * rmin) * n)
+        b = @.( b - 2 * n * (b-c) )
         a = c
 
         out1 = b .< s
