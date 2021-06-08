@@ -38,7 +38,9 @@ function allen_cahn_nonlocal(;d,tspan,dt,batch_size,train_steps,σ_sampling,K)
         mc_sample(x) = x + CUDA.randn(d,batch_size) * σ_sampling / sqrt(2f0) #montecarlo samples
 
         # defining the problem
-        prob    = PIDEProblem(g, f, μ_f, σ_f, X0, tspan, u_domain = [0f0,1f0])
+        prob    = PIDEProblem(g, f, μ_f, σ_f, X0, tspan,
+                                u_domain = [0f0,1f0]
+                                )
 
         # using the Deep Splitting algorithm
         alg = NNPDEDS(nn, K=K, opt = opt )
