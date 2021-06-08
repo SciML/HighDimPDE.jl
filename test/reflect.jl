@@ -8,28 +8,12 @@ X11 = _reflect(X0,X1,-1,1)
 @test prod(X11 .< 1) && prod(X11 .> -1) 
 
 # testing reflection on batchsize 
-<<<<<<< HEAD
-<<<<<<< HEAD
-y0 = repeat(X0[:],1,batch_size)
-y1 = y0 + randn(size(y0))
-y11 = _reflect(y0,y1,0,1)
-@test prod(y11 .< 1) && prod(y11 .> 0) 
-=======
-batch_size = 1000
-=======
 batch_size = 10000
->>>>>>> reflect method working
 y0 = repeat(X0[:],1,batch_size)
 y1 = y0 + 2 .* randn(size(y0))
 y0 = hcat(X0,y0)
 y1 = hcat(X1,y1)
 n = similar(y1)
-<<<<<<< HEAD
-y11 = _reflect_GPU2(y0,y1,0,1,d,batch_size+1,n)
-@test prod(y11 .< 1) && prod(y11 .> 0) 
-@test prod(y11[:,1] .≈ X11[:,1]) 
->>>>>>> e6aade69e614a9a20b5babbcf5a87bd2dbedf7a8
-=======
 y11 = _reflect_GPU2(y0,y1,-1,1,d,batch_size+1,n)
 @test prod(y11 .< 1) && prod(y11 .> -1) 
 @test prod(y11[:,1] .≈ X11[:,1]) 
@@ -51,4 +35,3 @@ for i in 1:21
     y1 .= _reflect_GPU2(y0,y1,-1f0,1f0,d,batch_size,n)
 end
 count(isnan.(y1))
->>>>>>> reflect method working

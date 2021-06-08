@@ -54,9 +54,6 @@ function _reflect(a,b,s,e)
     # dat = hcat(a,b)
     # Plots.plot3d!(dat[1,:],dat[2,:],dat[3,:],label = "",color="blue")
     return b
-<<<<<<< HEAD
-end
-=======
 end
 
 # """
@@ -159,4 +156,3 @@ function _reflect_GPU2(a, #first point
     return b
 end
 
->>>>>>> e6aade69e614a9a20b5babbcf5a87bd2dbedf7a8
