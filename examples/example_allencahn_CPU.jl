@@ -17,7 +17,7 @@ train_steps = 1000
 σ_sampling = 1f0
 K = 5
 
-X0 = fill(0.0f0,d)  # initial point
+X0 = fill(0.5f0,d)  # initial point
 
 hls = d + 50 #hidden layer size
 
@@ -40,7 +40,7 @@ mc_sample(x) = x + randn(d,batch_size) * σ_sampling / sqrt(2f0) #montecarlo sam
 
 # defining the problem
 prob = PIDEProblem(g, f, μ, σ, X0, tspan, 
-                    u_domain=[-1f0,1f0]
+                    u_domain=[0f0,1f0]
                      )
 
 # using the Deep Splitting algorithm
@@ -57,5 +57,3 @@ sol = solve(prob, alg, mc_sample,
 println("u1 = ", sol.u[end])
 
 sol
-
-

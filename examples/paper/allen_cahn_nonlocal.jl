@@ -3,7 +3,7 @@ name_sim = split(splitpath(@__FILE__)[end],".")[1]
 # using Pkg; Pkg.activate(".")
 using Flux, Zygote, LinearAlgebra, Statistics
 # println("Starting Soon!")
-include("../src/DeepSplitting.jl")  #latest version of the DeepSplitting scheme
+include("../../src/DeepSplitting.jl")  #latest version of the DeepSplitting scheme
 
 using Random
 Random.seed!(100)
