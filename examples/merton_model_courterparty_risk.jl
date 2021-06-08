@@ -1,13 +1,19 @@
 cd(@__DIR__)
+name_sim = split(splitpath(@__FILE__)[end],".")[1]
 # using Pkg; Pkg.activate(".")
 using Flux, Zygote, LinearAlgebra, Statistics
-# println("NNPDE_deepsplitting_tests")
-using Test
 # println("Starting Soon!")
 include("../src/pde_solve_deepsplitting_4.jl")
-
 using Random
 Random.seed!(100)
+
+# for post processes
+using DataFrames
+using Latexify
+using LaTeXStrings
+using CSV
+using Test
+
 
 function merton(;d,tspan,dt,batch_size,train_steps,σ_sampling,K)
         X0 = fill(0.0f0,d)  # initial points
@@ -58,16 +64,12 @@ if false
                 σ_sampling = 0.1f0,
                 K = 20,
                 )
-
+end
 
 ########################
 ###### For publication #######
 ########################
 if true
-        using DataFrames
-        using Latexify
-        using LaTeXStrings
-        using CSV
         df = DataFrame(); [df[c] = Float64[] for c in [L"d",L"T",L"N","Mean","Std. dev."]]
         dfu = DataFrame(); [dfu[c] = Float64[] for c in ["d","T","N","u"]]
         for d in [1,2,5,10],T in [1/5,1/2,1]
@@ -75,8 +77,8 @@ if true
                 u = []
                 dt = Float32(T / N)
                 for i in 1:5
-                        sol = allen_cahn_nonlocal(
-                                d = 3, # number of dimensions
+                        sol = merton(
+                                d = d, # number of dimensions
                                 # one-dimensional heat equation
                                 tspan = (0.0f0,T),
                                 dt = dt,   # time step
