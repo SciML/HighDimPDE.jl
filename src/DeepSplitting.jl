@@ -3,6 +3,7 @@ abstract type NeuralPDEAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
 using Flux, Zygote, LinearAlgebra
 using ProgressMeter: @showprogress
 using CUDA
+include("reflect.jl")
 
 struct DSFunction{F} <: DiffEqBase.AbstractODEFunction{false}
     f::F
@@ -20,6 +21,9 @@ Consider `du/dt = l(u) + \\int f(u,x) dx`; where l is the nonlinear Lipschitz fu
 * `μ` : The noise function of X from Ito's Lemma
 * `x0`: The initial X for the problem.
 * `tspan`: The timespan of the problem.
+# Options
+* `u_domain` : the domain, correspoding to the hypercube
+∏_i [u_domain[1][i], u_domain[2][i]]. In this case the problem has reflecting boundary conditions
 """
 struct PIDEProblem{X0Type,uType,tType,G,F,Mu,Sigma,P,A,UD,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false}
     u0::uType
@@ -102,7 +106,7 @@ function DiffEqBase.__solve(
     end
 
     # calculating SDE trajectories
-    function sde_loop!(y0,y1,dWall,net)
+    function sde_loop!(y0,y1,dWall,u_domain)
         rgen!(dWall)
         for i in 1:size(dWall,3)
             # not sure about this one
@@ -110,6 +114,9 @@ function DiffEqBase.__solve(
             dW = @view dWall[:,:,i]
             y0 .= y1
             y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW
+        end
+        if !isnothing(u_domain)
+            y1 .= _reflect(y0,y1,u_domain[1],u_domain[2])
         end
         return y0, y1
     end
@@ -157,7 +164,7 @@ function DiffEqBase.__solve(
         for epoch in 1:maxiters
             y0 .= repeat(X0[:],1,batch_size)
             y1 .= repeat(X0[:],1,batch_size)
-            sde_loop!(y0, y1, dWall, net)
+            sde_loop!(y0, y1, dWall, prob.u_domain)
             gs = Flux.gradient(ps) do
                 loss(y0,y1,t)
             end
@@ -179,5 +186,5 @@ function DiffEqBase.__solve(
         usol[net+1] = mean(vj(X0))
     end
     sol = DiffEqBase.build_solution(prob,alg,ts,usol)
-    # save_everystep ? iters : u0(X0)[1]
+    return sol
 end
