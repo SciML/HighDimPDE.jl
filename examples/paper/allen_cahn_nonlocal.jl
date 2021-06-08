@@ -92,7 +92,7 @@ if true
                                 batch_size = 8192,
                                 train_steps = 8000,
                                 σ_sampling = 5f-1,
-                                K = 5,
+                                K = 1,
                                 )
                         push!(u,sol.u[end])
                         push!(dfu,(d,T,N,sol.u[end]))
