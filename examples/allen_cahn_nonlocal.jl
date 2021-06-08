@@ -3,7 +3,7 @@ name_sim = split(splitpath(@__FILE__)[end],".")[1]
 # using Pkg; Pkg.activate(".")
 using Flux, Zygote, LinearAlgebra, Statistics
 # println("Starting Soon!")
-include("../src/pde_solve_deepsplitting_4.jl")  #latest version of the DeepSplitting scheme
+include("../src/DeepSplitting.jl")  #latest version of the DeepSplitting scheme
 
 using Random
 Random.seed!(100)
@@ -16,7 +16,7 @@ using CSV
 using Test
 
 function allen_cahn_nonlocal(;d,tspan,dt,batch_size,train_steps,σ_sampling,K)
-        X0 = fill(0.0f0,d)  # initial point
+        X0 = fill(0.5f0,d)  # initial point
 
         hls = d + 50 #hidden layer size
 
@@ -38,7 +38,7 @@ function allen_cahn_nonlocal(;d,tspan,dt,batch_size,train_steps,σ_sampling,K)
         mc_sample(x) = x + CUDA.randn(d,batch_size) * σ_sampling / sqrt(2f0) #montecarlo samples
 
         # defining the problem
-        prob    = PIDEProblem(g, f, μ_f, σ_f, X0, tspan)
+        prob    = PIDEProblem(g, f, μ_f, σ_f, X0, tspan, u_domain = [0f0,1f0])
 
         # using the Deep Splitting algorithm
         alg = NNPDEDS(nn, K=K, opt = opt )
