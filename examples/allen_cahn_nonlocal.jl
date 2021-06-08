@@ -3,12 +3,8 @@ name_sim = split(splitpath(@__FILE__)[end],".")[1]
 # using Pkg; Pkg.activate(".")
 using Flux, Zygote, LinearAlgebra, Statistics
 # println("Starting Soon!")
-<<<<<<< HEAD
-include("../src/pde_solve_deepsplitting_4.jl")
-=======
 include("../src/pde_solve_deepsplitting_4.jl")  #latest version of the DeepSplitting scheme
 
->>>>>>> d50e620a0282620a8f42ff8c55122790f44133c9
 using Random
 Random.seed!(100)
 
