@@ -77,9 +77,7 @@ function _reflect_GPU2(a, #first point
     while sum(out1 .+ out2) > 0
         rtemp1 = @. (a - s) / (a - b) #left 
         rtemp2 = @. (e - a) / (b - a) #right
-        rtemp = ones(T,size(a))
-        rtemp[out1] .= rtemp1[out1]
-        rtemp[out2] .= rtemp2[out2]
+        rtemp = rtemp1 .* out1 .+ rtemp2 .* out2 .+ ones(T,size(a)) .*(!.(out1 .| out2))
         imin = argmin.(eachcol(rtemp))
         rmin = minimum(rtemp,dims=1)
         n .= sparse(imin,1:batch_size,one(T),d,batch_size)
