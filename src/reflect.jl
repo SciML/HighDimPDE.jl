@@ -124,37 +124,32 @@ end
 using SparseArrays
 """
     _reflect(a,b,s,e)
-reflection of the vector (b-a) from a on the cube [s,e]^2
+reflection of the vector (b-a) from a on the cube [s,e]^d
 """
-function _reflect_GPU2(a,b,s,e,d,batch_size)
+function _reflect_GPU2(a, #first point
+                        b, # second point
+                        s, # [s,e]^d
+                        e, # [s,e]^d
+                        d, # [s,e]^d
+                        batch_size,
+                        n # sparse matrix that is used to store reflection side
+                        )
     out1 = b .< s
     out2 = b .> e
-    rtemp1 = @. (a - s) / (a - b) #left 
-    rtemp2 = @. (e - a) / (b - a) #right
-    rtemp = fill(2.,size(a))
-    rtemp[out1] .= rtemp1[out1]
-    rtemp[out2] .= rtemp2[out2]
-    imin = argmin.(eachcol(rtemp))
-    rmin = minimum(rtemp,dims=1)
-    rmin[rmin .> 1.] .= 0.
-    n = sparse(imin,1:batch_size,1,d,batch_size)
-
-    while sum(rmin) .> 0.
-        c = @. (a + ((b-a) * rmin) * n)
-        b = @.( b - 2 * n * (b-c) )
-        a = c
-
-        out1 = b .< s
-        out2 = b .> e
+    while sum(out1 .+ out2) > 0
         rtemp1 = @. (a - s) / (a - b) #left 
         rtemp2 = @. (e - a) / (b - a) #right
-        rtemp = fill(2.,size(a))
+        rtemp = ones(size(a))
         rtemp[out1] .= rtemp1[out1]
         rtemp[out2] .= rtemp2[out2]
         imin = argmin.(eachcol(rtemp))
         rmin = minimum(rtemp,dims=1)
-        rmin[rmin .> 1.] .= 0.
-        n = sparse(imin,1:batch_size,1,d,batch_size)
+        n .= sparse(imin,1:batch_size,1,d,batch_size)
+        c = @. (a + (b-a) * rmin)
+        b = @.( b - 2 * n * (b-c) )
+        a = c
+        out1 = b .< s
+        out2 = b .> e
     end
     return b
 end
