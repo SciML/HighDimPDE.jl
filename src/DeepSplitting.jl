@@ -156,6 +156,7 @@ function DiffEqBase.__solve(
 
     for net in 1:N
         # preallocate dWall
+        verbose && println("preallocating dWall")
         dWall = zeros(Float32, d, batch_size, N + 1 - net) |> _device
 
         verbose && println("Step $(net) / $(N) ")
@@ -163,10 +164,12 @@ function DiffEqBase.__solve(
 
         # @showprogress
         for epoch in 1:maxiters
+            # verbose && println("epoch $epoch")
             y0 .= repeat(X0[:],1,batch_size)
             y1 .= repeat(X0[:],1,batch_size)
-            # verbose && println("epoch $epoch")
+            verbose && println("sde loop")
             sde_loop!(y0, y1, dWall,u_domain)
+            verbose && println("training gradient")
             gs = Flux.gradient(ps) do
                 loss(y0,y1,t)
             end
