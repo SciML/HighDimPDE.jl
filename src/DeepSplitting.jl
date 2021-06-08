@@ -88,6 +88,39 @@ function DiffEqBase.__solve(
     use_cuda = false
     )
 
+    if use_cuda && CUDA.functional()
+        @info "Training on CUDA GPU"
+        CUDA.allowscalar(false)
+        _device = Flux.gpu
+        rgen! = CUDA.randn!
+    else
+        @info "Training on CPU"
+        _device = Flux.cpu
+        rgen! = randn!
+    end
+
+    # unbin stuff
+    u_domain = prob.u_domain
+    X0 = prob.X0 |> _device
+    ts = prob.tspan[1]:dt:prob.tspan[2]
+    N = length(ts) - 1
+    d  = length(X0)
+    K = alg.K
+    opt = alg.opt
+    g,f,μ,σ,p = prob.g,prob.f,prob.μ,prob.σ,prob.p
+
+    #hidden layer
+    nn = alg.nn |> _device
+    vi = g |> _device
+    vj = deepcopy(nn)
+    ps = Flux.params(vj)
+
+    # preallocate y0,y1,n, usol
+    y0 = repeat(X0[:],1,batch_size)
+    y1 = repeat(X0[:],1,batch_size)
+    isnothing(u_domain) ? nothing : n = similar(y1)
+    usol = [g(prob.X0)[1] for i in 1:(N+1)]
+
     function splitting_model(y0,y1,t)
         # Monte Carlo integration
         # z is the variable that gets integreated
@@ -114,57 +147,26 @@ function DiffEqBase.__solve(
             dW = @view dWall[:,:,i]
             y0 .= y1
             y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW
-        end
-        if !isnothing(u_domain)
-            y1 .= _reflect(y0,y1,u_domain[1],u_domain[2])
+            if !isnothing(u_domain)
+                y1 .= _reflect_GPU2(y0,y1,u_domain[1],u_domain[2],d,batch_size,n)
+            end
         end
         return y0, y1
     end
 
-    if use_cuda && CUDA.functional()
-        @info "Training on CUDA GPU"
-        CUDA.allowscalar(false)
-        _device = Flux.gpu
-        rgen! = CUDA.randn!
-    else
-        @info "Training on CPU"
-        _device = Flux.cpu
-        rgen! = randn!
-    end
-
-    X0 = prob.X0 |> _device
-    ts = prob.tspan[1]:dt:prob.tspan[2]
-    N = length(ts)
-    d  = length(X0)
-    g,f,μ,σ,p = prob.g,prob.f,prob.μ,prob.σ,prob.p
-
-    #hidden layer
-    nn = alg.nn |> _device
-    vi = g |> _device
-    vj = deepcopy(nn)
-
-    ps = Flux.params(vj)
-
-    K = alg.K
-    opt = alg.opt
-    N = length(ts) - 1
-
-    # preallocate y0, y1
-    y0 = repeat(X0[:],1,batch_size)
-    y1 = repeat(X0[:],1,batch_size)
-    usol = [g(prob.X0)[1] for i in 1:(N+1)]
     for net in 1:N
         # preallocate dWall
         dWall = zeros(Float32, d, batch_size, N + 1 - net) |> _device
 
-        verbose && println("Step $(net) / $(N) ")
+        # verbose && println("Step $(net) / $(N) ")
         t = ts[net]
 
         # @showprogress
         for epoch in 1:maxiters
             y0 .= repeat(X0[:],1,batch_size)
             y1 .= repeat(X0[:],1,batch_size)
-            sde_loop!(y0, y1, dWall, prob.u_domain)
+            verbose && println("epoch $epoch")
+            sde_loop!(y0, y1, dWall,u_domain)
             gs = Flux.gradient(ps) do
                 loss(y0,y1,t)
             end
