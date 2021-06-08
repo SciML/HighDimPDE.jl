@@ -68,25 +68,33 @@ function _reflect_GPU2(a, #first point
                         e, # [s,e]^d
                         d, # [s,e]^d
                         batch_size,
-                        n, # sparse matrix that is used to store reflection side
                         _device
                         )
     T = eltype(a)
     prod((a .>= s) .* (a .<= e)) ? nothing : error("a not in hypercube")
     out1 = b .< s |> _device
     out2 = b .> e |> _device
+    # Allocating
+    rtemp_ones = ones(T,size(a)) |> _device
+    rtemp1 = similar(a)
+    rtemp2 = similar(a)
+    rtemp = similar(a)
+    imin = argmin(rtemp,dims=1)
+    n = similar(a)
+    c = similar(a)
     while sum(out1 .+ out2) > 0
-        rtemp1 = @. (a - s) / (a - b) #left
-        rtemp2 = @. (e - a) / (b - a) #right
-        rtemp = rtemp1 .* out1 .+ rtemp2 .* out2 .+ _device(ones(T,size(a))) .*(.!(out1 .| out2))
-        imin = argmin.(eachcol(rtemp))
+        rtemp1 .= @. (a - s) / (a - b) #left
+        rtemp2 .= @. (e - a) / (b - a) #right
+        rtemp .= rtemp1 .* out1 .+ rtemp2 .* out2 .+ rtemp_ones .*(.!(out1 .| out2))
+        imin .= argmin(rtemp,dims=1)
         rmin = minimum(rtemp,dims=1)
-        n .= sparse(imin,1:batch_size,one(T),d,batch_size) |> _device
-        c = @. (a + (b-a) * rmin)
-        b = @.( b - 2 * n * (b-c) )
-        a = c
-        out1 = b .< s
-        out2 = b .> e
+        n .= 0.
+        n[imin] = rtemp_ones
+        c .= @. (a + (b-a) * rmin)
+        b .= @.( b - 2 * n * (b-c) )
+        a .= c
+        out1 .= b .< s
+        out2 .= b .> e
     end
     return b
 end

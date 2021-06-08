@@ -118,7 +118,6 @@ function DiffEqBase.__solve(
     # preallocate y0,y1,n, usol
     y0 = repeat(X0[:],1,batch_size)
     y1 = repeat(X0[:],1,batch_size)
-    isnothing(u_domain) ? nothing : n = similar(y1)
     usol = [g(prob.X0)[1] for i in 1:(N+1)]
 
     function splitting_model(y0,y1,t)
@@ -148,7 +147,7 @@ function DiffEqBase.__solve(
             y0 .= y1
             y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW
             if !isnothing(u_domain)
-                y1 .= _reflect_GPU2(y0,y1,u_domain[1],u_domain[2],d,batch_size,n,_device)
+                y1 .= _reflect_GPU2(y0,y1,u_domain[1],u_domain[2],d,batch_size,_device)
             end
         end
         return y0, y1
@@ -156,7 +155,7 @@ function DiffEqBase.__solve(
 
     for net in 1:N
         # preallocate dWall
-        verbose && println("preallocating dWall")
+        # verbose && println("preallocating dWall")
         dWall = zeros(Float32, d, batch_size, N + 1 - net) |> _device
 
         verbose && println("Step $(net) / $(N) ")
@@ -165,11 +164,14 @@ function DiffEqBase.__solve(
         # @showprogress
         for epoch in 1:maxiters
             # verbose && println("epoch $epoch")
+
             y0 .= repeat(X0[:],1,batch_size)
             y1 .= repeat(X0[:],1,batch_size)
-            verbose && println("sde loop")
+
+            # verbose && println("sde loop")
             sde_loop!(y0, y1, dWall,u_domain)
-            verbose && println("training gradient")
+
+            # verbose && println("training gradient")
             gs = Flux.gradient(ps) do
                 loss(y0,y1,t)
             end
