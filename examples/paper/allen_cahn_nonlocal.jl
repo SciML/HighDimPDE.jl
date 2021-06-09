@@ -1,6 +1,6 @@
 cd(@__DIR__)
 name_sim = split(splitpath(@__FILE__)[end],".")[1]
-# using Pkg; Pkg.activate(".")
+using Pkg; Pkg.activate("../../.")
 using Flux, Zygote, LinearAlgebra, Statistics
 # println("Starting Soon!")
 include("../../src/DeepSplitting.jl")  #latest version of the DeepSplitting scheme
@@ -82,7 +82,7 @@ if true
         for d in [1,2,5,10],T in [1/5,1/2,1]
                 N = 10
                 u = []
-                dt = Float32(T / N)
+                dt = T / N
                 for i in 1:5
                         sol = allen_cahn_nonlocal(
                                 d = d, # dimension of the domain (D = \R^d)

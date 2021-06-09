@@ -1,3 +1,5 @@
+using SparseArrays
+
 """
     _reflect(a,b,s,e)
 reflection of the vector (b-a) from a on the cube [s,e]^2
@@ -57,7 +59,6 @@ function _reflect(a,b,s,e)
 end
 
 
-using SparseArrays
 """
     _reflect(a,b,s,e)
 reflection of the vector (b-a) from a on the cube [s,e]^d
@@ -79,22 +80,23 @@ function _reflect_GPU2(a, #first point
     rtemp1 = similar(a)
     rtemp2 = similar(a)
     rtemp = similar(a)
+    rmin = minimum(rtemp,dims=1)
     imin = argmin(rtemp,dims=1)
     n = similar(a)
     c = similar(a)
     while sum(out1 .+ out2) > 0
-        rtemp1 .= @. (a - s) / (a - b) #left
-        rtemp2 .= @. (e - a) / (b - a) #right
+        @. rtemp1 = (a - s) / (a - b) #left
+        @. rtemp2 = (e - a) / (b - a) #right
         rtemp .= rtemp1 .* out1 .+ rtemp2 .* out2 .+ rtemp_ones .*(.!(out1 .| out2))
         imin .= argmin(rtemp,dims=1)
-        rmin = minimum(rtemp,dims=1)
+        rmin .= minimum(rtemp,dims=1)
         n .= 0.
         n[imin] = rtemp_ones
-        c .= @. (a + (b-a) * rmin)
-        b .= @.( b - 2 * n * (b-c) )
-        a .= c
-        out1 .= b .< s
-        out2 .= b .> e
+        @. c =  (a + (b-a) * rmin)
+        @. b = ( b - 2 * n * (b-c) )
+        @. a = c
+        @. out1 = b < s
+        @. out2 = b > e
     end
     return b
 end

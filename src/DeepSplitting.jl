@@ -103,6 +103,7 @@ function DiffEqBase.__solve(
     u_domain = prob.u_domain
     X0 = prob.X0 |> _device
     ts = prob.tspan[1]:dt:prob.tspan[2]
+    dt = convert(eltype(X0),dt)
     N = length(ts) - 1
     d  = length(X0)
     K = alg.K
