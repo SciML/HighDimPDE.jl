@@ -1,6 +1,3 @@
-include("utils.jl")
-include("reflect.jl")
-
 """
 struct DeepSplitting{C1,O} <: HighDimPDEAlgorithm
 

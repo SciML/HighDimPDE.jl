@@ -1,5 +1,3 @@
-using SparseArrays
-
 """
     _reflect(a,b,s,e)
 reflection of the vector (b-a) from a on the cube [s,e]^2
@@ -91,7 +89,7 @@ function _reflect_GPU2(a, #first point
         imin .= argmin(rtemp,dims=1)
         rmin .= minimum(rtemp,dims=1)
         n .= 0.
-        n[imin] = rtemp_ones
+        n[imin] = rtemp_ones[imin]
         @. c =  (a + (b-a) * rmin)
         @. b = ( b - 2 * n * (b-c) )
         @. a = c

@@ -1,9 +1,9 @@
 cd(@__DIR__)
-using Pkg; Pkg.activate("HighDimPDE")
-# println("Starting Soon!")
+using Pkg; Pkg.activate(".")
+using Revise
 using HighDimPDE
-
 using Random
+using Flux
 # Random.seed!(100)
 
 ## Basic example
@@ -11,8 +11,8 @@ d = 3 # number of dimensions
 # one-dimensional heat equation
 tspan = (0.0f0,1f0)
 dt = 0.1f0  # time step
-batch_size = 1000
-train_steps = 1000
+batch_size = 500
+train_steps = 500
 σ_sampling = 1f0
 K = 5
 
@@ -43,16 +43,16 @@ prob = PIDEProblem(g, f, μ, σ, X0, tspan,
                      )
 
 # using the Deep Splitting algorithm
-alg = NNPDEDS(nn, K=K, opt = opt )
+alg = DeepSplitting(nn, K=K, opt = opt )
 
 # solving
 sol = solve(prob, alg, mc_sample,
             dt=dt,
             verbose = true,
-            abstol=1e-5,
+            abstol=1e-3,
             maxiters = train_steps,
             batch_size=batch_size,
             use_cuda = false)
 println("u1 = ", sol.u[end])
 
-sol
+# sol

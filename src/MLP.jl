@@ -1,6 +1,3 @@
-include("utils.jl")
-include("reflect.jl")
-
 """
 Multi level Picard algorithm for solving non local non linear PDES.
     

@@ -1,9 +1,12 @@
 module HighDimPDE
-    using DiffEqBase
+    using Reexport
+    @reexport using DiffEqBase
+    using Statistics
     using Flux, Zygote, LinearAlgebra
     # using ProgressMeter: @showprogress
     using CUDA
     using Random
+    using SparseArrays
 
     abstract type HighDimPDEAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
 
@@ -57,8 +60,9 @@ module HighDimPDE
     show(io,A.tspan)
     end
 
-    include("utils.jl")
     include("reflect.jl")
     include("DeepSplitting.jl")
     include("MLP.jl")
+
+    export PIDEProblem, DeepSplitting, MLP
 end
