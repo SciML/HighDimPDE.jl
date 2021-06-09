@@ -1,19 +1,16 @@
 cd(@__DIR__)
 name_sim = split(splitpath(@__FILE__)[end],".")[1]
-using Pkg; Pkg.activate("../../.")
-using Flux, Zygote, LinearAlgebra, Statistics
-# println("Starting Soon!")
-include("../../src/DeepSplitting.jl")  #latest version of the DeepSplitting scheme
-
+using Pkg; Pkg.activate("../.");Pkg.instantiate()
+using HighDimPDE
+using Flux
 using Random
+using CUDA
 Random.seed!(100)
-
 # for post processes
 using DataFrames
 using Latexify
 using LaTeXStrings
 using CSV
-using Test
 
 function allen_cahn_nonlocal(;d,tspan,dt,batch_size,train_steps,σ_sampling,K)
         X0 = fill(0.5f0,d)  # initial point
@@ -43,7 +40,7 @@ function allen_cahn_nonlocal(;d,tspan,dt,batch_size,train_steps,σ_sampling,K)
                                 )
 
         # using the Deep Splitting algorithm
-        alg = NNPDEDS(nn, K=K, opt = opt )
+        alg = DeepSplitting(nn, K=K, opt = opt )
 
         # solving
         sol = solve(prob, alg, mc_sample,

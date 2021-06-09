@@ -15,7 +15,7 @@ dt = 0.1f0  # time step
 batch_size = 8000
 train_steps = 1000
 σ_sampling = 1f0
-K = 5
+K = 2
 
 X0 = fill(0.5f0,d)  # initial point
 

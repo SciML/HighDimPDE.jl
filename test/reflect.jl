@@ -34,7 +34,7 @@ end
         rgen! = CUDA.randn!
     end
     # testing reflection on batchsize
-    batch_size = 100000
+    batch_size = 10000
     y0 = repeat(X0[:],1,batch_size) |> _device
     y1 = repeat(X0[:],1,batch_size) |> _device
     dWall = zeros(Float32, d, batch_size, 100 ) |> _device
