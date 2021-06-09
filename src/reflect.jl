@@ -4,9 +4,11 @@ reflection of the vector (b-a) from a on the cube [s,e]^2
 """
 function _reflect(a,b,s,e)
     r = 2; n = zeros(size(a))
-    # first checking if b is in the hypercube
+    prod((a .>= s) .* (a .<= e)) ? nothing : error("a not in hypercube")
+    prod(size(a) .== size(b)) ? nothing : error("a not same dim as b")
     # if it is not, then r becomes less than one
-
+    
+    # first checking if b is in the hypercube
     #TODO: change "for i in 1:length(a)" to "for i in 1:size(a,2)"
     # right now the scheme is not efficient, as it proceeds one reflection for one batch at a time
     for i in 1:length(a)
@@ -78,9 +80,8 @@ function _reflect_GPU2(a, #first point
         rtemp1 = @. (a - s) / (a - b) #left
         rtemp2 = @. (e - a) / (b - a) #right
         rtemp = rtemp1 .* out1 .+ rtemp2 .* out2 .+ (.!(out1 .| out2))
-        imin = argmin(rtemp,dims=1)
         rmin = minimum(rtemp,dims=1)
-        n .= 0
+        n .= rtemp .== minimum(rtemp;dims=1)
         n[imin] .= 1
         c = @. (a + (b-a) * rmin)
         b = @. ( b - 2 * n * (b-c) )
