@@ -1,7 +1,8 @@
-# DeepSplitting.jl
+# HighDimPDE.jl
 
-This package provides the Deep Splitting algorithm (paper in prep.), built upon DiffEqBase.jl and SciMLBase.jl for the interface, and using Flux.jl for the solving part.
-It aims at solving non-local, non-linear Partial Differential Equations, where the solution u satisfies equations of the form
+This package provides the Deep Splitting and the MLP algorithms to solve for high dimensional, non-local, nonlinear PDEs (papers in prep.). 
+It builds upon DiffEqBase.jl and SciMLBase.jl for the interface, and uses Flux.jl for the solving part (Deep Splitting Algorithm).
+It aims at solving PDEs for which the solution u satisfies
 
 <div style="overflow-x: scroll;" align=center>                          
 <img src="docs/equation.png"/>
@@ -23,4 +24,4 @@ This will download latest version from git repo and download all dependencies. -
 Check out the folder `examples/allen_cahn_nonlocal.jl` to see how it works.
 
 # Acknowledgements
-Sebastian Becker, who wrote the original script in TensorFlow.
+Sebastian Becker, who wrote the original scripts in Python, TensorFlow and C++, and Arnulf Jentzen for the theoretical developments.
