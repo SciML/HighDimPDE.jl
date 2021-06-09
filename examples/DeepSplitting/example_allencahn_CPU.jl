@@ -1,8 +1,7 @@
 cd(@__DIR__)
-# using Pkg; Pkg.activate("../.")
+using Pkg; Pkg.activate("HighDimPDE")
 # println("Starting Soon!")
-using 
-include("../../src/HighDimPDE.jl")  #latest version of the DeepSplitting scheme
+using HighDimPDE
 
 using Random
 # Random.seed!(100)
