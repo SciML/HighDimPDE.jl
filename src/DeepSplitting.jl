@@ -1,57 +1,8 @@
 include("utils.jl")
 include("reflect.jl")
 
-struct DSFunction{F} <: DiffEqBase.AbstractODEFunction{false}
-    f::F
-end
-(f::DSFunction)(args...) = f.f(args...)
-
 """
-    PIDEProblem(g,f, μ, σ, x0, tspan)
-A non local non linear PDE problem.
-Consider `du/dt = l(u) + \\int f(u,x) dx`; where l is the nonlinear Lipschitz function
-# Arguments
-* `g` : The terminal condition for the equation.
-* `f` : The function f(u(x),u(y),du(x),du(y),x,y)
-* `μ` : The drift function of X from Ito's Lemma
-* `μ` : The noise function of X from Ito's Lemma
-* `x0`: The initial X for the problem.
-* `tspan`: The timespan of the problem.
-# Options
-* `u_domain` : the domain, correspoding to the hypercube
-∏_i [u_domain[1][i], u_domain[2][i]]. In this case the problem has reflecting boundary conditions
-"""
-struct PIDEProblem{X0Type,uType,tType,G,F,Mu,Sigma,P,A,UD,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false}
-    u0::uType
-    g::G # initial condition
-    f::F # nonlinear part
-    μ::Mu
-    σ::Sigma
-    X0::X0Type
-    tspan::tType
-    p::P
-    A::A
-    u_domain::UD
-    kwargs::K
-    PIDEProblem(g,f,μ,σ,X0,tspan,p=nothing;A=nothing,u_domain=nothing,kwargs...) = new{typeof(X0),
-                                                         typeof(g(X0)),
-                                                         typeof(tspan),
-                                                         DSFunction,DSFunction,
-                                                         typeof(μ),typeof(σ),
-                                                         typeof(p),typeof(A),typeof(u_domain),typeof(kwargs)}(
-                                                         g(X0),DSFunction(g),DSFunction(f),μ,σ,X0,tspan,p,A,u_domain,kwargs)
-end
-
-Base.summary(prob::PIDEProblem) = string(nameof(typeof(prob)))
-
-function Base.show(io::IO, A::PIDEProblem)
-  println(io,summary(A))
-  print(io,"timespan: ")
-  show(io,A.tspan)
-end
-
-"""
-struct NNPDEDS{C1,O} <: NeuralPDEAlgorithm
+struct DeepSplitting{C1,O} <: HighDimPDEAlgorithm
 
 Deep splitting algorithm for solving non local non linear PDES.
 
@@ -60,17 +11,16 @@ Arguments:
 * `K`: the number of Monte Carlo integration
 * `opt`: optimiser to be use
 """
-struct NNPDEDS{C1,O} <: NeuralPDEAlgorithm
+struct DeepSplitting{C1,O} <: HighDimPDEAlgorithm
     nn::C1
     K::Int
     opt::O
 end
-NNPDEDS(nn;K=1,opt=Flux.ADAM(0.1)) = NNPDEDS(nn,K,opt)
-
+DeepSplitting(nn;K=1,opt=Flux.ADAM(0.1)) = DeepSplitting(nn,K,opt)
 
 function DiffEqBase.__solve(
     prob::PIDEProblem,
-    alg::NNPDEDS,
+    alg::DeepSplitting,
     mc_sample;
     dt,
     batch_size = 1,
