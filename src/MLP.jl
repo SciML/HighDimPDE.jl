@@ -14,28 +14,24 @@ struct MLP <: HighDimPDEAlgorithm
     L::Int # nb of levels
     K::Int # nb MC integration non local term
 end
-MLP(;M=1) = MLP(M)
+MLP(;M=10,L=2,K=1) = MLP(M,L,K)
     
     
 function DiffEqBase.__solve(
         prob::PIDEProblem,
-        alg::MLP,
-        mc_sample;
+        alg::MLP;
+        # mc_sample;
         dt,
-        abstol=1f-6,
         verbose=false,
         )
         
         # unbin stuff
     u_domain = prob.u_domain
-    X0 = prob.X0 |> _device
-    ts = prob.tspan[1]:dt:prob.tspan[2]
-    N = length(ts) - 1
-    d  = length(X0)
+    x = prob.X0
+    d  = length(x)
     K = alg.K
     M = alg.M
     L = alg.L
-    opt = alg.opt
     g, f, μ, σ, p = prob.g, prob.f, prob.μ, prob.σ, prob.p
         
     function ml_picard(
@@ -43,10 +39,10 @@ function DiffEqBase.__solve(
             L, # level
             # K, non local term monte carlo
             x, # initial point
-            r,
+            s,
             t,
             )
-            
+        r = 0.
         a = 0.
         a2 = 0.
         b = 0. 
@@ -69,7 +65,7 @@ function DiffEqBase.__solve(
             a += (t - s) * (b / num)
         end
                 
-        for l in 2:L
+        for l in 3:L
             b = 0.
             num = M^(L - l)
             for k in 1:num
@@ -102,13 +98,16 @@ function DiffEqBase.__solve(
     end
                 
     function sde_loop!(y0, y1, s, t)
-        rgen!(y1)
+        randn!(y1)
         dt = t - s
+        # @show y1
         y1 .= y0 .- ( μ(y0, p, t) .* dt .+ σ(y0, p, t) .* sqrt(dt) .* y1)
         if !isnothing(u_domain)
-            y1 .= _reflect_GPU2(y0, y1, u_domain[1], u_domain[2], d)
+            y1 .= _reflect(y0, y1, u_domain[1], u_domain[2])
         end
     end
+
+    return ml_picard(M,L,x,prob.tspan[1],prob.tspan[2])
                 
                 # sol = DiffEqBase.build_solution(prob,alg,ts,usol)
                 # save_everystep ? iters : u0(X0)[1]
