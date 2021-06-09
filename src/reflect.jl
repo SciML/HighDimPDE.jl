@@ -65,36 +65,28 @@ function _reflect_GPU2(a, #first point
                         b, # second point
                         s, # [s,e]^d
                         e, # [s,e]^d
-                        d, # [s,e]^d
-                        batch_size,
                         _device
                         )
     T = eltype(a)
     prod((a .>= s) .* (a .<= e)) ? nothing : error("a not in hypercube")
+    prod(size(a) .== size(b)) ? nothing : error("a not same dim as b")
     out1 = b .< s |> _device
     out2 = b .> e |> _device
+    n = zeros(size(y1)) |> _device
     # Allocating
-    rtemp_ones = ones(T,size(a)) |> _device
-    rtemp1 = similar(a)
-    rtemp2 = similar(a)
-    rtemp = similar(a)
-    rmin = minimum(rtemp,dims=1)
-    imin = argmin(rtemp,dims=1)
-    n = similar(a)
-    c = similar(a)
     while sum(out1 .+ out2) > 0
-        @. rtemp1 = (a - s) / (a - b) #left
-        @. rtemp2 = (e - a) / (b - a) #right
-        rtemp .= rtemp1 .* out1 .+ rtemp2 .* out2 .+ rtemp_ones .*(.!(out1 .| out2))
-        imin .= argmin(rtemp,dims=1)
-        rmin .= minimum(rtemp,dims=1)
-        n .= 0.
-        n[imin] = rtemp_ones[imin]
-        @. c =  (a + (b-a) * rmin)
-        @. b = ( b - 2 * n * (b-c) )
-        @. a = c
+        rtemp1 = @. (a - s) / (a - b) #left
+        rtemp2 = @. (e - a) / (b - a) #right
+        rtemp = rtemp1 .* out1 .+ rtemp2 .* out2 .+ (.!(out1 .| out2))
+        imin = argmin(rtemp,dims=1)
+        rmin = minimum(rtemp,dims=1)
+        n .= 0
+        n[imin] .= 1
+        c = @. (a + (b-a) * rmin)
+        b = @. ( b - 2 * n * (b-c) )
+        a = c
         @. out1 = b < s
-        @. out2 = b > e
+        @. out2 = b .> e
     end
     return b
 end

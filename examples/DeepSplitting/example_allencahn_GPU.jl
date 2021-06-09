@@ -1,5 +1,6 @@
 cd(@__DIR__)
-using Pkg; Pkg.activate(".")
+using Pkg; Pkg.activate(".");Pkg.instantiate()
+using CUDA
 using Revise
 using HighDimPDE
 using Random
@@ -38,7 +39,7 @@ f(y,z,v_y,v_z,∇v_y,∇v_z,p,t) = a.(v_y) .- a.(v_z) .* Float32(π^(d/2) * σ_s
 mc_sample(x) = x + CUDA.randn(d,batch_size) * σ_sampling / sqrt(2f0) #montecarlo samples
 
 # defining the problem
-prob = PIDEProblem(g, f, μ, σ, X0, tspan, 
+prob = PIDEProblem(g, f, μ, σ, X0, tspan,
                     u_domain=[0f0,1f0]
                      )
 
