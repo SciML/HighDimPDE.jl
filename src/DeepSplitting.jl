@@ -1,8 +1,4 @@
-using DiffEqBase
-abstract type NeuralPDEAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
-using Flux, Zygote, LinearAlgebra
-using ProgressMeter: @showprogress
-using CUDA
+include("utils.jl")
 include("reflect.jl")
 
 struct DSFunction{F} <: DiffEqBase.AbstractODEFunction{false}
