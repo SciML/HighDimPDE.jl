@@ -1,8 +1,8 @@
 cd(@__DIR__)
-using Pkg; Pkg.activate("../.")
-using Flux, Zygote, LinearAlgebra, Statistics
+# using Pkg; Pkg.activate("../.")
 # println("Starting Soon!")
-include("../src/DeepSplitting.jl")  #latest version of the DeepSplitting scheme
+using 
+include("../../src/HighDimPDE.jl")  #latest version of the DeepSplitting scheme
 
 using Random
 # Random.seed!(100)
