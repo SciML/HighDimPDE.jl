@@ -61,8 +61,8 @@ end
 
 """
     _reflect_GPU(a,b,s,e)
-reflection of the Brownian motion B where B_{t-1} = -a and  B_{t} = b 
-on the cube [s,e]^d where d = size(a,1)
+reflection of the Brownian motion B where B_{t-1} = a and  B_{t} = b 
+on the hypercube [s,e]^d where d = size(a,1)
 
 #Arguments
 * `_device` : Flux.gpu or Flux.cpu
