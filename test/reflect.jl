@@ -32,7 +32,7 @@ using HighDimPDE
         y0 = repeat(X0[:],1,batch_size) 
         y1 = repeat(X0[:],1,batch_size)
         dWall = zeros(Float32, d, batch_size, 1000 )
-        randn!(dWall)
+        randn!(dWall) .* 10
         for i in 1:1000
             dW = @view dWall[:,:,i]
             y0 .= y1
