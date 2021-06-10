@@ -45,10 +45,14 @@ end
 
 # testing reflection on batchsize
 if CUDA.functional()
-    @testset "GPU reflect methods" begin 
+    CUDA.allowscalar(false)
+    _device = Flux.gpu
 
-        CUDA.allowscalar(false)
-        _device = Flux.gpu
+    @testset "GPU reflect methods" begin 
+        d = 10
+        X0 = fill(0.0f0,d)
+        X1 = X0 + randn(d)
+        X11 = HighDimPDE._reflect(X0,X1,-1,1)
         @testset "testing equivalence cpu gpu" begin
             batch_size = 1000
             a = repeat(X0[:],1,batch_size)
