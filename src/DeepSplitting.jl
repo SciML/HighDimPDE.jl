@@ -91,7 +91,7 @@ function DiffEqBase.__solve(
             y0 .= y1
             y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW
             if !isnothing(u_domain)
-                y1 .= _reflect_GPU2(y0, y1, u_domain[1], u_domain[2], _device)
+                y1 .= _reflect_GPU(y0, y1, u_domain[1], u_domain[2], _device)
             end
         end
         return y0, y1

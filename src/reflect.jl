@@ -2,7 +2,7 @@
     _reflect(a,b,s,e)
 reflection of the vector (b-a) from a on the cube [s,e]^2
 """
-function _reflect(a,b,s,e)
+function _reflect(a,b,s::Real,e::Real)
     r = 2; n = zeros(size(a))
     prod((a .>= s) .* (a .<= e)) ? nothing : error("a not in hypercube")
     prod(size(a) .== size(b)) ? nothing : error("a not same dim as b")
@@ -60,33 +60,35 @@ end
 
 
 """
-    _reflect(a,b,s,e)
-reflection of the vector (b-a) from a on the cube [s,e]^d
+    _reflect_GPU(a,b,s,e)
+reflection of the Brownian motion B where B_{t-1} = -a and  B_{t} = b 
+on the cube [s,e]^d where d = size(a,1)
+
+#Arguments
+* `_device` : Flux.gpu or Flux.cpu
 """
-function _reflect_GPU2(a, #first point
-                        b, # second point
-                        s, # [s,e]^d
-                        e, # [s,e]^d
-                        _device
-                        )
+function _reflect_GPU(a, b, s::Real, e::Real, _device)
     T = eltype(a)
     prod((a .>= s) .* (a .<= e)) ? nothing : error("a not in hypercube")
     prod(size(a) .== size(b)) ? nothing : error("a not same dim as b")
     out1 = b .< s |> _device
     out2 = b .> e |> _device
+    out = out1 .| out2
     n = zeros(size(a)) |> _device
     # Allocating
-    while sum(out1 .+ out2) > 0
-        rtemp1 = @. (a - s) / (a - b) #left
-        rtemp2 = @. (e - a) / (b - a) #right
-        rtemp = rtemp1 .* out1 .+ rtemp2 .* out2 .+ (.!(out1 .| out2))
+    while reduce(|,out)
+        rtemp1 = @. (s - a) #left
+        rtemp2 = @. (e - a) #right
+        div = @. (out * (b-a) + !out)
+        rtemp = (rtemp1 .* out1 .+ rtemp2 .* out2) ./ div .+ (.!(out1 .| out2))
         rmin = minimum(rtemp,dims=1)
         n .= rtemp .== minimum(rtemp;dims=1)
         c = @. (a + (b-a) * rmin)
         b = @. ( b - 2 * n * (b-c) )
         a = c
         @. out1 = b < s
-        @. out2 = b .> e
+        @. out2 = b > e
+        @. out = out1 | out2
     end
     return b
 end
