@@ -19,9 +19,9 @@ MLP(;M=10,L=2,K=1) = MLP(M,L,K)
     
 function DiffEqBase.__solve(
         prob::PIDEProblem,
-        alg::MLP;
-        # mc_sample;
-        dt,
+        alg::MLP,
+        mc_sample;
+        # dt,
         verbose=false,
         )
         
@@ -53,14 +53,13 @@ function DiffEqBase.__solve(
             for k in 0:num
                 verbose && println("loop k")
                 r = s + (t - s) * rand()
-                x2 = similar(x)
-                sde_loop!(x, x2, s, r)
+                x2 = sde_loop(x, s, r)
                 b2 = ml_picard(M, l, x2, r, t)
                 b3 = 0.
                     # non local integration
                 for h in 0:(K-1)
                     verbose && println("loop h")
-                    x3 = randn(size(x))
+                    x3 = mc_sample(x)
                     b3 += f(x2, x3, b2, ml_picard(M, l, x3, r, t),0.,0.,p,t) #TODO:hardcode, not sure about t
                 end
                 b += b3 / K
@@ -73,14 +72,13 @@ function DiffEqBase.__solve(
             num = M^(L - l)
             for k in 1:num
                 r = s + (t - s) * rand()
-                x2 = similar(x)
-                sde_loop!(x, x2, s, r)
+                x2 = sde_loop(x, s, r)
                 b2 = ml_picard(M, l, x2, r, t)
                 b4 = ml_picard(M, l - 1, x2, r, t)
                 b3 = 0.
                     # non local integration
                 for h in 0:(K-1)
-                    x3 = randn(size(x))
+                    x3 = mc_sample(x)
                     x32 = x3
                     x34 = x3
                     b3 += f(x2, x32, b2, ml_picard(M, l, x32, r, t),0.,0.,p,t) - f(x2, x34, b4, ml_picard(M, l - 1, x34, r, t),0.,0.,p,t) #TODO:hardcode, not sure about t
@@ -93,22 +91,22 @@ function DiffEqBase.__solve(
         num = M^(L)
         for k in 0:(num-1)
             verbose && println("loop k3")
-            x2 = similar(x)
-            sde_loop!(x, x2, s, t)
+            x2 = sde_loop(x, s, t)
             a2 += g(x2)
         end
+        a2 /= num
 
         return a + a2
     end
                 
-    function sde_loop!(y0, y1, s, t)
-        randn!(y1)
+    function sde_loop(y0, s, t)
         dt = t - s
         # @show y1
-        y1 .= y0 .- ( μ(y0, p, t) .* dt .+ σ(y0, p, t) .* sqrt(dt) .* y1)
+        y1 = y0 .- ( μ(y0, p, t) .* dt .+ σ(y0, p, t) .* sqrt(dt) .* randn(size(y0)))
         if !isnothing(u_domain)
             y1 .= _reflect(y0, y1, u_domain[1], u_domain[2])
         end
+        return y1
     end
 
     return ml_picard(M,L,x,prob.tspan[1],prob.tspan[2])
