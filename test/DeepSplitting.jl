@@ -6,7 +6,7 @@ using Flux
 # using the DeepSplitting alg
 batch_size = 1000
 train_steps = 1000
-K = 1
+K = 5
 
 tspan = (0.0,0.5)
 dt = 0.1f0  # time step
@@ -19,7 +19,7 @@ ds = [1,2,5]
 atols = [5e-2,1e-1,5e-1]
 
 @testset "DeepSplitting algorithm - Hamel example - CPU" begin
-         σ_sampling = 0.1
+        σ_sampling = 0.1
         for i in 1:length(ds)
             d = ds[i]
 
@@ -58,7 +58,7 @@ atols = [5e-2,1e-1,5e-1]
                             batch_size=batch_size,
                             use_cuda = false)
             @test isapprox(sol.u[end], anal_res[i],atol = atols[i])
-            # println("Deep splitting CPU, d = $d, u1 = $(sol.u[end])")
+            println("Deep splitting CPU, d = $d, u1 = $(sol.u[end])")
         end
 end
 
@@ -98,7 +98,7 @@ end
                         mc_sample, 
                         dt=dt, 
                         verbose = true, 
-                        abstol=2e-3,
+                        abstol=1e-5,
                         maxiters = train_steps,
                         batch_size=batch_size,
                         use_cuda = false)

@@ -12,7 +12,7 @@ alg = MLP(M=4, K=10, L = 4 )
 
 anal_res = [1.398, 1.9567, 5.3554]
 ds = [1,2,5]
-atols = [5e-2,1e-1,5e-1]
+atols = [5e-2,1e-1,2e0]
 
 @testset "MLP algorithm - singel threaded" begin
     σ_sampling = 0.1
@@ -31,6 +31,7 @@ atols = [5e-2,1e-1,5e-1]
         # solving
         @time sol = solve(prob, alg,mc_sample, verbose = false)
         @test isapprox(sol, anal_res[i],atol = atols[i])
+        println("MLP, d = $d, u1 = $sol")
     end
 end
 
