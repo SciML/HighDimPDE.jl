@@ -4,8 +4,8 @@ reflection of the vector (b-a) from a on the cube [s,e]^2
 """
 function _reflect(a,b,s::Real,e::Real)
     r = 2; n = zeros(size(a))
-    prod((a .>= s) .* (a .<= e)) ? nothing : error("a not in hypercube")
-    prod(size(a) .== size(b)) ? nothing : error("a not same dim as b")
+    all((a .>= s) .& (a .<= e)) ? nothing : error("a = $a not in hypercube")
+    size(a) == size(b) ? nothing : error("a not same dim as b")
     # if it is not, then r becomes less than one
 
     # first checking if b is in the hypercube
@@ -69,14 +69,14 @@ on the hypercube [s,e]^d where d = size(a,1)
 """
 function _reflect_GPU(a, b, s::Real, e::Real, _device)
     T = eltype(a)
-    prod((a .>= s) .* (a .<= e)) ? nothing : error("a not in hypercube")
+    prod((a .>= s) .* (a .<= e)) ? nothing : error("a = $a not in hypercube")
     prod(size(a) .== size(b)) ? nothing : error("a not same dim as b")
     out1 = b .< s |> _device
     out2 = b .> e |> _device
     out = out1 .| out2
     n = zeros(size(a)) |> _device
     # Allocating
-    while reduce(|,out)
+    while any(out)
         rtemp1 = @. (s - a) #left
         rtemp2 = @. (e - a) #right
         div = @. (out * (b-a) + !out)

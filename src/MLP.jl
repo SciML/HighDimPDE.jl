@@ -104,7 +104,7 @@ function DiffEqBase.__solve(
         # @show y1
         y1 = y0 .- ( μ(y0, p, t) .* dt .+ σ(y0, p, t) .* sqrt(dt) .* randn(size(y0)))
         if !isnothing(u_domain)
-            y1 .= _reflect(y0, y1, u_domain[1], u_domain[2])
+            y1 = _reflect(y0, y1, u_domain[1], u_domain[2])
         end
         return y1
     end
