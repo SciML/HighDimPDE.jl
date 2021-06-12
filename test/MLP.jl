@@ -1,7 +1,6 @@
 using HighDimPDE
 using Random
 using Test
-using Distributions
 
 tspan = (0.0,0.5)
 # using the MLP alg
