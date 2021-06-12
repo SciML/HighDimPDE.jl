@@ -86,7 +86,7 @@ end
         g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
         a(u) = u - u^3
         f(y,z,v_y,v_z,∇v_y,∇v_z, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
-        mc_sample(x) = (rand(Float64,d,batch_size) .- 0.5) * (u_domain[2]-u_domain[1]) .+ mean(u_domain) # uniform distrib in u_domain
+        mc_sample(x) = (rand(Float32,d,batch_size) .- 0.5) * (u_domain[2]-u_domain[1]) .+ mean(u_domain) # uniform distrib in u_domain
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, X0, tspan, 
