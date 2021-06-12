@@ -21,7 +21,7 @@ function DiffEqBase.__solve(
         prob::PIDEProblem,
         alg::MLP,
         mc_sample;
-        multithreading=false,
+        multithreading=true,
         verbose=false,
         )
     
