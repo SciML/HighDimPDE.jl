@@ -106,8 +106,7 @@ function _ml_picard(
                 x3 = mc_sample(x)
                 x32 = x3
                 x34 = x3
-                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)
-                    - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, sde_loop, mc_sample, g, f, verbose),0., 0., t) #TODO:hardcode, not sure about t
+                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, sde_loop, mc_sample, g, f, verbose),0., 0., t) #TODO:hardcode, not sure about t
             end
             b += b3 / K
         end
@@ -176,8 +175,7 @@ function _ml_picard_mlt(
                 x3 = mc_sample(x)
                 x32 = x3
                 x34 = x3
-                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)
-                    - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, sde_loop, mc_sample, g, f, verbose),0., 0., t) #TODO:hardcode, not sure about t
+                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, sde_loop, mc_sample, g, f, verbose),0., 0., t) #TODO:hardcode, not sure about t
             end
         Threads.atomic_add!(b, b3 / K)
         end
