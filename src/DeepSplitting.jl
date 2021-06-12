@@ -71,7 +71,7 @@ function DiffEqBase.__solve(
         for _ in 1:K
              z = mc_sample(y0)
              ∇vi(x) = 0f0#gradient(vi,x)[1]
-            _int += f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(y1), p, t)
+            _int += f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(y1), t)
         end
         vj(y0) - (vi(y1) + dt * _int / K)
     end
