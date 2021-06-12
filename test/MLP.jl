@@ -1,6 +1,7 @@
 using HighDimPDE
 using Random
 using Test
+using Statistics
 
 tspan = (0.0,0.5)
 # using the MLP alg
@@ -28,7 +29,7 @@ atols = [5e-2,1e-1,2e0]
                             # u_domain=[-1e0,1e0]
                             )
         # solving
-        @time sol = solve(prob, alg, mc_sample, verbose = false)
+        @time sol = solve(prob, alg, mc_sample, verbose = false,  multithreading = false)
         @test isapprox(sol, anal_res[i],atol = atols[i])
         println("MLP, d = $d, u1 = $sol")
     end
@@ -71,7 +72,7 @@ end
                             u_domain = u_domain,
                             )
         # solving
-        @time sol = solve(prob, alg,mc_sample, verbose = false)
+        @time sol = solve(prob, alg, mc_sample, verbose = false, multithreading=true)
         @test !isnan(sol)
         println("MLP, d = $d, u1 = $sol")
     end
