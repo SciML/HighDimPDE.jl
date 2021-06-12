@@ -64,7 +64,7 @@ end
 
 
 @testset "DeepSplitting algorithm - allen cahn reflected example - CPU" begin
-    σ_sampling = 1f-1
+    u_domain = [-5f-1,5f-1]
     for i in 1:length(ds)
         d = ds[i]
 
@@ -85,12 +85,12 @@ end
         X0 = fill(0f0,d)  # initial point
         g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
         a(u) = u - u^3
-        f(y,z,v_y,v_z,∇v_y,∇v_z,p,t) = a.(v_y) .- a.(v_z) .* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
-        mc_sample(x) = randn(d,batch_size) * σ_sampling #montecarlo samples
+        f(y,z,v_y,v_z,∇v_y,∇v_z,p,t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
+        mc_sample(x) = (rand(Float64,d,batch_size) .- 0.5) * (u_domain[2]-u_domain[1]) .+ mean(u_domain) # uniform distrib in u_domain
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, X0, tspan, 
-                            u_domain = [-5f-1,5f-1]
+                            u_domain = u_domain
                             )
         # solving
         @time sol = solve(prob, 
@@ -103,6 +103,6 @@ end
                         batch_size=batch_size,
                         use_cuda = false)
         @test !isnan(sol.u[end])
-        # println("Deep splitting CPU, d = $d, u1 = $(sol.u[end])")
+        println("Deep splitting CPU, d = $d, u1 = $(sol.u[end])")
     end
 end

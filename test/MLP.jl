@@ -4,7 +4,6 @@ using Test
 using Distributions
 
 tspan = (0.0,0.5)
-σ_sampling = 0.1
 # using the MLP alg
 alg = MLP(M=4, K=10, L = 4 )
 μ(X,p,t) = 0.0 # advection coefficients
@@ -16,6 +15,7 @@ ds = [1,2,5]
 atols = [5e-2,1e-1,5e-1]
 
 @testset "MLP algorithm - singel threaded" begin
+    σ_sampling = 0.1
     for i in 1:length(ds)
         d = ds[i]
         X0 = fill(0.,d)  # initial point
@@ -36,7 +36,6 @@ end
 
 
 @testset "MLP algorithm - allen cahn reflected example" begin
-    σ_sampling = 1e-1
     u_domain = [-5e-1,5e-1]
     for i in 1:length(ds)
         d = ds[i]
