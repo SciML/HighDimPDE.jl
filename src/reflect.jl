@@ -4,11 +4,9 @@ reflection of the vector (b-a) from a on the cube [s,e]^2
 """
 function _reflect(a,b,s::Real,e::Real)
     r = 2; n = zeros(size(a))
+    # first checking if b is in the hypercube
     all((a .>= s) .& (a .<= e)) ? nothing : error("a = $a not in hypercube")
     size(a) == size(b) ? nothing : error("a not same dim as b")
-    # if it is not, then r becomes less than one
-
-    # first checking if b is in the hypercube
     #TODO: change "for i in 1:length(a)" to "for i in 1:size(a,2)"
     # right now the scheme is not efficient, as it proceeds one reflection for one batch at a time
     for i in 1:length(a)
@@ -69,8 +67,8 @@ on the hypercube [s,e]^d where d = size(a,1)
 """
 function _reflect_GPU(a, b, s::Real, e::Real)
     T = eltype(a)
-    prod((a .>= s) .* (a .<= e)) ? nothing : error("a = $a not in hypercube")
-    prod(size(a) .== size(b)) ? nothing : error("a not same dim as b")
+    all((a .>= s) .& (a .<= e)) ? nothing : error("a = $a not in hypercube")
+    size(a) == size(b) ? nothing : error("a not same dim as b")
     out1 = b .< s |> _device
     out2 = b .> e |> _device
     out = out1 .| out2

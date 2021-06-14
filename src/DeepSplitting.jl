@@ -27,10 +27,6 @@ function DiffEqBase.__solve(
     abstol = 1f-6,
     verbose = false,
     maxiters = 300,
-    save_everystep = false,
-    give_limit = false,
-    ensemblealg = EnsembleThreads(),
-    maxiters_upper = 10,
     use_cuda = false
     )
 
