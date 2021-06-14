@@ -46,7 +46,6 @@ end
 # testing reflection on batchsize
 if CUDA.functional()
     CUDA.allowscalar(false)
-    _initializer(true)
 
     @testset "GPU reflect methods" begin 
         d = 10
@@ -57,8 +56,8 @@ if CUDA.functional()
             batch_size = 1000
             a = repeat(X0[:],1,batch_size)
             b = a + 2 .* randn(size(a))
-            a = hcat(X0,a) |> _device
-            b = hcat(X1,b) |> _device
+            a = hcat(X0,a) |> gpu
+            b = hcat(X1,b) |> gpu
             s = -1f0; e = 1f0;
             b_gpu = HighDimPDE._reflect_GPU(a,b,s,e)
             b_cpu = b_gpu |> cpu
@@ -69,9 +68,9 @@ if CUDA.functional()
         @testset "testing NaN reflect" begin
             # testing reflection on batchsize
             batch_size = 10000
-            y0 = repeat(X0[:],1,batch_size) |> _device
-            y1 = repeat(X0[:],1,batch_size) |> _device
-            dWall = zeros(Float32, d, batch_size, 100 ) |> _device
+            y0 = repeat(X0[:],1,batch_size) |> gpu
+            y1 = repeat(X0[:],1,batch_size) |> gpu
+            dWall = zeros(Float32, d, batch_size, 100 ) |> gpu
             randn!(dWall)
             for i in 1:100
                 dW = @view dWall[:,:,i]
