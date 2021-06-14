@@ -43,13 +43,17 @@ module HighDimPDE
         A::A
         u_domain::UD
         kwargs::K
-        PIDEProblem(g,f,μ,σ,X0,tspan,p=nothing;A=nothing,u_domain=nothing,kwargs...) = new{typeof(X0),
-                                                            typeof(g(X0)),
-                                                            typeof(tspan),
-                                                            NLFunction,NLFunction,
-                                                            typeof(μ),typeof(σ),
-                                                            typeof(p),typeof(A),typeof(u_domain),typeof(kwargs)}(
-                                                            g(X0),NLFunction(g),NLFunction(f),μ,σ,X0,tspan,p,A,u_domain,kwargs)
+        PIDEProblem(g, f, μ, σ, X0, tspan, p=nothing;A=nothing,
+                                                    u_domain=nothing,
+                                                    kwargs...) = new{typeof(X0),
+                                                                    typeof(g(X0)),
+                                                                    typeof(tspan),
+                                                                    NLFunction,
+                                                                    NLFunction,
+                                                                    typeof(μ),
+                                                                    typeof(σ),
+                                                                    typeof(p),typeof(A),typeof(u_domain),typeof(kwargs)}(
+                                                                    g(X0),NLFunction(g),NLFunction(f),μ,σ,X0,tspan,p,A,u_domain,kwargs)
     end
 
     Base.summary(prob::PIDEProblem) = string(nameof(typeof(prob)))
@@ -60,9 +64,28 @@ module HighDimPDE
     show(io,A.tspan)
     end
 
+    function _initializer(use_cuda)
+        if use_cuda && CUDA.functional()
+            @info "Training on CUDA GPU"
+            CUDA.allowscalar(false)
+            global _device = Flux.gpu
+            global rgen! = CUDA.randn!
+            global rgen_uni! = CUDA.rand!
+        else
+            @info "Training on CPU"
+            global _device = Flux.cpu
+            global rgen! = randn!
+            global rgen_uni! = rand!
+        end
+    end
+
+    _initializer(use_cuda)
+    include("MCSample.jl")
     include("reflect.jl")
     include("DeepSplitting.jl")
     include("MLP.jl")
 
     export PIDEProblem, DeepSplitting, MLP
+
+    export NormalSampling, UniformSampling, NoSampling
 end

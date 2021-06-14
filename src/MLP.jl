@@ -13,25 +13,25 @@ struct MLP <: HighDimPDEAlgorithm
     M::Int # nb of MC integrations
     L::Int # nb of levels
     K::Int # nb MC integration non local term
+    mc_sample::MCSampling
 end
-MLP(;M=10,L=2,K=1) = MLP(M,L,K)
+MLP(;M=10,L=2,K=1,mc_sample=NoSampling()) = MLP(M,L,K,mc_sample)
     
     
 function DiffEqBase.__solve(
         prob::PIDEProblem,
-        alg::MLP,
-        mc_sample;
+        alg::MLP;
         multithreading=true,
         verbose=false,
         )
-    
+    _initializer(false)
     # unbin stuff
     u_domain = prob.u_domain
     x = prob.X0
-    d  = length(x)
     K = alg.K
     M = alg.M
     L = alg.L
+    mc_sample = alg.mc_sample
     g, f, μ, σ, p = prob.g, prob.f, prob.μ, prob.σ, prob.p
 
     function sde_loop(y0, s, t)
@@ -106,7 +106,8 @@ function _ml_picard(
                 x3 = mc_sample(x)
                 x32 = x3
                 x34 = x3
-                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, sde_loop, mc_sample, g, f, verbose),0., 0., t) #TODO:hardcode, not sure about t
+                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t) - 
+                    f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, sde_loop, mc_sample, g, f, verbose),0., 0., t) #TODO:hardcode, not sure about t
             end
             b += b3 / K
         end

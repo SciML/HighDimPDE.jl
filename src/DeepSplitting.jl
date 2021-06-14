@@ -12,13 +12,16 @@ struct DeepSplitting{C1,O} <: HighDimPDEAlgorithm
     nn::C1
     K::Int
     opt::O
+    mc_sample::MCSampling # Monte Carlo sample
 end
-DeepSplitting(nn;K=1,opt=Flux.ADAM(0.1)) = DeepSplitting(nn,K,opt)
+
+function DeepSplitting(nn; K=1, opt=Flux.ADAM(0.1), mc_sample::MCSampling = NoSampling()) 
+    DeepSplitting(nn, K, opt, mc_sample)
+end
 
 function DiffEqBase.__solve(
     prob::PIDEProblem,
-    alg::DeepSplitting,
-    mc_sample;
+    alg::DeepSplitting;
     dt,
     batch_size = 1,
     abstol = 1f-6,
@@ -31,17 +34,7 @@ function DiffEqBase.__solve(
     use_cuda = false
     )
 
-    if use_cuda && CUDA.functional()
-        @info "Training on CUDA GPU"
-        CUDA.allowscalar(false)
-        _device = Flux.gpu
-        rgen! = CUDA.randn!
-    else
-        @info "Training on CPU"
-        _device = Flux.cpu
-        rgen! = randn!
-    end
-
+    _initializer(use_cuda)
     # unbin stuff
     u_domain = prob.u_domain
     X0 = prob.X0 |> _device
@@ -52,6 +45,7 @@ function DiffEqBase.__solve(
     K = alg.K
     opt = alg.opt
     g,f,μ,σ,p = prob.g,prob.f,prob.μ,prob.σ,prob.p
+    mc_sample =  alg.mc_sample
 
     #hidden layer
     nn = alg.nn |> _device
@@ -59,25 +53,29 @@ function DiffEqBase.__solve(
     vj = deepcopy(nn)
     ps = Flux.params(vj)
 
-    # preallocate y0,y1,n, usol
     y0 = repeat(X0[:],1,batch_size)
     y1 = repeat(X0[:],1,batch_size)
     usol = [g(prob.X0)[1] for i in 1:(N+1)]
 
-    function splitting_model(y0,y1,t)
+    # checking element types
+    eltype(mc_sample) == eltype(X0) || !_integrate(mc_sample) ? nothing : error("Type of mc_sample not the same as X0")
+    eltype(f(X0, X0, vi(X0), vi(X0), 0f0, 0f0, dt)) == eltype(X0) ? nothing : error("Type of non linear function `f` output not matching typf of X0")
+    eltype(g(X0)) == eltype(X0) ? nothing : error("Type of `g` output not matching typf of X0")
+
+    function splitting_model(y0, y1, z, t)
         # Monte Carlo integration
         # z is the variable that gets integreated
-        _int = zeros(Float32,1,batch_size) |> _device
-        for _ in 1:K
-             z = mc_sample(y0)
+        _int = zeros(eltype(y0),1,batch_size) |> _device
+        for i in 1:K
+             zi = @view z[:,:,i]
              ∇vi(x) = 0f0#gradient(vi,x)[1]
-            _int += f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(y1), t)
+            _int += f(y1, zi, vi(y1), vi(zi), ∇vi(y1), ∇vi(y1), t)
         end
         vj(y0) - (vi(y1) + dt * _int / K)
     end
 
-    function loss(y0,y1,t)
-        u = splitting_model(y0,y1,t)
+    function loss(y0, y1, z, t)
+        u = splitting_model(y0, y1, z, t)
         return mean(u.^2)
     end
 
@@ -91,7 +89,7 @@ function DiffEqBase.__solve(
             y0 .= y1
             y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW
             if !isnothing(u_domain)
-                y1 .= _reflect_GPU(y0, y1, u_domain[1], u_domain[2], _device)
+                y1 .= _reflect_GPU(y0, y1, u_domain[1], u_domain[2])
             end
         end
         return y0, y1
@@ -100,7 +98,8 @@ function DiffEqBase.__solve(
     for net in 1:N
         # preallocate dWall
         # verbose && println("preallocating dWall")
-        dWall = zeros(Float32, d, batch_size, N + 1 - net) |> _device
+        dWall = zeros(eltype(X0), d, batch_size, N + 1 - net) |> _device
+        z = zeros(eltype(X0), d, batch_size, K) |> _device
 
         verbose && println("Step $(net) / $(N) ")
         t = ts[net]
@@ -113,21 +112,28 @@ function DiffEqBase.__solve(
             y1 .= repeat(X0[:],1,batch_size)
 
             # verbose && println("sde loop")
-            sde_loop!(y0, y1, dWall,u_domain)
+            sde_loop!(y0, y1, dWall, u_domain)
+            # verbose && println("mc samples")
+            if _integrate(mc_sample)
+                for i in 1:K
+                    zi = @view z[:,:,i]
+                    zi .= mc_sample(y0)
+                end
+            end
 
             # verbose && println("training gradient")
             gs = Flux.gradient(ps) do
-                loss(y0,y1,t)
+                loss(y0, y1, z, t)
             end
             Flux.Optimise.update!(opt, ps, gs) # update parameters
             # report on train
             if epoch % 100 == 1
-                l = loss(y0,y1,t)
+                l = loss(y0, y1, z, t)
                 verbose && println("Current loss is: $l")
                 l < abstol && break
             end
             if epoch == maxiters
-                l = loss(y0,y1,t)
+                l = loss(y0, y1, z, t)
                 verbose && println("Current loss is: $l")
                 # we change abstol as we can not get more precise over time
                 abstol = 1.0 * l

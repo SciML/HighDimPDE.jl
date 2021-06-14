@@ -5,4 +5,5 @@ using HighDimPDE, Test
     include("reflect.jl")
     include("MLP.jl")
     include("DeepSplitting.jl")
+    include("MCSample.jl")
 end

@@ -67,7 +67,7 @@ on the hypercube [s,e]^d where d = size(a,1)
 #Arguments
 * `_device` : Flux.gpu or Flux.cpu
 """
-function _reflect_GPU(a, b, s::Real, e::Real, _device)
+function _reflect_GPU(a, b, s::Real, e::Real)
     T = eltype(a)
     prod((a .>= s) .* (a .<= e)) ? nothing : error("a = $a not in hypercube")
     prod(size(a) .== size(b)) ? nothing : error("a not same dim as b")

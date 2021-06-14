@@ -46,7 +46,7 @@ end
 # testing reflection on batchsize
 if CUDA.functional()
     CUDA.allowscalar(false)
-    _device = Flux.gpu
+    _initializer(true)
 
     @testset "GPU reflect methods" begin 
         d = 10
@@ -60,7 +60,7 @@ if CUDA.functional()
             a = hcat(X0,a) |> _device
             b = hcat(X1,b) |> _device
             s = -1f0; e = 1f0;
-            b_gpu = HighDimPDE._reflect_GPU(a,b,s,e,_device)
+            b_gpu = HighDimPDE._reflect_GPU(a,b,s,e)
             b_cpu = b_gpu |> cpu
             @test prod(b_cpu .< 1) && prod(b_cpu .> -1)
             @test prod((b_cpu[:,1] .≈ X11[:,1]))
@@ -77,7 +77,7 @@ if CUDA.functional()
                 dW = @view dWall[:,:,i]
                 y0 .= y1
                 y1 .= y0 .+  dW
-                y1 .= HighDimPDE._reflect_GPU(y0,y1,-1f0,1f0,_device)
+                y1 .= HighDimPDE._reflect_GPU(y0,y1,-1f0,1f0)
             end
             @test count(isnan.(y1)) == 0
         end
