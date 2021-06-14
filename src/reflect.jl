@@ -66,13 +66,13 @@ on the hypercube [s,e]^d where d = size(a,1)
 * `_device` : Flux.gpu or Flux.cpu
 """
 function _reflect_GPU(a, b, s::Real, e::Real)
-    T = eltype(a)
     all((a .>= s) .& (a .<= e)) ? nothing : error("a = $a not in hypercube")
     size(a) == size(b) ? nothing : error("a not same dim as b")
-    out1 = b .< s |> _device
-    out2 = b .> e |> _device
+    out1 = b .< s
+    out2 = b .> e
     out = out1 .| out2
-    n = zeros(size(a)) |> _device
+    n = similar(a)
+    n .= 0
     # Allocating
     while any(out)
         rtemp1 = @. (s - a) #left

@@ -1,4 +1,4 @@
-using Revise, HighDimPDE, Random, Test, CUDA
+using HighDimPDE, Random, Test, CUDA
 
 if CUDA.functional()
     CUDA.allowscalar(false)
