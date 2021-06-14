@@ -79,7 +79,7 @@ module HighDimPDE
         end
     end
 
-    _initializer(use_cuda)
+    _initializer(false)
     include("MCSample.jl")
     include("reflect.jl")
     include("DeepSplitting.jl")

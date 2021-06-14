@@ -21,7 +21,7 @@ using HighDimPDE
         a = hcat(X0,a)
         b = hcat(X1,b)
         s = -1f0; e = 1f0;
-        b_gpu = HighDimPDE._reflect_GPU(a,b,s,e,cpu)
+        b_gpu = HighDimPDE._reflect_GPU(a,b,s,e)
         @test prod(b_gpu .< 1) && prod(b_gpu .> -1)
         @test prod((b_gpu[:,1] .≈ X11[:,1]))
     end
@@ -37,7 +37,7 @@ using HighDimPDE
             dW = @view dWall[:,:,i]
             y0 .= y1
             y1 .= y0 .+  dW
-            y1 .= HighDimPDE._reflect_GPU(y0,y1,-1f0,1f0,cpu)
+            y1 .= HighDimPDE._reflect_GPU(y0,y1,-1f0,1f0)
         end
         @test count(isnan.(y1)) == 0
     end
