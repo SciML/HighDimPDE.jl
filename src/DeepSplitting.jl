@@ -60,8 +60,8 @@ function DiffEqBase.__solve(
 
     # checking element types
     eltype(mc_sample) == eltype(X0) || !_integrate(mc_sample) ? nothing : error("Type of mc_sample not the same as X0")
-    eltype(f(X0, X0, vi(X0), vi(X0), 0f0, 0f0, dt)) == eltype(X0) ? nothing : error("Type of non linear function `f(X0)` not matching type of X0")
     eltype(g(X0)) == eltype(X0) ? nothing : error("Type of `g(X0)` not matching type of X0")
+    eltype(f(X0, X0, vi(X0), vi(X0), 0f0, 0f0, dt)) == eltype(X0) ? nothing : error("Type of non linear function `f(X0)` not matching type of X0")
 
     function splitting_model(y0, y1, z, t)
         # Monte Carlo integration
