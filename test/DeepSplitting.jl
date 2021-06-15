@@ -54,7 +54,7 @@ atols = [5e-2,1e-1,5e-1]
                             verbose = true, 
                             abstol=2e-3,
                             maxiters = train_steps,
-                            batch_size=batch_size,
+                            batch_size = batch_size,
                             use_cuda = false)
             @test isapprox(sol.u[end], anal_res[i],atol = atols[i])
             println("Deep splitting CPU, d = $d, u1 = $(sol.u[end])")

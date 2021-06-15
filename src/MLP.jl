@@ -2,9 +2,10 @@
 Multi level Picard algorithm for solving non local non linear PDES.
     
     Arguments:
-    * `chain`: a Flux.jl chain with a d-dimensional input and a 1-dimensional output,
-    * `strategy`: determines which training strategy will be used,
-    * `init_params`: the initial parameter of the neural network,
+    * `L`: number of Picard iterations (Level),
+    * `M`: number of Monte Carlo Integration (at each level `l`, `M^(l)` 
+    integration),
+    * `K`: number of Monte Carlo Integration for the non local term,
     * `phi`: a trial solution,
     * `derivative`: method that calculates the derivative.
     
@@ -125,6 +126,7 @@ function _ml_picard(
     return a + a2
 end
 
+_ml_picard(M::Int, L::Int, K::Int, x::Nothing, s::Real, t::Real, sde_loop, mc_sample, g, f, verbose::Bool) = nothing
 
 function _ml_picard_mlt(
     M::Int, # monte carlo integration
