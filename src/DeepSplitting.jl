@@ -27,13 +27,18 @@ function DiffEqBase.__solve(
     abstol = 1f-6,
     verbose = false,
     maxiters = 300,
-    use_cuda = false
     )
 
-    _initializer(use_cuda)
+    if CUDA.functional() && typeof(prob.X0) <: CuArray
+        @info "Training on CUDA GPU"
+        CUDA.allowscalar(false)
+    else
+        @info "Training on CPU"
+    end
+
     # unbin stuff
     u_domain = prob.u_domain
-    X0 = prob.X0 |> _device
+    X0 = prob.X0
     ts = prob.tspan[1]:dt:prob.tspan[2]
     dt = convert(eltype(X0),dt)
     N = length(ts) - 1
@@ -44,8 +49,8 @@ function DiffEqBase.__solve(
     mc_sample =  alg.mc_sample
 
     #hidden layer
-    nn = alg.nn |> _device
-    vi = g |> _device
+    nn = alg.nn
+    vi = g
     vj = deepcopy(nn)
     ps = Flux.params(vj)
 
@@ -55,13 +60,14 @@ function DiffEqBase.__solve(
 
     # checking element types
     eltype(mc_sample) == eltype(X0) || !_integrate(mc_sample) ? nothing : error("Type of mc_sample not the same as X0")
-    eltype(f(X0, X0, vi(X0), vi(X0), 0f0, 0f0, dt)) == eltype(X0) ? nothing : error("Type of non linear function `f` output not matching typf of X0")
-    eltype(g(X0)) == eltype(X0) ? nothing : error("Type of `g` output not matching typf of X0")
+    eltype(f(X0, X0, vi(X0), vi(X0), 0f0, 0f0, dt)) == eltype(X0) ? nothing : error("Type of non linear function `f(X0)` not matching type of X0")
+    eltype(g(X0)) == eltype(X0) ? nothing : error("Type of `g(X0)` not matching type of X0")
 
     function splitting_model(y0, y1, z, t)
         # Monte Carlo integration
         # z is the variable that gets integreated
-        _int = zeros(eltype(y0),1,batch_size) |> _device
+        _int = similar(y0, 1, batch_size)
+        fill!(_int, zero(eltype(y0)))
         for i in 1:K
              zi = @view z[:,:,i]
              ∇vi(x) = 0f0#gradient(vi,x)[1]
@@ -77,7 +83,7 @@ function DiffEqBase.__solve(
 
     # calculating SDE trajectories
     function sde_loop!(y0,y1,dWall,u_domain)
-        rgen!(dWall)
+        randn!(dWall)
         for i in 1:size(dWall,3)
             # not sure about this one
             t = ts[N + 1 - i]
@@ -94,8 +100,8 @@ function DiffEqBase.__solve(
     for net in 1:N
         # preallocate dWall
         # verbose && println("preallocating dWall")
-        dWall = zeros(eltype(X0), d, batch_size, N + 1 - net) |> _device
-        z = zeros(eltype(X0), d, batch_size, K) |> _device
+        dWall = similar(X0, d, batch_size, N + 1 - net) # for SDE
+        z = similar(X0, d, batch_size, K) # for MC non local integration
 
         verbose && println("Step $(net) / $(N) ")
         t = ts[net]

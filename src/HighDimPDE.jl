@@ -65,22 +65,6 @@ module HighDimPDE
     show(io,A.tspan)
     end
 
-    function _initializer(use_cuda)
-        if use_cuda && CUDA.functional()
-            @info "Training on CUDA GPU"
-            CUDA.allowscalar(false)
-            global _device = Flux.gpu
-            global rgen! = CUDA.randn!
-            global rgen_uni! = CUDA.rand!
-        else
-            @info "Training on CPU"
-            global _device = Flux.cpu
-            global rgen! = randn!
-            global rgen_uni! = rand!
-        end
-    end
-
-    _initializer(false)
     include("MCSample.jl")
     include("reflect.jl")
     include("DeepSplitting.jl")

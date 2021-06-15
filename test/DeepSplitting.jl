@@ -9,7 +9,7 @@ train_steps = 1000
 K = 5
 
 tspan = (0.0,0.5)
-dt = 0.1f0  # time step
+dt = 0.10  # time step
 μ(X,p,t) = 0.0 # advection coefficients
 σ(X,p,t) = 0.1 # diffusion coefficients
 
@@ -54,8 +54,7 @@ atols = [5e-2,1e-1,5e-1]
                             verbose = true, 
                             abstol=2e-3,
                             maxiters = train_steps,
-                            batch_size = batch_size,
-                            use_cuda = false)
+                            batch_size = batch_size)
             @test isapprox(sol.u[end], anal_res[i],atol = atols[i])
             println("Deep splitting CPU, d = $d, u1 = $(sol.u[end])")
         end
@@ -97,8 +96,7 @@ end
                         verbose = true, 
                         abstol=1e-5,
                         maxiters = train_steps,
-                        batch_size=batch_size,
-                        use_cuda = false)
+                        batch_size=batch_size)
         @test !isnan(sol.u[end])
         println("Deep splitting CPU, d = $d, u1 = $(sol.u[end])")
     end
@@ -140,8 +138,7 @@ end
                         verbose = true, 
                         abstol=1e-5,
                         maxiters = train_steps,
-                        batch_size=batch_size,
-                        use_cuda = false)
+                        batch_size=batch_size)
         @test !isnan(sol.u[end])
         println("Deep splitting CPU, d = $d, u1 = $(sol.u[end])")
     end

@@ -11,7 +11,7 @@ It aims at solving PDEs for which the solution u satisfies
 The scheme is particularly performant when the domain D is highly dimensional, as it overcomes the so called *curse of dimensionality*.
 
 ## Installation
-Open Julia in your favorite REPL and type the following
+Open Julia REPL and type the following
 
 ```julia
 using Pkg;
@@ -23,7 +23,7 @@ This will download latest version from git repo and download all dependencies.
 ## Getting started
 ### MLP algorithm
 #### Local PDE
-Let's solve for the multi dimensional [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) PDE with the MLP algorithm.
+Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) PDE in dimension 10 with the MLP algorithm.
 ```julia
 using HighDimPDE
 
@@ -134,26 +134,16 @@ sol = solve(prob,
             verbose = true, 
             abstol = 2e-3,
             maxiters = 1000,
-            batch_size = 1000,
-            use_cuda = false)
+            batch_size = 1000)
 ```
 ### Solving on the GPU
-`HighDimPDE.jl` allows to run the `DeepSplitting` algorithm on the GPU for (much) improved performance. To do so, just define `x0` as a `CUDA` array and tell the solver `use_cuda = true`.
+`HighDimPDE.jl` allows to run the `DeepSplitting` algorithm on the GPU for (much) improved performance. To do so, just define `x0` as a `CUDA` array.
 
 ```julia
 using CUDA
 x0 = CUDA.fill(0.,d)
 ```
-```julia
-sol = solve(prob, 
-            alg, 
-            dt=dt, 
-            verbose = true, 
-            abstol = 2e-3,
-            maxiters = 1000,
-            batch_size = 1000,
-            use_cuda = true)
-```
+
 That's all!
 
 

@@ -24,7 +24,7 @@ function DiffEqBase.__solve(
         multithreading=true,
         verbose=false,
         )
-    _initializer(false)
+
     # unbin stuff
     u_domain = prob.u_domain
     x = prob.X0
