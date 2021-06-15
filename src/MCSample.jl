@@ -1,10 +1,17 @@
+"""
+Sampling method for the Monte Carlo integration
+"""
 abstract type MCSampling{T} end
 Base.eltype(mc_sample::MCSampling{T}) where T = T
 
+"""
+Uniform sampling method for the Monte Carlo integration, in the hypercube `[a, b]^2`.
+"""
 struct UniformSampling{T <: Real} <: MCSampling{T}
     a::T
     b::T
 end
+
 function (mc_sample::UniformSampling)(x)
     x_mc = similar(x)
     rgen_uni!(x_mc)
@@ -13,6 +20,13 @@ function (mc_sample::UniformSampling)(x)
     return x_mc 
 end
 
+"""
+Normal sampling method for the Monte Carlo integration.
+
+Arguments:
+* `σ`: the standard devation of the sampling
+* `shifted` : if true, the integration is shifted by `x`
+"""
 struct NormalSampling{T<:Real} <: MCSampling{T}
     σ::T
     shifted::Bool # if true, we shift integration by x when invoking mc_sample::MCSampling(x)

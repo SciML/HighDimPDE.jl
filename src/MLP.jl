@@ -3,12 +3,11 @@ Multi level Picard algorithm for solving non local non linear PDES.
     
     Arguments:
     * `L`: number of Picard iterations (Level),
-    * `M`: number of Monte Carlo Integration (at each level `l`, `M^(l)` 
-    integration),
-    * `K`: number of Monte Carlo Integration for the non local term,
-    * `phi`: a trial solution,
-    * `derivative`: method that calculates the derivative.
-    
+    * `M`: number of Monte Carlo integrations (at each level `l`, `M^(l)` 
+    integrations),
+    * `K`: number of Monte Carlo integrations for the non local term    
+    * `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term.
+    Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling)`, or `NoSampling` (by default).
     """
 struct MLP <: HighDimPDEAlgorithm
     M::Int # nb of MC integrations
@@ -16,7 +15,7 @@ struct MLP <: HighDimPDEAlgorithm
     K::Int # nb MC integration non local term
     mc_sample::MCSampling
 end
-MLP(;M=10,L=2,K=1,mc_sample=NoSampling()) = MLP(M,L,K,mc_sample)
+MLP(;M=4,L=4,K=10,mc_sample=NoSampling()) = MLP(M,L,K,mc_sample)
     
     
 function DiffEqBase.__solve(

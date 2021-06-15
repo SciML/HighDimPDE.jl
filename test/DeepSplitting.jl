@@ -31,7 +31,7 @@ atols = [5e-2,1e-1,5e-1]
 
             opt = Flux.Optimiser(ExpDecay(0.1,
                             0.1,
-                            2000,
+                            200,
                             1e-4),
                             ADAM() )#optimiser
             mc_sample = NormalSampling(σ_sampling,false)
@@ -75,7 +75,7 @@ end
 
         opt = Flux.Optimiser(ExpDecay(0.1,
                         0.1,
-                        2000,
+                        200,
                         1e-4),
                         ADAM() )#optimiser
         alg = DeepSplitting(nn, K=K, opt = opt,mc_sample = UniformSampling(u_domain[1],u_domain[2]) )
@@ -118,7 +118,7 @@ end
 
         opt = Flux.Optimiser(ExpDecay(0.1,
                         0.1,
-                        2000,
+                        200,
                         1e-4),
                         ADAM() )#optimiser
         alg = DeepSplitting(nn, K=K, opt = opt )

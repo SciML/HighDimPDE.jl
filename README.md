@@ -41,7 +41,7 @@ prob = PIDEProblem(g, f, μ, σ, x0, tspan) # defining the problem
 ################################
 ############ MLP ###############
 ################################
-alg = MLP(M=4, K=10, L=4) # defining the algorithm. We use the Multi Level Picard algorithm
+alg = MLP() # defining the algorithm. We use the Multi Level Picard algorithm
 ################################
 ################################
 ################################
@@ -77,7 +77,7 @@ prob = PIDEProblem(g, f, μ,
 ################################
 ############ MLP ###############
 ################################
-alg = MLP(M=4, K=10, L=4, mc_sample = UniformSampling(u_domain[1], u_domain[2]) ) 
+alg = MLP(mc_sample = UniformSampling(u_domain[1], u_domain[2]) ) 
 ################################
 ################################
 ################################
@@ -118,10 +118,10 @@ nn = Flux.Chain(Dense(d,hls,tanh),
 
 opt = Flux.Optimiser(ExpDecay(0.1,
                 0.1,
-                2000,
+                200,
                 1e-4),
                 ADAM() )#optimiser
-alg = DeepSplitting(nn, K=5, 
+alg = DeepSplitting(nn,
                     opt = opt,
                     mc_sample = UniformSampling(u_domain[1], u_domain[2]))
 ################################

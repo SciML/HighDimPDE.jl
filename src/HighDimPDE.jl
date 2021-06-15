@@ -29,7 +29,8 @@ module HighDimPDE
     * `tspan`: The timespan of the problem.
     # Options
     * `u_domain` : the domain, correspoding to the hypercube
-    ∏_i [u_domain[1][i], u_domain[2][i]]. In this case the problem has reflecting boundary conditions
+    `[u_domain[1], u_domain[2]]^size(x0,1)`. 
+    In this case the problem has Neumann boundary conditions.
     """
     struct PIDEProblem{X0Type,uType,tType,G,F,Mu,Sigma,P,A,UD,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false}
         u0::uType

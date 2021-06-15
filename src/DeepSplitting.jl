@@ -1,12 +1,12 @@
 """
-struct DeepSplitting{C1,O} <: HighDimPDEAlgorithm
-
 Deep splitting algorithm for solving non local non linear PDES.
 
 Arguments:
 * `nn`: a Flux.jl chain with a d-dimensional input and a 1-dimensional output,
-* `K`: the number of Monte Carlo integration
-* `opt`: optimiser to be use
+* `K`: the number of Monte Carlo integrations
+* `opt`: optimiser to be use. By default, `Flux.ADAM(0.1)`.
+* `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term.
+Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling)`, or `NoSampling` (by default).
 """
 struct DeepSplitting{C1,O} <: HighDimPDEAlgorithm
     nn::C1
