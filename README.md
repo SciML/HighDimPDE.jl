@@ -110,9 +110,6 @@ opt = Flux.Optimiser(ExpDecay(0.1,
 alg = DeepSplitting(nn,
                     opt = opt,
                     mc_sample = UniformSampling(u_domain[1], u_domain[2]))
-################################
-################################
-################################
 
 sol = solve(prob, 
             alg, 
