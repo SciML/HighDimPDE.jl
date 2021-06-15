@@ -38,16 +38,10 @@ f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max(0.0, v_y) * (1 -  max(0.0, v_y)) # no
 
 prob = PIDEProblem(g, f, μ, σ, x0, tspan) # defining the problem
 
-################################
-############ MLP ###############
-################################
 alg = MLP() # defining the algorithm. We use the Multi Level Picard algorithm
-################################
-################################
-################################
 
 # solving with multiple threads 
-sol = solve(prob, alg, verbose = false, multithreading=true)
+sol = solve(prob, alg, multithreading=true)
 ```
 To plot the time series
 ```julia
@@ -74,15 +68,9 @@ prob = PIDEProblem(g, f, μ,
                     σ, x0, tspan, 
                     u_domain = u_domain) # defining u_domain is sufficient to implement Neumann boundary conditions
 
-################################
-############ MLP ###############
-################################
 alg = MLP(mc_sample = UniformSampling(u_domain[1], u_domain[2]) ) 
-################################
-################################
-################################
 
-sol = solve(prob, alg, verbose = false, multithreading=true)
+sol = solve(prob, alg, multithreading=true)
 ```
 
 ### Deep splitting algorithm
@@ -105,9 +93,7 @@ prob = PIDEProblem(g, f, μ,
                     σ, x0, tspan, 
                     u_domain = u_domain)
 
-################################
-######## Deep Splitting ########
-################################
+
 using Flux # needed to define the neural network
 
 hls = d + 50 #hidden layer size
