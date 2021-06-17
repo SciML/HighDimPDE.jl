@@ -27,18 +27,24 @@ function DiffEqBase.__solve(
     abstol = 1f-6,
     verbose = false,
     maxiters = 300,
+    use_cuda = false
     )
-
-    if CUDA.functional() && typeof(prob.X0) <: CuArray
-        @info "Training on CUDA GPU"
-        CUDA.allowscalar(false)
+    if use_cuda
+        if CUDA.functional()
+            @info "Training on CUDA GPU"
+            CUDA.allowscalar(false)
+            _device = Flux.gpu
+        else
+            error("CUDA not functional, deactivate `use_cuda` and retry")
+        end
     else
         @info "Training on CPU"
+        _device = Flux.cpu
     end
 
     # unbin stuff
     u_domain = prob.u_domain
-    X0 = prob.X0
+    X0 = prob.X0 |> _device
     ts = prob.tspan[1]:dt:prob.tspan[2]
     dt = convert(eltype(X0),dt)
     N = length(ts) - 1
@@ -49,14 +55,15 @@ function DiffEqBase.__solve(
     mc_sample =  alg.mc_sample
 
     #hidden layer
-    nn = alg.nn
+    nn = alg.nn |> _device
     vi = g
     vj = deepcopy(nn)
     ps = Flux.params(vj)
 
     y0 = repeat(X0[:],1,batch_size)
     y1 = repeat(X0[:],1,batch_size)
-    usol = [g(prob.X0)[1] for i in 1:(N+1)]
+    # output solution is a cpu array
+    usol = [g(prob.X0)[] for i in 1:(N+1)]
 
     # checking element types
     eltype(mc_sample) == eltype(X0) || !_integrate(mc_sample) ? nothing : error("Type of mc_sample not the same as X0")
@@ -64,13 +71,13 @@ function DiffEqBase.__solve(
     eltype(f(X0, X0, vi(X0), vi(X0), 0f0, 0f0, dt)) == eltype(X0) ? nothing : error("Type of non linear function `f(X0)` not matching type of X0")
 
     function splitting_model(y0, y1, z, t)
+        ∇vi(x) = 0f0#gradient(vi,x)[1]
+        zi = @view z[:,:,1]
+        _int = f(y1, zi, vi(y1), vi(zi), ∇vi(y1), ∇vi(y1), t)
         # Monte Carlo integration
         # z is the variable that gets integreated
-        _int = similar(y0, 1, batch_size)
-        fill!(_int, zero(eltype(y0)))
-        for i in 1:K
+        for i in 2:K
              zi = @view z[:,:,i]
-             ∇vi(x) = 0f0#gradient(vi,x)[1]
             _int += f(y1, zi, vi(y1), vi(zi), ∇vi(y1), ∇vi(y1), t)
         end
         vj(y0) - (vi(y1) + dt * _int / K)
@@ -142,7 +149,7 @@ function DiffEqBase.__solve(
             end
         end
         vi = deepcopy(vj)
-        usol[net+1] = mean(vj(X0))
+        usol[net+1] = mean(vj(X0)) |> cpu
     end
     sol = DiffEqBase.build_solution(prob,alg,ts,usol)
     return sol

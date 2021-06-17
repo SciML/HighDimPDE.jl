@@ -220,15 +220,15 @@ uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
 
 [[GPUArrays]]
 deps = ["AbstractFFTs", "Adapt", "LinearAlgebra", "Printf", "Random", "Serialization", "Statistics"]
-git-tree-sha1 = "3683030b5479249abaa18aa930fc02307fed05d3"
+git-tree-sha1 = "ececbf05f8904c92814bdbd0aafd5540b0bf2e9a"
 uuid = "0c68f7d7-f131-5f86-a1c3-88cf8149b2d7"
-version = "7.0.0"
+version = "7.0.1"
 
 [[GPUCompiler]]
 deps = ["DataStructures", "ExprTools", "InteractiveUtils", "LLVM", "Libdl", "Logging", "TimerOutputs", "UUIDs"]
-git-tree-sha1 = "e12c5495c19b852e8840bf2640b539383dda3954"
+git-tree-sha1 = "765d5b600d3177f1d422c9489525938dd8bd95d1"
 uuid = "61eb1bfa-7361-4325-ad38-22787b887f55"
-version = "0.12.0"
+version = "0.12.2"
 
 [[Hwloc]]
 deps = ["Hwloc_jll"]
@@ -282,9 +282,9 @@ version = "0.8.4"
 
 [[LLVM]]
 deps = ["CEnum", "Libdl", "Printf", "Unicode"]
-git-tree-sha1 = "b499c68a45249b0385585c62f4a9b62b5db8e691"
+git-tree-sha1 = "b3cd5971a37d3ac3c13ca805916b90878c699eaf"
 uuid = "929cbde3-209d-540e-8aea-75f648917ca0"
-version = "3.7.1"
+version = "3.8.0"
 
 [[LabelledArrays]]
 deps = ["ArrayInterface", "LinearAlgebra", "MacroTools", "StaticArrays"]
@@ -330,9 +330,9 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
 [[LoopVectorization]]
 deps = ["ArrayInterface", "DocStringExtensions", "IfElse", "LinearAlgebra", "OffsetArrays", "Polyester", "Requires", "SLEEFPirates", "Static", "StrideArraysCore", "ThreadingUtilities", "UnPack", "VectorizationBase"]
-git-tree-sha1 = "b16dde45ba9e2506358d4d7fe13f746330e8e622"
+git-tree-sha1 = "cf4e97143e0b26f8d6c3bc293ae433a088508d0f"
 uuid = "bdcacae8-1622-11e9-2a5c-532679323890"
-version = "0.12.37"
+version = "0.12.39"
 
 [[MacroTools]]
 deps = ["Markdown", "Random"]
@@ -356,9 +356,9 @@ version = "0.5.0"
 
 [[Memoization]]
 deps = ["MacroTools"]
-git-tree-sha1 = "ed3f3b19264e531b29d1d6a266336ccec5e597bd"
+git-tree-sha1 = "a9175def295e0dc1f6da80e8e733a01dd0f36a56"
 uuid = "6fafb56a-5788-4b4e-91ca-c0cea6611c73"
-version = "0.1.10"
+version = "0.1.11"
 
 [[Missings]]
 deps = ["DataAPI"]
@@ -379,9 +379,9 @@ version = "0.2.2"
 
 [[NNlib]]
 deps = ["Adapt", "ChainRulesCore", "Compat", "LinearAlgebra", "Pkg", "Requires", "Statistics"]
-git-tree-sha1 = "0bf1fbb9dc557f2af9fb7e1337366d69de0dc78c"
+git-tree-sha1 = "7461639cef384a2ad058005b49e32b318d844343"
 uuid = "872c559c-99b0-510c-b3b7-b6c96a88d5cd"
-version = "0.7.21"
+version = "0.7.22"
 
 [[NNlibCUDA]]
 deps = ["CUDA", "LinearAlgebra", "NNlib", "Random", "Statistics"]
@@ -460,9 +460,9 @@ uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[Random123]]
 deps = ["Libdl", "Random", "RandomNumbers"]
-git-tree-sha1 = "5fbcfdea78c76cf16be611c9cb1d194f3e448e37"
+git-tree-sha1 = "0e8b146557ad1c6deb1367655e052276690e71a3"
 uuid = "74087812-796a-5b5d-8853-05524746bad3"
-version = "1.4.0"
+version = "1.4.2"
 
 [[RandomNumbers]]
 deps = ["Random", "Requires"]
@@ -644,9 +644,9 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [[VectorizationBase]]
 deps = ["ArrayInterface", "Hwloc", "IfElse", "Libdl", "LinearAlgebra", "Static"]
-git-tree-sha1 = "7c8974c7de377a2dc67e778017c78f96fc8f0fc6"
+git-tree-sha1 = "b4d183e50e32f35132aec8586a6e4822af2e8e75"
 uuid = "3d5dd08c-fd9d-11e8-17fa-ed2836048c2f"
-version = "0.20.16"
+version = "0.20.17"
 
 [[ZipFile]]
 deps = ["Libdl", "Printf", "Zlib_jll"]
