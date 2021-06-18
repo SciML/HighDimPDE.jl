@@ -120,11 +120,17 @@ sol = solve(prob,
             batch_size = 1000)
 ```
 ### Solving on the GPU
-`HighDimPDE.jl` allows to run the `DeepSplitting` algorithm on the GPU for (much) improved performance. To do so, just define `x0` as a `CUDA` array.
+`HighDimPDE.jl` allows to run the `DeepSplitting` algorithm on the GPU for (much) improved performance. To do so, just set `use_cude = true`.
 
 ```julia
-using CUDA
-x0 = CUDA.fill(0.,d)
+sol = solve(prob, 
+            alg, 
+            dt=0.1, 
+            verbose = true, 
+            abstol = 2e-3,
+            maxiters = 1000,
+            batch_size = 1000,
+            use_cuda=true)
 ```
 
 That's all!
