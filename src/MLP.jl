@@ -75,14 +75,14 @@ function _ml_picard(
         verbose && println("loop l")
         b = 0.
         num = M^(L - l) # ? why 0.5 in sebastian code?
-        for k in 0:num
+        for k in 1:num
             verbose && println("loop k")
             r = s + (t - s) * rand()
             x2 = sde_loop(x, s, r)
             b2 = _ml_picard(M, l, K, x2, r, t, sde_loop, mc_sample, g, f, verbose)
             b3 = 0.
                 # non local integration
-            for h in 0:(K-1)
+            for h in 1:K
                 verbose && println("loop h")
                 x3 = mc_sample(x)
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)[] #TODO:hardcode, not sure about t
@@ -102,7 +102,7 @@ function _ml_picard(
             b4 = _ml_picard(M, l - 1, K, x2, r, t, sde_loop, mc_sample, g, f, verbose)
             b3 = 0.
                 # non local integration
-            for h in 0:(K-1)
+            for h in 1:K
                 x3 = mc_sample(x)
                 x32 = x3
                 x34 = x3
@@ -115,7 +115,7 @@ function _ml_picard(
     end
 
     num = M^(L)
-    for k in 0:(num-1)
+    for k in 1:num
         verbose && println("loop k3")
         x2 = sde_loop(x, s, t)
         a2 += g(x2)[]
@@ -153,7 +153,7 @@ function _ml_picard_mlt(
             b2 = _ml_picard(M, l, K, x2, r, t, sde_loop, mc_sample, g, f, verbose)
             b3 = 0.
                 # non local integration
-            for h in 0:(K-1)
+            for h in 1:K
                 verbose && println("loop h")
                 x3 = mc_sample(x)
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)[] #TODO:hardcode, not sure about t
@@ -173,7 +173,7 @@ function _ml_picard_mlt(
             b4 = _ml_picard(M, l - 1, K, x2, r, t, sde_loop, mc_sample, g, f, verbose)
             b3 = 0.
                 # non local integration
-            for h in 0:(K-1)
+            for h in 1:K
                 x3 = mc_sample(x)
                 x32 = x3
                 x34 = x3
@@ -185,7 +185,7 @@ function _ml_picard_mlt(
     end
 
     num = M^(L)
-    for k in 0:(num-1)
+    for k in 1:num
         verbose && println("loop k3")
         x2 = sde_loop(x, s, t)
         a2 += g(x2)[]
