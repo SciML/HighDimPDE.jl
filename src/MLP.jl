@@ -60,7 +60,7 @@ function DiffEqBase.__solve(
 
         a2 /= num
         NUM_THREADS = Threads.nthreads()
-        @Threads.threads for thread_num in 1:NUM_THREADS
+        @Threads.threads for thread_num in 0:(NUM_THREADS-1)
             Threads.atomic_add!(a, _ml_picard_mlt(M, L, K, x, s, t, sde_loop, mc_sample, g, f, verbose, thread_num, NUM_THREADS))
         end
 
@@ -176,7 +176,7 @@ function _ml_picard_mlt(
 				loop_num = num / NUM_THREADS;
             end
 		end
-        for k in 0:loop_num
+        for k in 1:loop_num
             verbose && println("loop k")
             r = s + (t - s) * rand()
             x2 = sde_loop(x, s, r)
