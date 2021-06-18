@@ -45,7 +45,6 @@ function DiffEqBase.__solve(
     end
     
     if multithreading
-        global NUM_THREADS = Threads.nthreads()
         a = Threads.Atomic{Float64}(0.) 
         a2 = 0. 
         s = prob.tspan[1]
@@ -53,15 +52,15 @@ function DiffEqBase.__solve(
 
         num = M^(L)
         for k in 0:(num-1)
-            verbose && println("loop k3")
             x2 = sde_loop(x, s, t)
             a2 += g(x2)[]
         end
 
         a2 /= num
         NUM_THREADS = Threads.nthreads()
-        @Threads.threads for thread_num in 0:(NUM_THREADS-1)
+        Threads.@threads for thread_num in 0:(NUM_THREADS-1)
             Threads.atomic_add!(a, _ml_picard_mlt(M, L, K, x, s, t, sde_loop, mc_sample, g, f, verbose, thread_num, NUM_THREADS))
+            verbose && println("thread ", thread_num, " over")
         end
 
         return a[] + a2
@@ -91,18 +90,18 @@ function _ml_picard(
     a2 = 0.
     b = 0. 
     for l in 0:(min(L, 2) - 1)
-        verbose && println("loop l")
+        # verbose && println("loop l")
         b = 0.
         num = M^(L - l) # ? why 0.5 in sebastian code?
-        for k in 0:num
-            verbose && println("loop k")
+        for k in 1:num
+            # verbose && println("loop k")
             r = s + (t - s) * rand()
             x2 = sde_loop(x, s, r)
             b2 = _ml_picard(M, l, K, x2, r, t, sde_loop, mc_sample, g, f, verbose)
             b3 = 0.
                 # non local integration
-            for h in 0:(K-1)
-                verbose && println("loop h")
+            for h in 1:(K)
+                # verbose && println("loop h")
                 x3 = mc_sample(x)
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)[] #TODO:hardcode, not sure about t
             end
@@ -121,7 +120,7 @@ function _ml_picard(
             b4 = _ml_picard(M, l - 1, K, x2, r, t, sde_loop, mc_sample, g, f, verbose)
             b3 = 0.
                 # non local integration
-            for h in 0:(K-1)
+            for h in 1:K
                 x3 = mc_sample(x)
                 x32 = x3
                 x34 = x3
@@ -134,8 +133,8 @@ function _ml_picard(
     end
 
     num = M^(L)
-    for k in 0:(num-1)
-        verbose && println("loop k3")
+    for k in 1:num
+        # verbose && println("loop k3")
         x2 = sde_loop(x, s, t)
         a2 += g(x2)[]
     end
@@ -163,28 +162,30 @@ function _ml_picard_mlt(
     )
     a = 0.
     for l in 0:(min(L, 2) - 1)
-        verbose && println("loop l")
+        # verbose && println("loop l")
         b = 0.
         num = M^(L - l)
         if num < NUM_THREADS
+            # each thread only goes once through the loop
             loop_num = thread_num > num ? 0 : 1
         else
             remainder =  M % num
             if (remainder > 0) && (thread_num <= remainder) 
-				loop_num = num / NUM_THREADS + 1;
+                # each thread goes  num / NUM_THREADS + the remainder 
+				loop_num = num / NUM_THREADS + 1
 			else
-				loop_num = num / NUM_THREADS;
+				loop_num = num / NUM_THREADS
             end
 		end
         for k in 1:loop_num
-            verbose && println("loop k")
+            # verbose && println("loop k")
             r = s + (t - s) * rand()
             x2 = sde_loop(x, s, r)
             b2 = _ml_picard(M, l, K, x2, r, t, sde_loop, mc_sample, g, f, verbose)
             b3 = 0.
                 # non local integration
-            for h in 0:(K-1)
-                verbose && println("loop h")
+            for h in 1:K
+                # verbose && println("loop h")
                 x3 = mc_sample(x)
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)[] #TODO:hardcode, not sure about t
             end
@@ -201,9 +202,9 @@ function _ml_picard_mlt(
         else
             remainder =  M % num
             if (remainder > 0) && (thread_num <= remainder) 
-				loop_num = num / NUM_THREADS + 1;
+				loop_num = num / NUM_THREADS + 1
 			else
-				loop_num = num / NUM_THREADS;
+				loop_num = num / NUM_THREADS
             end
 		end
         for k in 1:loop_num
@@ -213,7 +214,7 @@ function _ml_picard_mlt(
             b4 = _ml_picard(M, l - 1, K, x2, r, t, sde_loop, mc_sample, g, f, verbose)
             b3 = 0.
                 # non local integration
-            for h in 0:(K-1)
+            for h in 1:K
                 x3 = mc_sample(x)
                 x32 = x3
                 x34 = x3
