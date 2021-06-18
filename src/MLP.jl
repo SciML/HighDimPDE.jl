@@ -45,7 +45,6 @@ function DiffEqBase.__solve(
     end
     
     if multithreading
-        global NUM_THREADS = Threads.nthreads()
         a = Threads.Atomic{Float64}(0.) 
         a2 = 0. 
         s = prob.tspan[1]
@@ -59,7 +58,7 @@ function DiffEqBase.__solve(
 
         a2 /= num
         NUM_THREADS = Threads.nthreads()
-        @Threads.threads for thread_num in 1:NUM_THREADS
+        Threads.@threads for thread_num in 1:NUM_THREADS
             Threads.atomic_add!(a, _ml_picard_mlt(M, L, K, x, s, t, sde_loop, mc_sample, g, f, verbose, thread_num, NUM_THREADS))
             verbose && println("thread ", thread_num, " over")
         end
