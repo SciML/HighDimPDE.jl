@@ -53,7 +53,6 @@ function DiffEqBase.__solve(
 
         num = M^(L)
         for k in 0:(num-1)
-            verbose && println("loop k3")
             x2 = sde_loop(x, s, t)
             a2 += g(x2)[]
         end
@@ -62,6 +61,7 @@ function DiffEqBase.__solve(
         NUM_THREADS = Threads.nthreads()
         @Threads.threads for thread_num in 1:NUM_THREADS
             Threads.atomic_add!(a, _ml_picard_mlt(M, L, K, x, s, t, sde_loop, mc_sample, g, f, verbose, thread_num, NUM_THREADS))
+            verbose && println("thread ", thread_num, " over")
         end
 
         return a[] + a2
@@ -91,18 +91,18 @@ function _ml_picard(
     a2 = 0.
     b = 0. 
     for l in 0:(min(L, 2) - 1)
-        verbose && println("loop l")
+        # verbose && println("loop l")
         b = 0.
         num = M^(L - l) # ? why 0.5 in sebastian code?
         for k in 0:num
-            verbose && println("loop k")
+            # verbose && println("loop k")
             r = s + (t - s) * rand()
             x2 = sde_loop(x, s, r)
             b2 = _ml_picard(M, l, K, x2, r, t, sde_loop, mc_sample, g, f, verbose)
             b3 = 0.
                 # non local integration
             for h in 0:(K-1)
-                verbose && println("loop h")
+                # verbose && println("loop h")
                 x3 = mc_sample(x)
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)[] #TODO:hardcode, not sure about t
             end
@@ -135,7 +135,7 @@ function _ml_picard(
 
     num = M^(L)
     for k in 0:(num-1)
-        verbose && println("loop k3")
+        # verbose && println("loop k3")
         x2 = sde_loop(x, s, t)
         a2 += g(x2)[]
     end
@@ -163,7 +163,7 @@ function _ml_picard_mlt(
     )
     a = 0.
     for l in 0:(min(L, 2) - 1)
-        verbose && println("loop l")
+        # verbose && println("loop l")
         b = 0.
         num = M^(L - l)
         if num < NUM_THREADS
@@ -177,14 +177,14 @@ function _ml_picard_mlt(
             end
 		end
         for k in 0:loop_num
-            verbose && println("loop k")
+            # verbose && println("loop k")
             r = s + (t - s) * rand()
             x2 = sde_loop(x, s, r)
             b2 = _ml_picard(M, l, K, x2, r, t, sde_loop, mc_sample, g, f, verbose)
             b3 = 0.
                 # non local integration
             for h in 0:(K-1)
-                verbose && println("loop h")
+                # verbose && println("loop h")
                 x3 = mc_sample(x)
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)[] #TODO:hardcode, not sure about t
             end
