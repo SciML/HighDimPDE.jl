@@ -89,7 +89,6 @@ end
     X1 = X0 + randn(d)
     @testset "test equivalence of index with cpu/gpu" begin
         args = (X0, X1, -1, 1)
-        @test HighDimPDE._reflect(copy.(args)...) ≈ HighDimPDE._reflect_GPU(copy.(args)...)
         @test HighDimPDE._reflect(copy.(args)...) ≈ HighDimPDE._reflect_outs(copy.(args)...)
         @test HighDimPDE._reflect_GPU(copy.(args)...) ≈ HighDimPDE._reflect_outs(copy.(args)...)
     end
