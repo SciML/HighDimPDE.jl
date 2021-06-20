@@ -128,11 +128,12 @@ Checks if `b[n_idx]` (which corresponds to `out[rmin_idx]`) is within the specif
 The corresponding `out`-indices are removed before iterating the reflection.
 """
 function _discard_reflected_out_index!(out, out1, out2, rmin_idx)
+    offset = length(out1)
     if rmin_idx <= offset
         deleteat!(out1, rmin_idx)
         deleteat!(out, rmin_idx)
     else
-        deleteat!(out2, rmin_idx - length(out1))
+        deleteat!(out2, rmin_idx - offset)
         deleteat!(out, rmin_idx)
     end
 end
