@@ -82,3 +82,16 @@ if CUDA.functional()
         end
     end
 end
+
+@testset "CPU index reflect methods" begin
+    d = 1000
+    X0 = fill(0.0f0,d)
+    X1 = X0 + randn(d)
+    @testset "test equivalence of index with cpu/gpu" begin
+        args = (X0, X1, -1, 1)
+        @test HighDimPDE._reflect(copy.(args)...) ≈ HighDimPDE._reflect_GPU(copy.(args)...)
+        @test HighDimPDE._reflect(copy.(args)...) ≈ HighDimPDE._reflect_outs(copy.(args)...)
+        @test HighDimPDE._reflect_GPU(copy.(args)...) ≈ HighDimPDE._reflect_outs(copy.(args)...)
+    end
+    
+end
