@@ -71,7 +71,7 @@ function _ml_picard(
     a = 0.
     a2 = 0.
     b = 0. 
-    for l in 0:(min(L, 2) - 1)
+    for l in 0:(min(L- 1, 1))
         verbose && println("loop l")
         b = 0.
         num = M^(L - l) # ? why 0.5 in sebastian code?
@@ -84,7 +84,7 @@ function _ml_picard(
                 # non local integration
             for h in 1:K
                 verbose && println("loop h")
-                x3 = mc_sample(x)
+                x3 = mc_sample(x2)
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)[] #TODO:hardcode, not sure about t
             end
             b += b3 / K
@@ -103,11 +103,10 @@ function _ml_picard(
             b3 = 0.
                 # non local integration
             for h in 1:K
-                x3 = mc_sample(x)
+                x3 = mc_sample(x2)
                 x32 = x3
                 x34 = x3
-                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)[] - 
-                    f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, sde_loop, mc_sample, g, f, verbose),0., 0., t)[] #TODO:hardcode, not sure about t
+                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)[] - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, sde_loop, mc_sample, g, f, verbose),0., 0., t)[] #TODO:hardcode, not sure about t
             end
             b += b3 / K
         end
@@ -146,7 +145,7 @@ function _ml_picard_mlt(
         verbose && println("loop l")
         b = Threads.Atomic{Float64}(0.) 
         num = M^(L - l) # ? why 0.5 in sebastian code?
-        @Threads.threads for k in 0:num
+        @Threads.threads for k in 1:num
             verbose && println("loop k")
             r = s + (t - s) * rand()
             x2 = sde_loop(x, s, r)
@@ -155,7 +154,7 @@ function _ml_picard_mlt(
                 # non local integration
             for h in 1:K
                 verbose && println("loop h")
-                x3 = mc_sample(x)
+                x3 = mc_sample(x2)
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)[] #TODO:hardcode, not sure about t
             end
         Threads.atomic_add!(b, b3 / K)
@@ -174,7 +173,7 @@ function _ml_picard_mlt(
             b3 = 0.
                 # non local integration
             for h in 1:K
-                x3 = mc_sample(x)
+                x3 = mc_sample(x2)
                 x32 = x3
                 x34 = x3
                 b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)[] - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, sde_loop, mc_sample, g, f, verbose),0., 0., t)[] #TODO:hardcode, not sure about t

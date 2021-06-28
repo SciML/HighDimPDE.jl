@@ -1,4 +1,4 @@
-#define N_MAX 4
+#define N_MAX 5
 #define M_PI 3.14159265358979323846
 #define NUM_THREADS 32
 
@@ -200,7 +200,7 @@ int main() {
 	out_file << "elapsed_secs" << std::endl;
 
 	double T[1] = {1.0 }; //0.1,0.5,
-	uint16_t d[1] = {1}; //,2,5,10
+	uint16_t d[1] = {5}; //,2,5,10
 
 	for (uint8_t k = 0; k < sizeof(T) / sizeof(T[0]); k++) {
 		for (uint8_t l = 0; l < sizeof(d) / sizeof(d[0]); l++) {
