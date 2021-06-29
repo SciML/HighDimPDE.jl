@@ -37,7 +37,7 @@ function DiffEqBase.__solve(
     function sde_loop(y0, s, t)
         dt = t - s
         # @show y1
-        y1 = y0 .- ( μ(y0, p, t) .* dt .+ σ(y0, p, t) .* sqrt(dt) .* randn(size(y0)))
+        y1 = y0 - ( μ(y0, p, t) .* dt .+ σ(y0, p, t) .* sqrt(dt) .* randn(size(y0)))
         if !isnothing(u_domain)
             y1 = _reflect(y0, y1, u_domain[1], u_domain[2])
         end
@@ -45,10 +45,11 @@ function DiffEqBase.__solve(
     end
     
     if multithreading
-        return _ml_picard_mlt(M, L, K, x, prob.tspan[1], prob.tspan[2], sde_loop, mc_sample, g, f, verbose)
+        sol = _ml_picard_mlt(M, L, K, x, prob.tspan[1], prob.tspan[2], sde_loop, mc_sample, g, f, verbose)
     else
-        return _ml_picard(M, L, K, x, prob.tspan[1], prob.tspan[2], sde_loop, mc_sample, g, f, verbose)
+        sol = _ml_picard(M, L, K, x, prob.tspan[1], prob.tspan[2], sde_loop, mc_sample, g, f, verbose)
     end 
+    return sol
     # sol = DiffEqBase.build_solution(prob,alg,ts,usol)
     # save_everystep ? iters : u0(X0)[1]
 
@@ -89,7 +90,7 @@ function _ml_picard(
             end
             b += b3 / K
         end
-        a += (t - s) * (b / num)
+        a += (t - s) * b / num
     end
             
     for l in 2:(L-1)
@@ -110,7 +111,7 @@ function _ml_picard(
             end
             b += b3 / K
         end
-        a += (t - s) * (b / num)
+        a += (t - s) * b / num
     end
 
     num = M^(L)
@@ -141,7 +142,7 @@ function _ml_picard_mlt(
     )
     a = 0.
     a2 = 0.
-    for l in 0:(min(L, 2) - 1)
+    for l in 0:(min(L - 1, 1))
         verbose && println("loop l")
         b = Threads.Atomic{Float64}(0.) 
         num = M^(L - l) # ? why 0.5 in sebastian code?
@@ -159,7 +160,7 @@ function _ml_picard_mlt(
             end
         Threads.atomic_add!(b, b3 / K)
         end
-        a += (t - s) * (b[] / num)
+        a += (t - s) * b[] / num
     end
             
     for l in 2:(L-1)
@@ -180,7 +181,7 @@ function _ml_picard_mlt(
             end
         Threads.atomic_add!(b, b3 / K)
         end
-        a += (t - s) * (b[] / num)
+        a += (t - s) * b[] / num
     end
 
     num = M^(L)
