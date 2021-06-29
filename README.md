@@ -27,20 +27,20 @@ Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) 
 ```julia
 using HighDimPDE
 
+## Definition of the problem
 d = 10 # dimension of the problem
 tspan = (0.0,0.5) # time horizon
 x0 = fill(0.,d)  # initial point
-g(X) = exp(- sum(X.^2) ) # initial condition
-μ(X,p,t) = 0.0 # advection coefficients
-σ(X,p,t) = 0.1 # diffusion coefficients
-
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max(0.0, v_y) * (1 -  max(0.0, v_y)) # nonlocal nonlinear part of the
-
+g(x) = exp(- sum(x.^2) ) # initial condition
+μ(x, p, t) = 0.0 # advection coefficients
+σ(x, p, t) = 0.1 # diffusion coefficients
+f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max(0.0, v_x) * (1 -  max(0.0, v_x)) # nonlocal nonlinear part of the
 prob = PIDEProblem(g, f, μ, σ, x0, tspan) # defining the problem
 
+## Definition of the algorithm
 alg = MLP() # defining the algorithm. We use the Multi Level Picard algorithm
 
-# solving with multiple threads 
+## Solving with multiple threads 
 sol = solve(prob, alg, multithreading=true)
 ```
 To plot the time series
@@ -57,19 +57,16 @@ using HighDimPDE
 d = 10 # dimension of the problem
 tspan = (0.0,0.5) # time horizon
 x0 = fill(0.,d)  # initial point
-g(X) = exp(- sum(X.^2) ) # initial condition
-μ(X,p,t) = 0.0 # advection coefficients
-σ(X,p,t) = 0.1 # diffusion coefficients
-
+g(x) = exp( -sum(x.^2) ) # initial condition
+μ(x, p, t) = 0.0 # advection coefficients
+σ(x, p, t) = 0.1 # diffusion coefficients
 u_domain = [-1/2, 1/2]
-
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max(0.0, v_y) * (1 -  max(0.0, v_z)) 
-
-## Definition of the algorithm
+f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max(0.0, v_x) * (1 -  max(0.0, v_y)) 
 prob = PIDEProblem(g, f, μ, 
                     σ, x0, tspan, 
                     u_domain = u_domain) # defining u_domain is sufficient to implement Neumann boundary conditions
 
+## Definition of the algorithm
 alg = MLP(mc_sample = UniformSampling(u_domain[1], u_domain[2]) ) 
 
 sol = solve(prob, alg, multithreading=true)
@@ -82,17 +79,13 @@ using HighDimPDE
 
 ## Definition of the problem
 d = 10 # dimension of the problem
-tspan = (0.0,0.5) # time horizon
+tspan = (0.0, 0.5) # time horizon
 x0 = fill(0.,d)  # initial point
-g(X) = exp.(- sum(X.^2,dims=1) ) # initial condition
-μ(X,p,t) = 0.0 # advection coefficients
-σ(X,p,t) = 0.1 # diffusion coefficients
-
+g(x) = exp.(- sum(x.^2, dims=1) ) # initial condition
+μ(x, p, t) = 0.0 # advection coefficients
+σ(x, p, t) = 0.1 # diffusion coefficients
 u_domain = [-1/2, 1/2]
-
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max.(0f0, v_y) .* (1f0 .-  max.(0f0, v_z)) 
-
-## Definition of the algorithm
+f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max.(0f0, v_x) .* (1f0 .-  max.(0f0, v_y)) 
 prob = PIDEProblem(g, f, μ, 
                     σ, x0, tspan, 
                     u_domain = u_domain)
@@ -102,9 +95,9 @@ using Flux # needed to define the neural network
 
 hls = d + 50 #hidden layer size
 
-nn = Flux.Chain(Dense(d,hls,tanh),
-        Dense(hls,hls,tanh),
-        Dense(hls,1)) # neural network used by the scheme
+nn = Flux.Chain(Dense(d, hls, tanh),
+        Dense(hls, hls, tanh),
+        Dense(hls, 1)) # neural network used by the scheme
 
 opt = Flux.Optimiser(ExpDecay(0.1,
                 0.1,
