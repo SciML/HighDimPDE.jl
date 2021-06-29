@@ -88,3 +88,97 @@ function _reflect_GPU(a, b, s::Real, e::Real)
     end
     return b
 end
+
+function _out_indices(b, s::R, e::R) where {R<:Real}
+    out1 = findall(b .< s)
+    out2 = findall(b .> e)
+    out = vcat(out1, out2)
+    return out1, out2, out
+end
+
+
+"""
+    _rtemp_lower!(rtemp, a, b, s, out_lower)
+Update slice of `rtemp` corresponding to the lower boundary `s`.
+"""
+function _rtemp_lower!(rtemp, a, b, s, out_lower)
+    for i in 1:length(out_lower)
+        idx = out_lower[i]
+        rtemp[i] = @. (s - a[idx]) / (b[idx] - a[idx])
+    end
+end
+
+"""
+    _rtemp_lower!(rtemp, a, b, e, out_upper, offset)
+Update slice of `rtemp` corresponding to the upper boundary `e`.
+NOTE: An offset needs to be provided, corresponding to the number of dimensions where `b` is below the lower boundary.
+(SEE `rtemp_lower!`).
+"""
+function _rtemp_upper!(rtemp, a, b, e, out_upper, offset)
+    for i in 1:length(out_upper)
+        idx = out_upper[i]
+        rtemp[i + offset] = @. (e - a[idx]) / (b[idx] - a[idx])
+    end
+end
+
+
+"""
+    _discard_reflected_out_index!(out, out1, out2, rmin_idx)
+Checks if `b[n_idx]` (which corresponds to `out[rmin_idx]`) is within the specified boundary `[s, e]` after reflection along dimension `n_idx`.
+The corresponding `out`-indices are removed before iterating the reflection.
+"""
+function _discard_reflected_out_index!(out, out1, out2, rmin_idx)
+    offset = length(out1)
+    if rmin_idx <= offset
+        deleteat!(out1, rmin_idx)
+        deleteat!(out, rmin_idx)
+    else
+        deleteat!(out2, rmin_idx - offset)
+        deleteat!(out, rmin_idx)
+    end
+end
+
+
+function _swap_boundary_outs!(out1, out2, n_idx, rmin_idx)
+    offset = length(out1)
+    # Should occur after reflecting OUT-OF-BOUNDS, where
+    # dimension `n_idx` is assigned to other `out`-vector
+    # for next reflection.
+    if rmin_idx <= offset
+        deleteat!(out1, rmin_idx)
+        push!(out2, n_idx)
+    else
+        deleteat!(out2, rmin_idx - offset)
+        push!(out1, n_idx)
+    end
+end
+
+function _reflect_outs(a, b, s::Real, e::Real)
+    all((a .>= s) .& (a .<= e)) ? nothing : error("a = $a not in hypercube")
+    size(a) == size(b) ? nothing : error("a not same dim as b")
+
+    # Initialize vectors of indices corresponding to dim of trajectories out of bounds
+    out1, out2, out = _out_indices(b, s, e)
+    rtemp = Vector{Float32}(undef, length(out))
+    while length(out) > 0
+        # TODO: Preallocate rtemp once, then remove elements with deleteat!(rtemp, rmin_idx)
+        _rtemp_lower!(rtemp, a, b, s, out1)
+        _rtemp_upper!(rtemp, a, b, e, out2, length(out1))
+        
+        rmin, rmin_idx = findmin(rtemp)
+        n_idx = out[rmin_idx]
+        @. a += (b - a) * rmin
+        b[n_idx] = -b[n_idx] + 2 * a[n_idx]
+        if s < b[n_idx] && b[n_idx] < e
+            # Within boundary after reflection, can reduce number of reflecting dimensions.
+            _discard_reflected_out_index!(out, out1, out2, rmin_idx)
+            deleteat!(rtemp, rmin_idx)
+        else
+            # Reflected outside boundary, need to move element between out1 and out2
+            # TODO: Reassign out-indices manually via _swap_boundary_outs!, for now, just recompute out-indices.
+            # _swap_boundary_outs!(out1, out2, n_idx, rmin_idx)
+            out1, out2, out = _out_indices(b, s, e)
+        end
+    end
+    return b
+end
