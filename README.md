@@ -1,14 +1,14 @@
 # HighDimPDE.jl
 
-This package provides the Deep Splitting and the MLP algorithms to solve for high dimensional, non-local, nonlinear PDEs (papers in prep.). 
-It builds upon DiffEqBase.jl and SciMLBase.jl for the interface, and uses Flux.jl for the solving part (Deep Splitting Algorithm).
+This package provides the Deep Splitting and the MLP algorithms to solve for non-local, non-linear PDEs (papers in prep.).
 It aims at solving PDEs for which the solution u satisfies
-
 <div style="overflow-x: scroll;" align=center>                          
 <img src="docs/equation.png"/>
 </div>
 
-The scheme is particularly performant when the domain D is highly dimensional, as it overcomes the so called *curse of dimensionality*.
+Those schemes are particularly performant when the domain of the solution is highly dimensional, as they overcome the so called *curse of dimensionality*.
+
+HighDimPDE.jl builds upon [DiffEqBase.jl](https://github.com/SciML/DiffEqBase.jl) and [SciMLBase.jl](https://github.com/SciML/SciMLBase.jl) for the interface, and uses [Flux.jl](https://github.com/FluxML/Flux.jl) for the machine learning part in the case of the Deep Splitting algorithm.
 
 ## Installation
 Open Julia REPL and type the following
@@ -27,20 +27,20 @@ Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) 
 ```julia
 using HighDimPDE
 
+## Definition of the problem
 d = 10 # dimension of the problem
 tspan = (0.0,0.5) # time horizon
 x0 = fill(0.,d)  # initial point
-g(X) = exp(- sum(X.^2) ) # initial condition
-μ(X,p,t) = 0.0 # advection coefficients
-σ(X,p,t) = 0.1 # diffusion coefficients
-
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max(0.0, v_y) * (1 -  max(0.0, v_y)) # nonlocal nonlinear part of the
-
+g(x) = exp(- sum(x.^2) ) # initial condition
+μ(x, p, t) = 0.0 # advection coefficients
+σ(x, p, t) = 0.1 # diffusion coefficients
+f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max(0.0, v_x) * (1 -  max(0.0, v_x)) # nonlocal nonlinear part of the
 prob = PIDEProblem(g, f, μ, σ, x0, tspan) # defining the problem
 
+## Definition of the algorithm
 alg = MLP() # defining the algorithm. We use the Multi Level Picard algorithm
 
-# solving with multiple threads 
+## Solving with multiple threads 
 sol = solve(prob, alg, multithreading=true)
 ```
 To plot the time series
@@ -53,21 +53,20 @@ Let's include in the previous equation non local competition and let's assume Ne
 ```julia
 using HighDimPDE
 
+## Definition of the problem
 d = 10 # dimension of the problem
 tspan = (0.0,0.5) # time horizon
 x0 = fill(0.,d)  # initial point
-g(X) = exp(- sum(X.^2) ) # initial condition
-μ(X,p,t) = 0.0 # advection coefficients
-σ(X,p,t) = 0.1 # diffusion coefficients
-
+g(x) = exp( -sum(x.^2) ) # initial condition
+μ(x, p, t) = 0.0 # advection coefficients
+σ(x, p, t) = 0.1 # diffusion coefficients
 u_domain = [-1/2, 1/2]
-
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max(0.0, v_y) * (1 -  max(0.0, v_z)) 
-
+f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max(0.0, v_x) * (1 -  max(0.0, v_y)) 
 prob = PIDEProblem(g, f, μ, 
                     σ, x0, tspan, 
                     u_domain = u_domain) # defining u_domain is sufficient to implement Neumann boundary conditions
 
+## Definition of the algorithm
 alg = MLP(mc_sample = UniformSampling(u_domain[1], u_domain[2]) ) 
 
 sol = solve(prob, alg, multithreading=true)
@@ -78,35 +77,35 @@ Let's solve the previous equation with the DeepSplitting algorithm.
 ```julia
 using HighDimPDE
 
+## Definition of the problem
 d = 10 # dimension of the problem
-tspan = (0.0,0.5) # time horizon
+tspan = (0.0, 0.5) # time horizon
 x0 = fill(0.,d)  # initial point
-g(X) = exp.(- sum(X.^2,dims=1) ) # initial condition
-μ(X,p,t) = 0.0 # advection coefficients
-σ(X,p,t) = 0.1 # diffusion coefficients
-
+g(x) = exp.(- sum(x.^2, dims=1) ) # initial condition
+μ(x, p, t) = 0.0 # advection coefficients
+σ(x, p, t) = 0.1 # diffusion coefficients
 u_domain = [-1/2, 1/2]
-
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max.(0f0, v_y) .* (1f0 .-  max.(0f0, v_z)) 
-
+f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max.(0f0, v_x) .* (1f0 .-  max.(0f0, v_y)) 
 prob = PIDEProblem(g, f, μ, 
                     σ, x0, tspan, 
                     u_domain = u_domain)
 
-
+## Definition of the neural network to use
 using Flux # needed to define the neural network
 
 hls = d + 50 #hidden layer size
 
-nn = Flux.Chain(Dense(d,hls,tanh),
-        Dense(hls,hls,tanh),
-        Dense(hls,1)) # neural network used by the scheme
+nn = Flux.Chain(Dense(d, hls, tanh),
+        Dense(hls, hls, tanh),
+        Dense(hls, 1)) # neural network used by the scheme
 
 opt = Flux.Optimiser(ExpDecay(0.1,
                 0.1,
                 200,
                 1e-4),
                 ADAM() )#optimiser
+
+## Definition of the algorithm
 alg = DeepSplitting(nn,
                     opt = opt,
                     mc_sample = UniformSampling(u_domain[1], u_domain[2]))
