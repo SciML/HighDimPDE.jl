@@ -148,10 +148,10 @@ function DiffEqBase.__solve(
         vi = deepcopy(vj)
         vj = deepcopy(nn)
         ps = Flux.params(vj)
-        push!(usol, vi)
+        push!(usol, vi |> cpu)
     end
     sample_initial_points!(y1, u_domain)
-    xgrid = [reshape(y1[:,i],d,1) for i in 1:size(y1,2)] #reshape needed for batch size
+    xgrid = [reshape(y1[:,i],d,1) for i in 1:size(y1,2)] .|> cpu #reshape needed for batch size
     return xgrid,usol
 end
 
