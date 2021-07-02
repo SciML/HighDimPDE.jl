@@ -27,7 +27,8 @@ function DiffEqBase.__solve(
     abstol = 1f-6,
     verbose = false,
     maxiters = 300,
-    use_cuda = false
+    use_cuda = false,
+    neumann = nothing
     )
     if use_cuda
         if CUDA.functional()
@@ -60,10 +61,10 @@ function DiffEqBase.__solve(
     vj = deepcopy(nn)
     ps = Flux.params(vj)
 
-    y0 = repeat(X0[:],1,batch_size)
-    y1 = repeat(X0[:],1,batch_size)
+    y0 = similar(X0,d,batch_size)
+    y1 = similar(X0,d,batch_size)
     # output solution is a cpu array
-    usol = [g(prob.X0)[] for i in 1:(N+1)]
+    usol = Any[g]
 
     # checking element types
     eltype(mc_sample) == eltype(X0) || !_integrate(mc_sample) ? nothing : error("Type of mc_sample not the same as X0")
@@ -72,12 +73,12 @@ function DiffEqBase.__solve(
 
     function splitting_model(y0, y1, z, t)
         ∇vi(x) = 0f0#gradient(vi,x)[1]
-        zi = @view z[:,:,1]
+        zi = z[:,:,1]
         _int = f(y1, zi, vi(y1), vi(zi), ∇vi(y1), ∇vi(y1), t)
         # Monte Carlo integration
-        # z is the variable that gets integreated
+        # z is the variable that gets integrated
         for i in 2:K
-             zi = @view z[:,:,i]
+             zi = z[:,:,i]
             _int += f(y1, zi, vi(y1), vi(zi), ∇vi(y1), ∇vi(y1), t)
         end
         vj(y0) - (vi(y1) + dt * _int / K)
@@ -89,16 +90,17 @@ function DiffEqBase.__solve(
     end
 
     # calculating SDE trajectories
-    function sde_loop!(y0,y1,dWall,u_domain)
-        randn!(dWall)
+    function sde_loop!(y0, y1, dWall, u_domain, neumann)
+        randn!(dWall) # points normally distributed for brownian motion
+        sample_initial_points!(y1, u_domain) # points uniformly distributed for initial conditions
         for i in 1:size(dWall,3)
             # not sure about this one
             t = ts[N + 1 - i]
             dW = @view dWall[:,:,i]
             y0 .= y1
             y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW
-            if !isnothing(u_domain)
-                y1 .= _reflect_GPU(y0, y1, u_domain[1], u_domain[2])
+            if !isnothing(neumann)
+                y1 .= _reflect_GPU(y0, y1, neumann[1], neumann[2])
             end
         end
         return y0, y1
@@ -117,11 +119,8 @@ function DiffEqBase.__solve(
         for epoch in 1:maxiters
             # verbose && println("epoch $epoch")
 
-            y0 .= repeat(X0[:],1,batch_size)
-            y1 .= repeat(X0[:],1,batch_size)
-
             # verbose && println("sde loop")
-            sde_loop!(y0, y1, dWall, u_domain)
+            sde_loop!(y0, y1, dWall, u_domain, neumann)
             # verbose && println("mc samples")
             if _integrate(mc_sample)
                 for i in 1:K
@@ -144,13 +143,22 @@ function DiffEqBase.__solve(
             if epoch == maxiters
                 l = loss(y0, y1, z, t)
                 verbose && println("Current loss is: $l")
-                # we change abstol as we can not get more precise over time
-                abstol = 1.0 * l
             end
         end
         vi = deepcopy(vj)
-        usol[net+1] = mean(vj(X0)) |> cpu
+        vj = deepcopy(nn)
+        ps = Flux.params(vj)
+        push!(usol, vi)
     end
-    sol = DiffEqBase.build_solution(prob,alg,ts,usol)
-    return sol
+    sample_initial_points!(y1, u_domain)
+    xgrid = [reshape(y1[:,i],d,1) for i in 1:size(y1,2)] #reshape needed for batch size
+    return xgrid,usol
+end
+
+function sample_initial_points!(y, u_domain)
+    T = eltype(y)
+    rand!(y)
+    m = sum(u_domain) / convert(T,2)
+    y .= (y .- convert(T,0.5)) * (u_domain[2] - u_domain[1]) .+ m
+    return y 
 end
