@@ -46,8 +46,9 @@ function DiffEqBase.__solve(
     # unbin stuff
     u_domain = prob.u_domain
     X0 = prob.X0 |> _device
-    ts = prob.tspan[1]:dt:prob.tspan[2]
-    dt = convert(eltype(X0),dt)
+    T = eltype(X0)
+    dt = convert(T,dt)
+    ts = prob.tspan[1]:dt-eps(T):prob.tspan[2]
     N = length(ts) - 1
     d  = length(X0)
     K = alg.K
@@ -63,13 +64,15 @@ function DiffEqBase.__solve(
 
     y0 = similar(X0,d,batch_size)
     y1 = similar(X0,d,batch_size)
+    z = similar(X0, d, batch_size, K) # for MC non local integration
+
     # output solution is a cpu array
     usol = Any[g]
 
     # checking element types
-    eltype(mc_sample) == eltype(X0) || !_integrate(mc_sample) ? nothing : error("Type of mc_sample not the same as X0")
-    eltype(g(X0)) == eltype(X0) ? nothing : error("Type of `g(X0)` not matching type of X0")
-    eltype(f(X0, X0, vi(X0), vi(X0), 0f0, 0f0, dt)) == eltype(X0) ? nothing : error("Type of non linear function `f(X0)` not matching type of X0")
+    eltype(mc_sample) == T || !_integrate(mc_sample) ? nothing : error("Type of mc_sample not the same as X0")
+    eltype(g(X0)) == T ? nothing : error("Type of `g(X0)` not matching type of X0")
+    eltype(f(X0, X0, vi(X0), vi(X0), 0f0, 0f0, dt)) == T ? nothing : error("Type of non linear function `f(X0)` not matching type of X0")
 
     function splitting_model(y0, y1, z, t)
         ∇vi(x) = 0f0#gradient(vi,x)[1]
@@ -106,11 +109,17 @@ function DiffEqBase.__solve(
         return y0, y1
     end
 
+    function sample_initial_points!(y, u_domain)
+        rand!(y)
+        m = sum(u_domain) / convert(T,2)
+        y .= (y .- convert(T,0.5)) * (u_domain[2] - u_domain[1]) .+ m
+        return y 
+    end
+
     for net in 1:N
         # preallocate dWall
         # verbose && println("preallocating dWall")
         dWall = similar(X0, d, batch_size, N + 1 - net) # for SDE
-        z = similar(X0, d, batch_size, K) # for MC non local integration
 
         verbose && println("Step $(net) / $(N) ")
         t = ts[net]
@@ -155,10 +164,3 @@ function DiffEqBase.__solve(
     return xgrid,usol
 end
 
-function sample_initial_points!(y, u_domain)
-    T = eltype(y)
-    rand!(y)
-    m = sum(u_domain) / convert(T,2)
-    y .= (y .- convert(T,0.5)) * (u_domain[2] - u_domain[1]) .+ m
-    return y 
-end

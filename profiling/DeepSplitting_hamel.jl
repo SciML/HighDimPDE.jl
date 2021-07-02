@@ -36,10 +36,9 @@ alg = DeepSplitting(nn_batch, K=K, opt = opt,mc_sample = UniformSampling(u_domai
 
 
 X0 = fill(0f0,d)  # initial point
-g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
-a(u) = u - u^3
-f(y,z,v_y,v_z,∇v_y,∇v_z, t) = max.(0f0, v_y) .* ( m(y) - max.(0f0, v_z) .* m(z)
-# f(y,z,v_y,v_z,∇v_y,∇v_z, t) = zeros(Float32,size(v_y))
+g(X) = Float32(2f0^(d/2))* exp.(-2f0 * Float32(π)  * sum( X.^2, dims=1))   # initial condition
+m(x) = - 5f-1 * sum(x.^2, dims=1)
+f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max.(0f0, v_y) .* ( m(y) - max.(0f0, v_z) .* m(z) * Float32((2f0 * π)^(d/2) * σ_sampling^d) .* exp.(5f-1 * sum(z.^2, dims = 1) / σ_sampling^2)) # nonlocal nonlinear part of the
 
 # defining the problem
 prob = PIDEProblem(g, f, μ, σ, X0, tspan, 
