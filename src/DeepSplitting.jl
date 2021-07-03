@@ -44,7 +44,7 @@ function solve(
     end
 
     # unbin stuff
-    u_domain = prob.u_domain |> _device
+    u_domain = prob.u_domain |> _device # domain on which we want to approximate u, nothing if only one point wanted
     x0 = prob.x |> _device
     d  = size(x0,1)
     K = alg.K
