@@ -82,14 +82,9 @@ function solve(
 
     function splitting_model(y0, y1, z, t)
         ∇vi(x) = 0f0#gradient(vi,x)[1]
-        zi = view(z,:,:,1)
-        _int = f(y1, zi, vi(y1), vi(zi), ∇vi(y1), ∇vi(y1), t)
         # Monte Carlo integration
         # z is the variable that gets integrated
-        for i in 2:K
-             zi = view(z, :, :, i)
-            _int += f(y1, zi, vi(y1), vi(zi), ∇vi(y1), ∇vi(y1), t)
-        end
+        _int = sum(f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(z), t), dims = 3) 
         vj(y0) - (vi(y1) + dt * _int / K)
     end
 
