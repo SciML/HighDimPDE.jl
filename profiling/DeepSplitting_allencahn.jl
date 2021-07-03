@@ -8,7 +8,7 @@ using PyPlot
 # using the DeepSplitting alg
 batch_size = 1000
 train_steps = 10000
-K = 10
+K = 100
 
 tspan = (0.0,1f0)
 dt = 1f-1 # time step

@@ -126,11 +126,7 @@ function solve(
             sde_loop!(y0, y1, dWall)
             # verbose && println("mc samples")
             if _integrate(mc_sample!)
-                # TODO : remove loop?
-                for i in 1:K
-                    zi = @view z[:,:,i]
-                    mc_sample!(zi, y0)
-                end
+                mc_sample!(z, y0)
             end
 
             # verbose && println("training gradient")
