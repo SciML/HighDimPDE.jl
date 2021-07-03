@@ -15,9 +15,8 @@ dt = 1f-1 # time step
 μ(X,p,t) = 0f0 # advection coefficients
 σ(X,p,t) = 0f0 # diffusion coefficients
 
-
-u_domain = [-5f-1,5f-1]
 d = 5
+u_domain = repeat([-5f-1,5f-1],d,1)
 
 hls = d + 50 #hidden layer size
 
@@ -32,28 +31,28 @@ opt = Flux.Optimiser(ExpDecay(0.1,
                 2000,
                 1e-6),
                 ADAM() )#optimiser
-alg = DeepSplitting(nn_batch, K=K, opt = opt,mc_sample = UniformSampling(u_domain[1],u_domain[2]) )
+alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1], u_domain[2]) )
 
 
 X0 = fill(0f0,d)  # initial point
 g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
 a(u) = u - u^3
-f(y,z,v_y,v_z,∇v_y,∇v_z, t) = a.(v_y) #.- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
+f(y,z,v_y,v_z,∇v_y,∇v_z, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
 # f(y,z,v_y,v_z,∇v_y,∇v_z, t) = zeros(Float32,size(v_y))
 
 # defining the problem
-prob = PIDEProblem(g, f, μ, σ, X0, tspan, 
+prob = PIDEProblem(g, f, μ, σ, tspan, 
                     u_domain = u_domain
                     )
 # solving
-@time xgrid, sol = solve(prob, 
+@time xgrid, sol = HighDimPDE.solve(prob, 
                 alg, 
-                dt=dt, 
+                dt, 
                 verbose = true, 
                 abstol=5f-7,
                 maxiters = train_steps,
                 batch_size=batch_size,
-                use_cuda = true
+                # use_cuda = true
                 )
 
 if d == 1

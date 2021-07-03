@@ -12,17 +12,17 @@ struct DeepSplitting{C1,O} <: HighDimPDEAlgorithm
     nn::C1
     K::Int
     opt::O
-    mc_sample::MCSampling # Monte Carlo sample
+    mc_sample!::MCSampling # Monte Carlo sample
 end
 
 function DeepSplitting(nn; K=1, opt=Flux.ADAM(0.1), mc_sample::MCSampling = NoSampling()) 
     DeepSplitting(nn, K, opt, mc_sample)
 end
 
-function DiffEqBase.__solve(
+function solve(
     prob::PIDEProblem,
-    alg::DeepSplitting;
-    dt,
+    alg::DeepSplitting,
+    dt;
     batch_size = 1,
     abstol = 1f-6,
     verbose = false,
@@ -46,15 +46,26 @@ function DiffEqBase.__solve(
     # unbin stuff
     u_domain = prob.u_domain
     X0 = prob.X0 |> _device
-    T = eltype(X0)
+
+    # output solution
+    if isnothing(X0) && !isnothing(u_domain)
+        usol = Any[g]
+        T = eltype(u_domain)
+        sample_initial_points! = UniformSampling(u_domain[1], u_domain[2])
+    elseif !isnothing(X0) && isnothing(u_domain)
+        usol = [g(prob.X0)[]]
+        T = eltype(X0)
+        sample_initial_points! = NoSampling()
+    end
+
     dt = convert(T,dt)
     ts = prob.tspan[1]:dt-eps(T):prob.tspan[2]
     N = length(ts) - 1
-    d  = length(X0)
+    d  = length(x)
     K = alg.K
     opt = alg.opt
     g,f,μ,σ,p = prob.g,prob.f,prob.μ,prob.σ,prob.p
-    mc_sample =  alg.mc_sample
+    mc_sample! =  alg.mc_sample!
 
     #hidden layer
     nn = alg.nn |> _device
@@ -66,11 +77,8 @@ function DiffEqBase.__solve(
     y1 = similar(X0,d,batch_size)
     z = similar(X0, d, batch_size, K) # for MC non local integration
 
-    # output solution is a cpu array
-    usol = Any[g]
-
     # checking element types
-    eltype(mc_sample) == T || !_integrate(mc_sample) ? nothing : error("Type of mc_sample not the same as X0")
+    eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing : error("Type of mc_sample! not the same as X0")
     eltype(g(X0)) == T ? nothing : error("Type of `g(X0)` not matching type of X0")
     eltype(f(X0, X0, vi(X0), vi(X0), 0f0, 0f0, dt)) == T ? nothing : error("Type of non linear function `f(X0)` not matching type of X0")
 
@@ -93,9 +101,9 @@ function DiffEqBase.__solve(
     end
 
     # calculating SDE trajectories
-    function sde_loop!(y0, y1, dWall, u_domain, neumann)
+    function sde_loop!(y0, y1, dWall)
         randn!(dWall) # points normally distributed for brownian motion
-        sample_initial_points!(y1, u_domain) # points uniformly distributed for initial conditions
+        sample_initial_points!(y1) # points uniformly distributed for initial conditions
         for i in 1:size(dWall,3)
             # not sure about this one
             t = ts[N + 1 - i]
@@ -107,13 +115,6 @@ function DiffEqBase.__solve(
             end
         end
         return y0, y1
-    end
-
-    function sample_initial_points!(y, u_domain)
-        rand!(y)
-        m = sum(u_domain) / convert(T,2)
-        y .= (y .- convert(T,0.5)) * (u_domain[2] - u_domain[1]) .+ m
-        return y 
     end
 
     for net in 1:N
@@ -129,12 +130,13 @@ function DiffEqBase.__solve(
             # verbose && println("epoch $epoch")
 
             # verbose && println("sde loop")
-            sde_loop!(y0, y1, dWall, u_domain, neumann)
+            sde_loop!(y0, y1, dWall)
             # verbose && println("mc samples")
-            if _integrate(mc_sample)
+            if _integrate(mc_sample!)
+                # TODO : remove loop?
                 for i in 1:K
                     zi = @view z[:,:,i]
-                    zi .= mc_sample(y0)
+                    mc_sample!(zi, y0)
                 end
             end
 
@@ -157,10 +159,19 @@ function DiffEqBase.__solve(
         vi = deepcopy(vj)
         vj = deepcopy(nn)
         ps = Flux.params(vj)
-        push!(usol, vi |> cpu)
+        if isnothing(X0)
+            push!(usol, vi |> cpu)
+        else
+            push!(usol, mean(vi(X0)) |> cpu)
+        end
     end
-    sample_initial_points!(y1, u_domain)
-    xgrid = [reshape(y1[:,i],d,1) for i in 1:size(y1,2)] .|> cpu #reshape needed for batch size
-    return xgrid,usol
+    if isnothing(X0)
+        sol = DiffEqBase.build_solution(prob,alg,ts,usol)
+    else
+        sample_initial_points!(y1, u_domain)
+        xgrid = [reshape(y1[:,i],d,1) for i in 1:size(y1,2)] .|> cpu #reshape needed for batch size
+        sol = xgrid,usol
+    end
+    return sol
 end
 

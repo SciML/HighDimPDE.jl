@@ -1,5 +1,4 @@
 # DeepSplitting
-
 - [ ] Make sure that you propose several options
     - [ ] when u_domain is not nothing, then you return the nn
     - [ ] When u_domain is nothing, you only return the value assessed at X0
@@ -13,3 +12,9 @@
 
 - [ ] Try to calculate problem for Hamel, possibly modifying the sampling (uniform)
 
+## Samedi 03/06
+- [ ] check when you extract x in DeepSplitting regarding changes in PIDEProblem, now x can be whether u_domain or x
+- [ ] the errors raised in DeepSplitting.jl l81 can be displace in constructor of PIDEProblem
+
+# Consistency
+- [ ] change _reflect method to accomodate for s, e::Array of same size as a, b

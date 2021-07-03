@@ -32,29 +32,42 @@ module HighDimPDE
     `[u_domain[1], u_domain[2]]^size(x0,1)`. 
     In this case the problem has Neumann boundary conditions.
     """
-    struct PIDEProblem{X0Type,uType,tType,G,F,Mu,Sigma,P,A,UD,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false}
+    struct PIDEProblem{uType,G,F,Mu,Sigma,xType,tType,P,UD,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false}
         u0::uType
         g::G # initial condition
         f::F # nonlinear part
         μ::Mu
         σ::Sigma
-        X0::X0Type
+        x::xType
         tspan::tType
         p::P
-        A::A
         u_domain::UD
         kwargs::K
-        PIDEProblem(g, f, μ, σ, X0, tspan, p=nothing;A=nothing,
-                                                    u_domain=nothing,
-                                                    kwargs...) = new{typeof(X0),
-                                                                    typeof(g(X0)),
-                                                                    typeof(tspan),
-                                                                    NLFunction,
-                                                                    NLFunction,
-                                                                    typeof(μ),
-                                                                    typeof(σ),
-                                                                    typeof(p),typeof(A),typeof(u_domain),typeof(kwargs)}(
-                                                                    g(X0),NLFunction(g),NLFunction(f),μ,σ,X0,tspan,p,A,u_domain,kwargs)
+    end
+
+    function PIDEProblem(g, f, μ, σ, tspan, p=nothing;
+                        x0=nothing,
+                        u_domain=nothing,
+                        kwargs...)
+    if isnothing(x0) && !isnothing(u_domain)
+        x = u_domain[:,1]
+        println(g(Y))
+        println(typeof(g(Y)))
+    elseif !isnothing(x0) && isnothing(u_domain)
+        x = x0
+        println("hey")
+    else
+        error("Need to provide whether `x0` or `u_domain`")
+    end
+    println(g(Y))
+    PIDEProblem{typeof(g(Y)),
+                NLFunction,
+                NLFunction,
+                typeof(μ),
+                typeof(σ),
+                typeof(x),
+                typeof(tspan),
+                typeof(p),typeof(u_domain),typeof(kwargs)}(g(Y),NLFunction(g),NLFunction(f),μ,σ,x,tspan,p,u_domain,kwargs)
     end
 
     Base.summary(prob::PIDEProblem) = string(nameof(typeof(prob)))
@@ -72,5 +85,5 @@ module HighDimPDE
 
     export PIDEProblem, DeepSplitting, MLP
 
-    export NormalSampling, UniformSampling, NoSampling
+    export NormalSampling, UniformSampling, NoSampling, solve
 end
