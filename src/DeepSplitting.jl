@@ -45,42 +45,40 @@ function solve(
 
     # unbin stuff
     u_domain = prob.u_domain
-    X0 = prob.X0 |> _device
-
-    # output solution
-    if isnothing(X0) && !isnothing(u_domain)
-        usol = Any[g]
-        T = eltype(u_domain)
-        sample_initial_points! = UniformSampling(u_domain[1], u_domain[2])
-    elseif !isnothing(X0) && isnothing(u_domain)
-        usol = [g(prob.X0)[]]
-        T = eltype(X0)
-        sample_initial_points! = NoSampling()
-    end
-
-    dt = convert(T,dt)
-    ts = prob.tspan[1]:dt-eps(T):prob.tspan[2]
-    N = length(ts) - 1
-    d  = length(x)
+    x0 = prob.x |> _device
+    d  = size(x0,1)
     K = alg.K
     opt = alg.opt
     g,f,μ,σ,p = prob.g,prob.f,prob.μ,prob.σ,prob.p
     mc_sample! =  alg.mc_sample!
-
     #hidden layer
     nn = alg.nn |> _device
     vi = g
     vj = deepcopy(nn)
     ps = Flux.params(vj)
 
-    y0 = similar(X0,d,batch_size)
-    y1 = similar(X0,d,batch_size)
-    z = similar(X0, d, batch_size, K) # for MC non local integration
+    # output solution
+    if isnothing(u_domain)
+        sample_initial_points! = NoSampling()
+        usol = [g(x0)[]]
+        T = eltype(x0)
+    else
+        usol = Any[g]
+        T = eltype(u_domain)
+        sample_initial_points! = UniformSampling(u_domain[:,1], u_domain[:,2])
+    end
+
+    dt = convert(T,dt)
+    ts = prob.tspan[1]:dt-eps(T):prob.tspan[2]
+    N = length(ts) - 1
+
+    # allocating
+    y0 = similar(x0,d,batch_size)
+    y1 = similar(x0,d,batch_size)
+    z = similar(x0, d, batch_size, K) # for MC non local integration
 
     # checking element types
-    eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing : error("Type of mc_sample! not the same as X0")
-    eltype(g(X0)) == T ? nothing : error("Type of `g(X0)` not matching type of X0")
-    eltype(f(X0, X0, vi(X0), vi(X0), 0f0, 0f0, dt)) == T ? nothing : error("Type of non linear function `f(X0)` not matching type of X0")
+    eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing : error("Type of mc_sample! not the same as x0")
 
     function splitting_model(y0, y1, z, t)
         ∇vi(x) = 0f0#gradient(vi,x)[1]
@@ -120,7 +118,7 @@ function solve(
     for net in 1:N
         # preallocate dWall
         # verbose && println("preallocating dWall")
-        dWall = similar(X0, d, batch_size, N + 1 - net) # for SDE
+        dWall = similar(x0, d, batch_size, N + 1 - net) # for SDE
 
         verbose && println("Step $(net) / $(N) ")
         t = ts[net]
@@ -159,16 +157,16 @@ function solve(
         vi = deepcopy(vj)
         vj = deepcopy(nn)
         ps = Flux.params(vj)
-        if isnothing(X0)
+        if isnothing(u_domain)
             push!(usol, vi |> cpu)
         else
-            push!(usol, mean(vi(X0)) |> cpu)
+            push!(usol, mean(vi(x0)) |> cpu)
         end
     end
-    if isnothing(X0)
+    if isnothing(u_domain)
         sol = DiffEqBase.build_solution(prob,alg,ts,usol)
     else
-        sample_initial_points!(y1, u_domain)
+        sample_initial_points!(y1)
         xgrid = [reshape(y1[:,i],d,1) for i in 1:size(y1,2)] .|> cpu #reshape needed for batch size
         sol = xgrid,usol
     end

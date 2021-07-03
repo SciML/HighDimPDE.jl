@@ -12,10 +12,11 @@ struct UniformSampling{T} <: MCSampling{T}
     b::T
 end
 
-function (mc_sample::UniformSampling{T})(x_mc) where T
+function (mc_sample::UniformSampling{T})(x_mc, kwargs...) where T
+    Tel = eltype(T)
     rand!(x_mc)
-    m = (mc_sample.b + mc_sample.a) ./ convert(T,2)
-    x_mc .= (x_mc .- convert(T,0.5)) .* (mc_sample.b - mc_sample.a) .+ m
+    m = (mc_sample.b + mc_sample.a) ./ convert(Tel,2)
+    x_mc .= (x_mc .- convert(Tel,0.5)) .* (mc_sample.b - mc_sample.a) .+ m
 end
 
 """

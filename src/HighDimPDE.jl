@@ -50,24 +50,25 @@ module HighDimPDE
                         u_domain=nothing,
                         kwargs...)
     if isnothing(x0) && !isnothing(u_domain)
+        size(u_domain,2) == 2 ? nothing : error("`u_domain` needs to be of dimensin `(d,2)`")
         x = u_domain[:,1]
-        println(g(Y))
-        println(typeof(g(Y)))
     elseif !isnothing(x0) && isnothing(u_domain)
         x = x0
-        println("hey")
     else
         error("Need to provide whether `x0` or `u_domain`")
     end
-    println(g(Y))
-    PIDEProblem{typeof(g(Y)),
+
+    eltype(g(x)) == eltype(x) ? nothing : error("Type of `g(X0)` not matching type of X0")
+    eltype(f(x, x, g(x), g(x), 0f0, 0f0, tspan[1])) == eltype(x) ? nothing : error("Type of non linear function `f(X0)` not matching type of X0")
+
+    PIDEProblem{typeof(g(x)),
                 NLFunction,
                 NLFunction,
                 typeof(μ),
                 typeof(σ),
                 typeof(x),
                 typeof(tspan),
-                typeof(p),typeof(u_domain),typeof(kwargs)}(g(Y),NLFunction(g),NLFunction(f),μ,σ,x,tspan,p,u_domain,kwargs)
+                typeof(p),typeof(u_domain),typeof(kwargs)}(g(x),NLFunction(g),NLFunction(f),μ,σ,x,tspan,p,u_domain,kwargs)
     end
 
     Base.summary(prob::PIDEProblem) = string(nameof(typeof(prob)))
