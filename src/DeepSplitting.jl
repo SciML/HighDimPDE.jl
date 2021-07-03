@@ -44,7 +44,7 @@ function solve(
     end
 
     # unbin stuff
-    u_domain = prob.u_domain
+    u_domain = prob.u_domain |> _device
     x0 = prob.x |> _device
     d  = size(x0,1)
     K = alg.K
@@ -82,12 +82,12 @@ function solve(
 
     function splitting_model(y0, y1, z, t)
         ∇vi(x) = 0f0#gradient(vi,x)[1]
-        zi = z[:,:,1]
+        zi = view(z,:,:,1)
         _int = f(y1, zi, vi(y1), vi(zi), ∇vi(y1), ∇vi(y1), t)
         # Monte Carlo integration
         # z is the variable that gets integrated
         for i in 2:K
-             zi = z[:,:,i]
+             zi = view(z, :, :, i)
             _int += f(y1, zi, vi(y1), vi(zi), ∇vi(y1), ∇vi(y1), t)
         end
         vj(y0) - (vi(y1) + dt * _int / K)
@@ -158,9 +158,9 @@ function solve(
         vj = deepcopy(nn)
         ps = Flux.params(vj)
         if isnothing(u_domain)
-            push!(usol, vi |> cpu)
-        else
             push!(usol, mean(vi(x0)) |> cpu)
+        else
+            push!(usol, vi |> cpu)
         end
     end
     if isnothing(u_domain)

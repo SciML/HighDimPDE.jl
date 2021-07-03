@@ -8,7 +8,7 @@ using PyPlot
 # using the DeepSplitting alg
 batch_size = 1000
 train_steps = 10000
-K = 1
+K = 10
 
 tspan = (0.0,1f0)
 dt = 1f-1 # time step
@@ -21,9 +21,9 @@ u_domain = repeat([-5f-1,5f-1]',d,1)
 hls = d + 50 #hidden layer size
 
 nn_batch = Flux.Chain(Dense(d,hls,tanh),
-        BatchNorm(hls, affine=true),
+        # BatchNorm(hls, affine=true),
         Dense(hls,hls,tanh),
-        BatchNorm(hls, affine=true),
+        # BatchNorm(hls, affine=true),
         Dense(hls,1)) # Neural network used by the scheme, with batch normalisation
 
 opt = Flux.Optimiser(ExpDecay(0.1,
@@ -51,22 +51,24 @@ prob = PIDEProblem(g, f, μ, σ, tspan,
                 abstol=5f-7,
                 maxiters = train_steps,
                 batch_size=batch_size,
-                # use_cuda = true
+                use_cuda = true
                 )
 
-if d == 1
-        plt.figure()
-        for i in 1:length(sol)
-                plt.scatter(reduce(vcat,xgrid), reduce(vcat,sol[i].(xgrid)), s=0.1)
+if false
+        if d == 1
+                plt.figure()
+                for i in 1:length(sol)
+                        plt.scatter(reduce(vcat,xgrid), reduce(vcat,sol[i].(xgrid)), s=0.1)
+                end
+        elseif d == 2
+                plt.figure()
+                xy = reduce(hcat,xgrid)
+                plt.scatter(xy[1,:], xy[2,:], c = reduce(vcat,sol[1].(xgrid)))
+        else
+                plt.figure()
+                ts = 0.: dt : tspan[2]
+                ys = [sol[i](zeros(d,1))[] for i in 1:length(sol)]
+                plt.plot(collect(ts),ys)
         end
-elseif d == 2
-        plt.figure()
-        xy = reduce(hcat,xgrid)
-        plt.scatter(xy[1,:], xy[2,:], c = reduce(vcat,sol[1].(xgrid)))
-else
-        plt.figure()
-        ts = 0.: dt : tspan[2]
-        ys = [sol[i](zeros(d,1))[] for i in 1:length(sol)]
-        plt.plot(collect(ts),ys)
+        gcf()
 end
-gcf()
