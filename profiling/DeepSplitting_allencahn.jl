@@ -13,7 +13,7 @@ K = 100
 tspan = (0.0,1f0)
 dt = 1f-1 # time step
 μ(X,p,t) = 0f0 # advection coefficients
-σ(X,p,t) = 0f0 # diffusion coefficients
+σ(X,p,t) = 1f-1 # diffusion coefficients
 
 d = 5
 u_domain = repeat([-5f-1,5f-1]',d,1)

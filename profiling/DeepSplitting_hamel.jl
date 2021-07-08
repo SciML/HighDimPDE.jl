@@ -12,23 +12,23 @@ dt = 1f-1 # time step
 μ(X,p,t) = 0f0 # advection coefficients
 σ(X,p,t) = 1f-1 # diffusion coefficients
 d = 1
-ss0 = fill(1f0, d) #std g0
+ss0 = 1f0 #std g0
 
-u_domain = repeat([-3f0,3f0]',d,1)
+u_domain = repeat([-3f0,3f0]', d, 1)
 
 ##############################
 ####### Neural Network #######
 ##############################
 batch_size = 1000
 train_steps = 10000
-K = 100
+K = 500
 
 hls = d + 50 #hidden layer size
 
 nn_batch = Flux.Chain(Dense(d,hls,tanh),
-        BatchNorm(hls, affine=true),
+        # BatchNorm(hls, affine=true),
         Dense(hls,hls,tanh),
-        BatchNorm(hls, affine=true),
+        # BatchNorm(hls, affine=true),
         Dense(hls,1)) # Neural network used by the scheme, with batch normalisation
 
 opt = Flux.Optimiser(ExpDecay(0.1,
@@ -41,10 +41,10 @@ alg = DeepSplitting(nn_batch, K=K, opt = opt,mc_sample = UniformSampling(u_domai
 ##########################
 ###### PDE Problem #######
 ##########################
-g(x) = Float32((2*π)^(-d/2)) * prod(ss0.^(5f-1)) * exp.(-5f-1 *sum(x .^2f0 ./ ss0, dims = 1)) # initial condition
+g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
 m(x) = - 5f-1 * sum(x.^2, dims=1)
 vol = prod(u_domain[:,2] - u_domain[:,1])
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max.(0f0, v_y) .* ( m(y) .- max.(0f0, v_z) .* m(z) / vol) # nonlocal nonlinear part of the
+f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max.(0f0, v_y) .* (m(y) .- max.(0f0, v_z) .* m(z) / vol) # nonlocal nonlinear part of the
 
 # defining the problem
 prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -55,24 +55,21 @@ prob = PIDEProblem(g, f, μ, σ, tspan,
                 alg, 
                 dt, 
                 verbose = true, 
-                abstol=5f-5,
+                abstol=5f-6,
                 maxiters = train_steps,
                 batch_size=batch_size,
-                use_cuda = false
+                use_cuda = true
                 )
 
+clf()
+fig, ax = plt.subplots(1,2, sharey = true)
 ###############################
 ######### old Plotting ########
 ###############################
-plt.figure()
 for i in 1:length(sol)
-        plt.scatter(reduce(vcat,xgrid), reduce(vcat,sol[i].(xgrid)))
+        ax[1].scatter(reduce(vcat,xgrid), reduce(vcat,sol[i].(xgrid)), s = .2, label="t = $(dt * (i-1))")
 end
 gcf()
-
-dx = 0.05
-x = u_domain[1,1]:dx:u_domain[1,2]
-plt.contourf(x,x,g.(repeat(x,2)))
 
 ###############################
 ######### Plotting ############
@@ -90,12 +87,22 @@ function uanal(x, t, p)
 end
 
 xgrid = [[x] for x in (-3f0:5f-2:3f0)] 
-clf()
-plt.plot(reduce(hcat, xgrid)[:], reduce(hcat,g.(xgrid))[:], label = "g(x)")
+ax[2].plot(reduce(hcat, xgrid)[:], reduce(hcat,g.(xgrid))[:], label = "g(x)")
 gcf()
 for t in collect(0.:0.1:0.5)
-        ys = uanal.(xgrid, t, Ref(p))
-        plt.plot(reduce(hcat, xgrid)[:], reduce(hcat,ys)[:], label = "t = $t")
+        ys = uanal.(xgrid, t, Ref(Dict()))
+        ax[2].plot(reduce(hcat, xgrid)[:], reduce(hcat,ys)[:], label = "t = $t")
 end
-legend()
+for _a in ax
+        _a.legend()
+end
 gcf()
+
+#####
+# other DimensionMismatch
+#####
+if false
+        dx = 0.05
+        x = u_domain[1,1]:dx:u_domain[1,2]
+        plt.contourf(x,x,g.(repeat(x,2)))
+end
