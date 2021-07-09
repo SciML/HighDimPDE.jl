@@ -5,11 +5,6 @@ using Flux
 using Revise
 using PyPlot
 
-# using the DeepSplitting alg
-batch_size = 1000
-train_steps = 10000
-K = 100
-
 tspan = (0.0,1f0)
 dt = 1f-1 # time step
 μ(X,p,t) = 0f0 # advection coefficients
@@ -17,6 +12,13 @@ dt = 1f-1 # time step
 
 d = 5
 u_domain = repeat([-5f-1,5f-1]',d,1)
+
+##############################
+####### Neural Network #######
+##############################
+batch_size = 1000
+train_steps = 10000
+K = 100
 
 hls = d + 50 #hidden layer size
 
@@ -33,12 +35,15 @@ opt = Flux.Optimiser(ExpDecay(0.1,
                 ADAM() )#optimiser
 alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1], u_domain[2]) )
 
-
-g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
+##########################
+###### PDE Problem #######
+##########################
+g(x) = exp.(-0.25f0 * sum(x.^2, dims = 1))   # initial condition
 a(u) = u - u^3
 
 # for uniform sampling of nl term
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = a.(v_y) .- a.(v_z) 
+vol = prod(u_domain[:,2] - u_domain[:,1])
+f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = a.(v_y) .- a.(v_z) * vol
 # for random sampling of nl term
 # f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = a.(v_y) .- a.(v_z) .* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2)
 

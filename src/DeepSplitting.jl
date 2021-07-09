@@ -85,7 +85,7 @@ function solve(
         # TODO: fix it, for now hardcoded
         ∇vi(x) = 0f0 #gradient(vi,x)[1]
         # Monte Carlo integration
-        _int = reshape(sum(f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(z), t), dims = 3),1,:)
+        _int = reshape(sum(f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(z), t), dims = 3), 1, :)
         vj(y0) - (vi(y1) + dt * _int / K)
     end
 
