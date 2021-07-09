@@ -12,7 +12,7 @@ tspan = (0.0,1f-1)
 dt = 1f-1 # time step
 μ(X,p,t) = 0f0 # advection coefficients
 σ(X,p,t) = 1f-1 # diffusion coefficients
-d = 5
+d = 2
 ss0 = 1f0 #std g0
 
 u_domain = repeat([-2f0,2f0]', d, 1)
@@ -89,7 +89,7 @@ if plotting
                 return (2*π)^(-d/2) * prod(_SS(x, t, p) .^(-1/2)) * exp(-0.5 *sum(x .^2 ./ _SS(x, t, p)) )
         end
 
-        for t in collect(0.:0.1:0.5)
+        for t in collect(0.: dt : tspan[2])
                 ys = uanal.(xgrid, t, Ref(Dict()))
                 ax[2].plot(xgrid1, reduce(hcat,ys)[:], label = "t = $t")
         end
