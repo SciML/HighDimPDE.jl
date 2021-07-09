@@ -14,14 +14,14 @@ dt = 1f-1 # time step
 d = 1
 ss0 = 1f0 #std g0
 
-u_domain = repeat([-3f0,3f0]', d, 1)
+u_domain = repeat([-4f0,4f0]', d, 1)
 
 ##############################
 ####### Neural Network #######
 ##############################
 batch_size = 1000
 train_steps = 10000
-K = 500
+K = 100
 
 hls = d + 50 #hidden layer size
 
@@ -44,7 +44,7 @@ alg = DeepSplitting(nn_batch, K=K, opt = opt,mc_sample = UniformSampling(u_domai
 g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
 m(x) = - 5f-1 * sum(x.^2, dims=1)
 vol = prod(u_domain[:,2] - u_domain[:,1])
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max.(0f0, v_y) .* (m(y) .- max.(0f0, v_z) .* m(z) / vol) # nonlocal nonlinear part of the
+f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max.(0f0, v_y) .* (m(y) .- max.(0f0, v_z) .* m(z) ) # nonlocal nonlinear part of the
 
 # defining the problem
 prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -55,7 +55,7 @@ prob = PIDEProblem(g, f, μ, σ, tspan,
                 alg, 
                 dt, 
                 verbose = true, 
-                abstol=5f-6,
+                abstol=3f-5,
                 maxiters = train_steps,
                 batch_size=batch_size,
                 use_cuda = true

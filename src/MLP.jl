@@ -146,7 +146,7 @@ function _ml_picard_mlt(
         verbose && println("loop l")
         b = Threads.Atomic{Float64}(0.) 
         num = M^(L - l) # ? why 0.5 in sebastian code?
-        @Threads.threads for k in 1:num
+        Threads.@threads for k in 1:num
             verbose && println("loop k")
             r = s + (t - s) * rand()
             x2 = sde_loop(x, s, r)
@@ -166,7 +166,7 @@ function _ml_picard_mlt(
     for l in 2:(L-1)
         b = Threads.Atomic{Float64}(0.) 
         num = M^(L - l)
-        @Threads.threads for k in 1:num
+        Threads.@threads for k in 1:num
             r = s + (t - s) * rand()
             x2 = sde_loop(x, s, r)
             b2 = _ml_picard(M, l, K, x2, r, t, sde_loop, mc_sample, g, f, verbose)
