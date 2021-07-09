@@ -36,8 +36,11 @@ alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_doma
 
 g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
 a(u) = u - u^3
-f(y,z,v_y,v_z,∇v_y,∇v_z, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
-# f(y,z,v_y,v_z,∇v_y,∇v_z, t) = zeros(Float32,size(v_y))
+
+# for uniform sampling of nl term
+f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = a.(v_y) .- a.(v_z) 
+# for random sampling of nl term
+# f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = a.(v_y) .- a.(v_z) .* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2)
 
 # defining the problem
 prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -54,6 +57,7 @@ prob = PIDEProblem(g, f, μ, σ, tspan,
                 use_cuda = true
                 )
 
+# plotting
 if false
         if d == 1
                 plt.figure()
