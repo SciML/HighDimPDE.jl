@@ -51,7 +51,8 @@ function solve(
     opt = alg.opt
     g,f,μ,σ,p = prob.g,prob.f,prob.μ,prob.σ,prob.p
     mc_sample! =  alg.mc_sample!
-    #hidden layer
+
+    # neural network model
     nn = alg.nn |> _device
     vi = g
     vj = deepcopy(nn)
@@ -81,9 +82,9 @@ function solve(
     eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing : error("Type of mc_sample! not the same as x0")
 
     function splitting_model(y0, y1, z, t)
-        ∇vi(x) = 0f0#gradient(vi,x)[1]
+        # TODO: fix it, for now hardcoded
+        ∇vi(x) = 0f0 #gradient(vi,x)[1]
         # Monte Carlo integration
-        # z is the variable that gets integrated
         _int = reshape(sum(f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(z), t), dims = 3),1,:)
         vj(y0) - (vi(y1) + dt * _int / K)
     end
@@ -112,7 +113,6 @@ function solve(
 
     for net in 1:N
         # preallocate dWall
-        # verbose && println("preallocating dWall")
         dWall = similar(x0, d, batch_size, N + 1 - net) # for SDE
 
         verbose && println("Step $(net) / $(N) ")
@@ -120,21 +120,22 @@ function solve(
 
         # @showprogress
         for epoch in 1:maxiters
-            # verbose && println("epoch $epoch")
 
-            # verbose && println("sde loop")
+            # generating sdes
             sde_loop!(y0, y1, dWall)
-            # verbose && println("mc samples")
+
             if _integrate(mc_sample!)
+                # generating z for MC non local integration
                 mc_sample!(z, y0)
             end
 
-            # verbose && println("training gradient")
+            # training
             gs = Flux.gradient(ps) do
                 loss(y0, y1, z, t)
             end
             Flux.Optimise.update!(opt, ps, gs) # update parameters
-            # report on train
+            
+            # report on training
             if epoch % 100 == 1
                 l = loss(y0, y1, z, t)
                 verbose && println("Current loss is: $l")
@@ -145,6 +146,8 @@ function solve(
                 verbose && println("Current loss is: $l")
             end
         end
+
+        # saving
         vi = deepcopy(vj)
         vj = deepcopy(nn)
         ps = Flux.params(vj)
@@ -154,6 +157,8 @@ function solve(
             push!(usol, vi |> cpu)
         end
     end
+
+    # return
     if isnothing(u_domain)
         sol = DiffEqBase.build_solution(prob,alg,ts,usol)
     else
