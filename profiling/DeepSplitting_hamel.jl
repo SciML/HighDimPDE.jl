@@ -8,21 +8,21 @@ using PyPlot
 using UnPack
 plotting = true
 
-tspan = (0.0,1f-1)
+tspan = (0f0,5f-1)
 dt = 1f-1 # time step
 μ(X,p,t) = 0f0 # advection coefficients
 σ(X,p,t) = 1f-1 # diffusion coefficients
-d = 2
-ss0 = 1f0 #std g0
+d = 5
+ss0 = 2f-1 #std g0
 
-u_domain = repeat([-2f0,2f0]', d, 1)
+u_domain = repeat([-5f-1,5f-1]', d, 1)
 
 ##############################
 ####### Neural Network #######
 ##############################
 batch_size = 1000
 train_steps = 10000
-K = 500
+K = 100
 
 hls = d + 50 #hidden layer size
 
@@ -33,7 +33,7 @@ nn_batch = Flux.Chain(Dense(d,hls,tanh),
         Dense(hls,1)) # Neural network used by the scheme, with batch normalisation
 
 opt = Flux.Optimiser(ExpDecay(0.1,
-                10.0,
+                1.0,
                 1000,
                 1e-6),
                 ADAM() )#optimiser
@@ -72,11 +72,7 @@ if plotting
         xgrid1 = collect((-3f0:5f-2:3f0))
         xgrid = [vcat(x, fill(0f0,d-1)) for x in xgrid1] 
 
-        for i in 1:length(sol)
-                ax[1].scatter(xgrid1, reduce(vcat,sol[i].(xgrid)), s = .2, label="t = $(dt * (i-1))")
-        end
-        gcf()
-
+        # Analytic sol
         function _SS(x, t, p)
                 d = length(x)
                 MM = σ(x, p, t) * ones(d)
@@ -89,13 +85,20 @@ if plotting
                 return (2*π)^(-d/2) * prod(_SS(x, t, p) .^(-1/2)) * exp(-0.5 *sum(x .^2 ./ _SS(x, t, p)) )
         end
 
-        for t in collect(0.: dt : tspan[2])
+        for t in collect(0.:0.1:0.5)
                 ys = uanal.(xgrid, t, Ref(Dict()))
                 ax[2].plot(xgrid1, reduce(hcat,ys)[:], label = "t = $t")
         end
+        ax[2].set_title("Analytical solution")
+
+
+        #Deepsplitting sol
+        for i in 1:length(sol)
+                ax[1].scatter(xgrid1, reduce(vcat,sol[i].(xgrid)), s = .2, label="t = $(dt * (i-1))")
+        end
+        gcf()
 
         ax[1].set_title("DeepSplitting")
-        ax[2].set_title("Analytical solution")
 
         for _a in ax
                 _a.legend()

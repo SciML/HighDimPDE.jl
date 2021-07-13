@@ -74,8 +74,8 @@ function solve(
     N = length(ts) - 1
 
     # allocating
-    y0 = similar(x0,d,batch_size)
-    y1 = similar(x0,d,batch_size)
+    y1 = repeat(x0,1, batch_size)
+    y0 = similar(y1)
     z = similar(x0, d, batch_size, K) # for MC non local integration
 
     # checking element types
@@ -99,16 +99,16 @@ function solve(
         randn!(dWall) # points normally distributed for brownian motion
         sample_initial_points!(y1) # points uniformly distributed for initial conditions
         for i in 1:size(dWall,3)
+            # @show i
             # not sure about this one
             t = ts[N + 1 - i]
             dW = @view dWall[:,:,i]
             y0 .= y1
             y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW
             if !isnothing(neumann)
-                y1 .= _reflect_GPU(y0, y1, neumann[1], neumann[2])
+                y1 .= _reflect_GPU(y0, y1, neumann[:,1], neumann[:,2])
             end
         end
-        return y0, y1
     end
 
     for net in 1:N
@@ -160,11 +160,12 @@ function solve(
 
     # return
     if isnothing(u_domain)
-        sol = DiffEqBase.build_solution(prob,alg,ts,usol)
+        # sol = DiffEqBase.build_solution(prob, alg, ts, usol)
+        sol = x0, ts, usol
     else
         sample_initial_points!(y1)
         xgrid = [reshape(y1[:,i],d,1) for i in 1:size(y1,2)] .|> cpu #reshape needed for batch size
-        sol = xgrid,usol
+        sol = xgrid, ts, usol
     end
     return sol
 end
