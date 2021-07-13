@@ -24,10 +24,10 @@ function solve(
         alg::MLP;
         multithreading=true,
         verbose=false,
+        neumann = nothing
         )
 
     # unbin stuff
-    u_domain = prob.u_domain
     x = prob.x
     K = alg.K
     M = alg.M
@@ -40,8 +40,8 @@ function solve(
         dt = t - s
         # @show y1
         y1 = y0 - ( μ(y0, p, t) .* dt .+ σ(y0, p, t) .* sqrt(dt) .* randn(size(y0)))
-        if !isnothing(u_domain)
-            y1 = _reflect(y0, y1, u_domain[1], u_domain[2])
+        if !isnothing(neumann)
+            y1 = _reflect(y0, y1, neumann[:,1], neumann[:,2])
         end
         return y1
     end
