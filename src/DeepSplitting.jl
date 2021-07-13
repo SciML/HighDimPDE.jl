@@ -45,12 +45,14 @@ function solve(
 
     # unbin stuff
     u_domain = prob.u_domain |> _device # domain on which we want to approximate u, nothing if only one point wanted
+    neumann = neumann |> _device
     x0 = prob.x |> _device
+    mc_sample! =  alg.mc_sample! |> _device
+
     d  = size(x0,1)
     K = alg.K
     opt = alg.opt
     g,f,μ,σ,p = prob.g,prob.f,prob.μ,prob.σ,prob.p
-    mc_sample! =  alg.mc_sample!
 
     # neural network model
     nn = alg.nn |> _device

@@ -11,6 +11,8 @@ struct UniformSampling{T} <: MCSampling{T}
     a::T
     b::T
 end
+@functor UniformSampling
+
 
 function (mc_sample::UniformSampling{T})(x_mc, kwargs...) where T
     Tel = eltype(T)
@@ -18,6 +20,7 @@ function (mc_sample::UniformSampling{T})(x_mc, kwargs...) where T
     m = (mc_sample.b + mc_sample.a) ./ convert(Tel,2)
     x_mc .= (x_mc .- convert(Tel,0.5)) .* (mc_sample.b - mc_sample.a) .+ m
 end
+
 
 """
 Normal sampling method for the Monte Carlo integration.
@@ -30,6 +33,7 @@ struct NormalSampling{T} <: MCSampling{T}
     σ::T
     shifted::Bool # if true, we shift integration by x when invoking mc_sample::MCSampling(x)
 end
+@functor NormalSampling
 
 NormalSampling(σ) = NormalSampling(σ,false)
 

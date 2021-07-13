@@ -3,6 +3,7 @@ module HighDimPDE
     @reexport using DiffEqBase
     using Statistics
     using Flux, Zygote, LinearAlgebra
+    using Functors
     # using ProgressMeter: @showprogress
     using CUDA
     using Random
