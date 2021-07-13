@@ -63,7 +63,7 @@ reflection of the Brownian motion `B` where `B_{t-1} = a` and  `B_{t} = b`
 on the hypercube `[s,e]^d` where `d = size(a,1)`
 
 """
-function _reflect_GPU(a, b, s::Real, e::Real)
+function _reflect_GPU(a, b, s, e)
     all((a .>= s) .& (a .<= e)) ? nothing : error("a = $a not in hypercube")
     size(a) == size(b) ? nothing : error("a not same dim as b")
     out1 = b .< s
