@@ -17,20 +17,19 @@ module HighDimPDE
     (f::NLFunction)(args...) = f.f(args...)
 
     """
-        PIDEProblem(g,f, μ, σ, x0, tspan)
+        PIDEProblem(g,f, μ, σ, x, tspan)
     A non local non linear PDE problem.
-    Consider `du/dt = l(u) + \\int f(u,x) dx`; where l is the nonlinear Lipschitz function
+    Consider `du/dt = 1/2 Tr(\\sigma \\sigma^T) Δu(t,x) + μ ∇u(t,x) + \\int f(u,x) dx`; where f is the nonlinear Lipschitz function
     # Arguments
     * `g` : The terminal condition for the equation.
     * `f` : The function f(u(x),u(y),du(x),du(y),x,y)
     * `μ` : The drift function of X from Ito's Lemma
-    * `μ` : The noise function of X from Ito's Lemma
-    * `x0`: The initial X for the problem.
+    * `σ` : The noise function of X from Ito's Lemma
     * `tspan`: The timespan of the problem.
     # Options
-    * `u_domain` : the domain, correspoding to the hypercube
-    `[u_domain[1], u_domain[2]]^size(x0,1)`. 
-    In this case the problem has Neumann boundary conditions.
+    * `u_domain` : the domain of the solution required, correspoding to the hypercube
+    `u_domain[:,1] × u_domain[:,2]`. 
+    * `x`: the point of the solution required
     """
     struct PIDEProblem{uType,G,F,Mu,Sigma,xType,tType,P,UD,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false}
         u0::uType
@@ -45,21 +44,20 @@ module HighDimPDE
         kwargs::K
     end
 
-    function PIDEProblem(g, f, μ, σ, tspan, p=nothing;
-                        x0=nothing,
-                        u_domain=nothing,
-                        kwargs...)
-    if isnothing(x0) && !isnothing(u_domain)
-        size(u_domain,2) == 2 ? nothing : error("`u_domain` needs to be of dimensin `(d,2)`")
+    function PIDEProblem(g, f, μ, σ, tspan;
+                                    p=nothing,
+                                    x=nothing,
+                                    u_domain=nothing,
+                                    kwargs...)
+    if isnothing(x) && !isnothing(u_domain)
+        size(u_domain,2) == 2 ? nothing : error("`u_domain` needs to be of dimension `(d,2)`")
         x = u_domain[:,1]
-    elseif !isnothing(x0) && isnothing(u_domain)
-        x = x0
-    else
-        error("Need to provide whether `x0` or `u_domain`")
+    elseif !isnothing(x) && !isnothing(u_domain)
+        error("Need to provide whether `x` or `u_domain`")
     end
 
-    eltype(g(x)) == eltype(x) ? nothing : error("Type of `g(X0)` not matching type of X0")
-    eltype(f(x, x, g(x), g(x), 0f0, 0f0, tspan[1])) == eltype(x) ? nothing : error("Type of non linear function `f(X0)` not matching type of X0")
+    eltype(g(x)) == eltype(x) ? nothing : error("Type of `g(x)` not matching type of x")
+    eltype(f(x, x, g(x), g(x), 0f0, 0f0, tspan[1])) == eltype(x) ? nothing : error("Type of non linear function `f(x)` not matching type of x")
 
     PIDEProblem{typeof(g(x)),
                 NLFunction,
