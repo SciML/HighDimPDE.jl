@@ -46,7 +46,7 @@ end
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x = x)
         # solving
-        @time xs,ts,sol = solve(prob, alg, verbose = false,multithreading=true)
+        @time xs,ts,sol = solve(prob, alg, verbose = false, multithreading=true)
         @test isapprox(sol[end], anal_res[i], atol = atols[i])
         println("MLP, d = $d, u1 = $(sol[end])")
     end
@@ -66,7 +66,7 @@ end
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x = x )
         # solving
-        @time xs,ts,sol = solve(prob, alg, verbose = false, multithreading=true)
+        @time xs,ts,sol = solve(prob, alg, neumann = u_domain, verbose = false, multithreading=true)
         @test !isnan(sol[end])
         println("MLP, d = $d, u1 = $(sol[end])")
     end
