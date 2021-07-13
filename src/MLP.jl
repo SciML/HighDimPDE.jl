@@ -18,7 +18,8 @@ end
 MLP(;M=4,L=4,K=10,mc_sample=NoSampling()) = MLP(M,L,K,mc_sample)
     
     
-function DiffEqBase.__solve(
+# function DiffEqBase.__solve(
+function solve(
         prob::PIDEProblem,
         alg::MLP;
         multithreading=true,
@@ -27,13 +28,14 @@ function DiffEqBase.__solve(
 
     # unbin stuff
     u_domain = prob.u_domain
-    x = prob.X0
+    x = prob.x
     K = alg.K
     M = alg.M
     L = alg.L
     mc_sample = alg.mc_sample
     g, f, μ, σ, p = prob.g, prob.f, prob.μ, prob.σ, prob.p
 
+    isnothing(x) || !isnothing(prob.u_domain) ? error("MLP scheme needs a grid 'x', and cannot be solved on a domain") : nothing
     function sde_loop(y0, s, t)
         dt = t - s
         # @show y1
@@ -45,11 +47,11 @@ function DiffEqBase.__solve(
     end
     
     if multithreading
-        sol = _ml_picard_mlt(M, L, K, x, prob.tspan[1], prob.tspan[2], sde_loop, mc_sample, g, f, verbose)
+        usol = _ml_picard_mlt(M, L, K, x, prob.tspan[1], prob.tspan[2], sde_loop, mc_sample, g, f, verbose)
     else
-        sol = _ml_picard(M, L, K, x, prob.tspan[1], prob.tspan[2], sde_loop, mc_sample, g, f, verbose)
+        usol = _ml_picard(M, L, K, x, prob.tspan[1], prob.tspan[2], sde_loop, mc_sample, g, f, verbose)
     end 
-    return sol
+    return x, prob.tspan, [g(x),usol]
     # sol = DiffEqBase.build_solution(prob,alg,ts,usol)
     # save_everystep ? iters : u0(X0)[1]
 
