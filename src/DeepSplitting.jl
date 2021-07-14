@@ -151,7 +151,7 @@ function solve(
 
         # saving
         vi = deepcopy(vj)
-        vj = deepcopy(nn)
+        # vj = deepcopy(nn)
         ps = Flux.params(vj)
         if isnothing(u_domain)
             push!(usol, mean(vi(x0)) |> cpu)
