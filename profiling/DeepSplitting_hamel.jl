@@ -9,33 +9,35 @@ using UnPack
 plotting = true
 
 tspan = (0f0,5f-1)
-dt = 1f-1 # time step
+dt = 1f-2 # time step
 μ(X,p,t) = 0f0 # advection coefficients
 σ(X,p,t) = 1f-1 # diffusion coefficients
 d = 5
-ss0 = 5f-2 #std g0
+ss0 = 1f-2#std g0
 U = 5f-1
 u_domain = repeat([-U,U]', d, 1)
 
 ##############################
 ####### Neural Network #######
 ##############################
-batch_size = 1000
-train_steps = 20000
-K = 1000
+batch_size = 10000
+train_steps = 10000
+K = 100
 
 hls = d + 50 #hidden layer size
 
-nn_batch = Flux.Chain(Dense(d,hls,tanh),
-        # BatchNorm(hls, affine=true),
+nn_batch = Flux.Chain(
+        BatchNorm(d,affine = true),
+        Dense(d, hls, tanh),
+        BatchNorm(hls,affine = true),
         Dense(hls,hls,tanh),
-        Dense(hls,hls,tanh),
-        # BatchNorm(hls, affine=true),
-        Dense(hls,1)) # Neural network used by the scheme, with batch normalisation
+        BatchNorm(hls, affine = true),
+        # Dense(hls,hls,relu),
+        Dense(hls, 1, relu)) # Neural network used by the scheme, with batch normalisation
 
-opt = Flux.Optimiser(ExpDecay(0.1,
-                10,
-                4000,
+opt = Flux.Optimiser(ExpDecay(1e-1,
+                1e-1,
+                1000,
                 1e-6),
                 ADAM() )#optimiser
 alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[:,1], u_domain[:,2]) )
@@ -46,7 +48,7 @@ alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_doma
 g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
 m(x) = - 5f-1 * sum(x.^2, dims=1)
 vol = prod(u_domain[:,2] - u_domain[:,1])
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max.(0f0, v_y) .* (m(y) .- vol * max.(0f0, v_z) .* m(z) ) # nonlocal nonlinear part of the
+f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) =  v_y .* (m(y) .- vol * v_z .* m(z) ) # nonlocal nonlinear part of the
 
 # defining the problem
 prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -57,9 +59,9 @@ prob = PIDEProblem(g, f, μ, σ, tspan,
                 alg, 
                 dt, 
                 verbose = true, 
-                abstol=1f-5,
+                abstol = 3f0,
                 maxiters = train_steps,
-                batch_size=batch_size,
+                batch_size = batch_size,
                 use_cuda = true
                 )
 
@@ -71,7 +73,7 @@ if plotting
         fig, ax = plt.subplots(1,2, sharey = true)
 
         xgrid1 = collect((-U:5f-3:U))
-        xgrid = [vcat(x, fill(0f0,d-1)) for x in xgrid1] 
+        xgrid = [reshape(vcat(x, fill(0f0,d-1)),:,1) for x in xgrid1] 
 
         # Analytic sol
         function _SS(x, t, p)
@@ -102,7 +104,7 @@ if plotting
         ax[1].set_title("DeepSplitting")
 
         for _a in ax
-                _a.legend()
+                # _a.legend()
         end
         gcf()
         savefig("hamel_$(d)d.pdf")
