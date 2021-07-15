@@ -10,7 +10,7 @@ using Functors
 plotting = true
 
 tspan = (0f0,5f-1)
-dt = 1f-1 # time step
+dt = 1f-2 # time step
 μ(X,p,t) = 0f0 # advection coefficients
 σ(X,p,t) = 1f-1 # diffusion coefficients
 d = 5
@@ -33,12 +33,12 @@ end
 @functor mymodel
 (m::mymodel)(x) = m.a_pred ./ prod(m.sigma_pred) .* exp.(-5f-1 * sum((x ./ m.sigma_pred).^2,dims=1) ) 
 
-sigma_pred = repeat([1f0],d)
+sigma_pred = repeat([ss0],d)
 a_pred = [1f0]
 fn = mymodel(sigma_pred, a_pred)
 
 opt = Flux.Optimiser(ExpDecay(0.1,
-                10,
+                1,
                 1000,
                 1e-6),
                 ADAM() )#optimiser
