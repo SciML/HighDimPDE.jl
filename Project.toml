@@ -1,7 +1,7 @@
 name = "HighDimPDE"
 uuid = "57c578d5-59d4-4db8-a490-a9fc372d19d2"
 authors = ["Victor <bvictor@ethz.ch>"]
-version = "1.1.1"
+version = "1.1.2"
 
 [deps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
