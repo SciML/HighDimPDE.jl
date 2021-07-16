@@ -63,7 +63,7 @@ function solve(
     # output solution
     if isnothing(u_domain)
         sample_initial_points! = NoSampling()
-        usol = [g(x0)[]]
+        usol = [g(x0 |>cpu)[]]
         T = eltype(x0)
     else
         usol = Any[g]
@@ -76,7 +76,7 @@ function solve(
     N = length(ts) - 1
 
     # allocating
-    y1 = repeat(x0,1, batch_size)
+    y1 = repeat(x0, 1, batch_size)
     y0 = similar(y1)
     z = similar(x0, d, batch_size, K) # for MC non local integration
 
@@ -128,7 +128,13 @@ function solve(
 
             if _integrate(mc_sample!)
                 # generating z for MC non local integration
-                mc_sample!(z, y0)
+                mc_sample!(z, y1)
+                # need to reflect the sampling
+                if !isnothing(neumann) && typeof(mc_sample!) == NormalSampling
+                    _y1K = similar(z)
+                    _y1K .= y1
+                    z .= _reflect_GPU(_y1K, z, neumann[:,1], neumann[:,2])
+                end
             end
 
             # training
@@ -154,7 +160,8 @@ function solve(
         # vj = deepcopy(nn)
         # ps = Flux.params(vj)
         if isnothing(u_domain)
-            push!(usol, mean(vi(x0)) |> cpu)
+            # reshape used in the case where there are some normalisation in layers
+            push!(usol, cpu(vi(reshape(x0, d, 1)))[] )
         else
             push!(usol, vi |> cpu)
         end
@@ -163,10 +170,11 @@ function solve(
     # return
     if isnothing(u_domain)
         # sol = DiffEqBase.build_solution(prob, alg, ts, usol)
+        x0 = x0 |> cpu
         sol = x0, ts, usol
     else
         sample_initial_points!(y1)
-        xgrid = [reshape(y1[:,i],d,1) for i in 1:size(y1,2)] .|> cpu #reshape needed for batch size
+        xgrid = [reshape(y1[:,i], d, 1) for i in 1:size(y1,2)] .|> cpu #reshape needed for batch size
         sol = xgrid, ts, usol
     end
     return sol

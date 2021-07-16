@@ -64,8 +64,8 @@ on the hypercube `[s,e]^d` where `d = size(a,1)`
 
 """
 function _reflect_GPU(a, b, s, e)
-    all((a .>= s) .& (a .<= e)) ? nothing : error("a = $a not in hypercube")
-    size(a) == size(b) ? nothing : error("a not same dim as b")
+    @assert all((a .>= s) .& (a .<= e)) "a = $a not in hypercube"
+    @assert size(a) == size(b) "a not same dim as b"
     out1 = b .< s
     out2 = b .> e
     out = out1 .| out2
