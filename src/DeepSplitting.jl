@@ -1,4 +1,5 @@
 """
+    DeepSplitting
 Deep splitting algorithm for solving non local non linear PDES.
 
 Arguments:

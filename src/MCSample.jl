@@ -1,10 +1,12 @@
 """
+    MCSampling
 Sampling method for the Monte Carlo integration
 """
 abstract type MCSampling{T} end
 Base.eltype(mc_sample::MCSampling{T}) where T = T
 
 """
+    UniformSampling
 Uniform sampling method for the Monte Carlo integration, in the hypercube `[a, b]^2`.
 """
 struct UniformSampling{T <: Real} <: MCSampling{T}
@@ -22,6 +24,7 @@ function (mc_sample::UniformSampling)(x)
 end
 
 """
+    NormalSampling
 Normal sampling method for the Monte Carlo integration.
 
 Arguments:
