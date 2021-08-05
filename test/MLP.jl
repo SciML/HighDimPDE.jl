@@ -38,7 +38,7 @@ atols = [5e-2,1e-1,2e0]
         @time xs,ts,sol = solve(prob, alg, verbose = false,  multithreading = false)
         rel2 = rel_error_l2(sol[end],  anal_res[i])
         @test rel2 < atols[i]
-        println("MLP, d = $d, u1 = $sol", " analytical sol = ", anal_res[i], " rel error = ", rel2)
+        println("MLP, d = $d, u1 = $(sol[end])", " analytical sol = ", anal_res[i], " rel error = ", rel2)
     end
 end
 
@@ -59,7 +59,7 @@ end
         @time xs,ts,sol = solve(prob, alg, verbose = false, multithreading=true)
         rel2 = rel_error_l2(sol[end],  anal_res[i])
         @test rel2 < atols[i]
-        println("MLP, d = $d, u1 = $sol", " analytical sol = ", anal_res[i], " rel error = ", rel2)
+        println("MLP, d = $d, u1 = $(sol[end])", " analytical sol = ", anal_res[i], " rel error = ", rel2)
     end
 end
 

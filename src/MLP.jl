@@ -143,13 +143,56 @@ function _ml_picard_mlt(
     f,
     verbose::Bool
     )
+
+    a2 = 0.
+    
+    # distributing tasks
+    NUM_THREADS = Threads.nthreads()
+    tasks = [Threads.@spawn(_ml_picard_call(M, L, K, x, s, t, sde_loop, mc_sample, g, f, verbose, NUM_THREADS, thread_id)) for thread_id in 1:NUM_THREADS]
+    
+    # ? not sure whether we should have Threads.nthreads-1 to allow next lines to run on the last threads available
+    # this pretty much depends on the time required to perform following for-loop
+
+    # first level
+    num = M^(L)
+    for k in 1:num
+        verbose && println("loop k3")
+        x2 = sde_loop(x, s, t)
+        a2 += g(x2)[]
+    end
+    a2 /= num
+    
+    # fetching tasks
+    a = sum([fetch(t) for t in tasks])
+
+    return a + a2
+end
+
+
+function _ml_picard_call(
+    M::Int, # monte carlo integration
+    L::Int, # level
+    K::Int, # non local term monte carlo
+    x, # initial point
+    s::Real, # time
+    t::Real, # time
+    sde_loop, 
+    mc_sample,
+    g, 
+    f,
+    verbose::Bool,
+    NUM_THREADS::Int64,
+    thread_id::Int64,
+    )
+
     a = 0.
     a2 = 0.
+
     for l in 0:(min(L - 1, 1))
-        verbose && println("loop l")
-        b = Threads.Atomic{Float64}(0.) 
-        num = M^(L - l) # ? why 0.5 in sebastian code?
-        Threads.@threads for k in 1:num
+        b = 0.
+        num = M^(L - l)
+        loop_num = _get_loop_num(M, num, thread_id, NUM_THREADS)
+        for k in 1:loop_num
             verbose && println("loop k")
             r = s + (t - s) * rand()
             x2 = sde_loop(x, s, r)
@@ -161,15 +204,16 @@ function _ml_picard_mlt(
                 x3 = mc_sample(x2)
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)[] #TODO:hardcode, not sure about t
             end
-        Threads.atomic_add!(b, b3 / K)
+        b += b3 / K
         end
-        a += (t - s) * b[] / num
+        a += (t - s) * b / num
     end
             
     for l in 2:(L-1)
-        b = Threads.Atomic{Float64}(0.) 
-        num = M^(L - l)
-        Threads.@threads for k in 1:num
+        b = 0.
+        num = (M^(L - l))
+        loop_num = _get_loop_num(M, num, thread_id, NUM_THREADS)
+        for k in 1:loop_num
             r = s + (t - s) * rand()
             x2 = sde_loop(x, s, r)
             b2 = _ml_picard(M, l, K, x2, r, t, sde_loop, mc_sample, g, f, verbose)
@@ -182,18 +226,26 @@ function _ml_picard_mlt(
                 x34 = x3
                 b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, sde_loop, mc_sample, g, f, verbose), 0., 0., t)[] - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, sde_loop, mc_sample, g, f, verbose),0., 0., t)[] #TODO:hardcode, not sure about t
             end
-        Threads.atomic_add!(b, b3 / K)
+        b += b3 / K
         end
-        a += (t - s) * b[] / num
+        a += (t - s) * b / num
     end
 
-    num = M^(L)
-    for k in 1:num
-        verbose && println("loop k3")
-        x2 = sde_loop(x, s, t)
-        a2 += g(x2)[]
-    end
-    a2 /= num
+    return a
 
-    return a + a2
+end
+
+function _get_loop_num(M, num, thread_id, NUM_THREADS) #decides how many iteration given thread id and num
+    if num < NUM_THREADS
+        # each thread only goes once through the loop
+        loop_num = thread_id > num ? 0 : 1
+    else
+        remainder =  M % num
+        if (remainder > 0) && (thread_id <= remainder) 
+            # each thread goes  num / NUM_THREADS + the remainder 
+            loop_num = num / NUM_THREADS + 1
+        else
+            loop_num = num / NUM_THREADS
+        end
+    end
 end
