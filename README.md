@@ -134,7 +134,9 @@ sol = solve(prob,
 
 That's all!
 
-
+# Related papers
+- [`DeepSplitting` method for parabolic PDEs](https://arxiv.org/abs/1907.03452)
+- [Numerical simulations for full history recursive multilevel Picard (`MLP`) approximations for systems of high-dimensional partial differential equations](https://arxiv.org/abs/2005.10206)
 
 # Acknowledgements
 Sebastian Becker, who wrote the original scripts in Python, TensorFlow and C++, and Arnulf Jentzen for the theoretical developments.
