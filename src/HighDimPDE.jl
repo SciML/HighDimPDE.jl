@@ -3,6 +3,7 @@ module HighDimPDE
     @reexport using DiffEqBase
     using Statistics
     using Flux, Zygote, LinearAlgebra
+    using Functors
     # using ProgressMeter: @showprogress
     using CUDA
     using Random
@@ -17,44 +18,56 @@ module HighDimPDE
     (f::NLFunction)(args...) = f.f(args...)
 
     """
-        PIDEProblem(g,f, μ, σ, x0, tspan)
+        PIDEProblem(g,f, μ, σ, x, tspan)
     A non local non linear PDE problem.
-    Consider `du/dt = l(u) + \\int f(u,x) dx`; where l is the nonlinear Lipschitz function
+    Consider `du/dt = 1/2 Tr(\\sigma \\sigma^T) Δu(t,x) + μ ∇u(t,x) + \\int f(u,x) dx`; where f is the nonlinear Lipschitz function
     # Arguments
     * `g` : The terminal condition for the equation.
     * `f` : The function f(u(x),u(y),du(x),du(y),x,y)
     * `μ` : The drift function of X from Ito's Lemma
-    * `μ` : The noise function of X from Ito's Lemma
-    * `x0`: The initial X for the problem.
+    * `σ` : The noise function of X from Ito's Lemma
     * `tspan`: The timespan of the problem.
     # Options
-    * `u_domain` : the domain, correspoding to the hypercube
-    `[u_domain[1], u_domain[2]]^size(x0,1)`. 
-    In this case the problem has Neumann boundary conditions.
+    * `u_domain` : the domain of the solution required, correspoding to the hypercube
+    `u_domain[:,1] × u_domain[:,2]`. 
+    * `x`: the point of the solution required
     """
-    struct PIDEProblem{X0Type,uType,tType,G,F,Mu,Sigma,P,A,UD,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false}
+    struct PIDEProblem{uType,G,F,Mu,Sigma,xType,tType,P,UD,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false}
         u0::uType
         g::G # initial condition
         f::F # nonlinear part
         μ::Mu
         σ::Sigma
-        X0::X0Type
+        x::xType
         tspan::tType
         p::P
-        A::A
         u_domain::UD
         kwargs::K
-        PIDEProblem(g, f, μ, σ, X0, tspan, p=nothing;A=nothing,
-                                                    u_domain=nothing,
-                                                    kwargs...) = new{typeof(X0),
-                                                                    typeof(g(X0)),
-                                                                    typeof(tspan),
-                                                                    NLFunction,
-                                                                    NLFunction,
-                                                                    typeof(μ),
-                                                                    typeof(σ),
-                                                                    typeof(p),typeof(A),typeof(u_domain),typeof(kwargs)}(
-                                                                    g(X0),NLFunction(g),NLFunction(f),μ,σ,X0,tspan,p,A,u_domain,kwargs)
+    end
+
+    function PIDEProblem(g, f, μ, σ, tspan;
+                                    p=nothing,
+                                    x=nothing,
+                                    u_domain=nothing,
+                                    kwargs...)
+    if isnothing(x) && !isnothing(u_domain)
+        size(u_domain,2) == 2 ? nothing : error("`u_domain` needs to be of dimension `(d,2)`")
+        x = u_domain[:,1]
+    elseif !isnothing(x) && !isnothing(u_domain)
+        error("Need to provide whether `x` or `u_domain`")
+    end
+
+    eltype(g(x)) == eltype(x) ? nothing : error("Type of `g(x)` not matching type of x")
+    eltype(f(x, x, g(x), g(x), 0f0, 0f0, tspan[1])) == eltype(x) ? nothing : error("Type of non linear function `f(x)` not matching type of x")
+
+    PIDEProblem{typeof(g(x)),
+                NLFunction,
+                NLFunction,
+                typeof(μ),
+                typeof(σ),
+                typeof(x),
+                typeof(tspan),
+                typeof(p),typeof(u_domain),typeof(kwargs)}(g(x),NLFunction(g),NLFunction(f),μ,σ,x,tspan,p,u_domain,kwargs)
     end
 
     Base.summary(prob::PIDEProblem) = string(nameof(typeof(prob)))
@@ -72,5 +85,5 @@ module HighDimPDE
 
     export PIDEProblem, DeepSplitting, MLP
 
-    export NormalSampling, UniformSampling, NoSampling
+    export NormalSampling, UniformSampling, NoSampling, solve
 end

@@ -3,25 +3,26 @@
 Sampling method for the Monte Carlo integration
 """
 abstract type MCSampling{T} end
-Base.eltype(mc_sample::MCSampling{T}) where T = T
+Base.eltype(::MCSampling{T}) where T = eltype(T)
 
 """
     UniformSampling
 Uniform sampling method for the Monte Carlo integration, in the hypercube `[a, b]^2`.
 """
-struct UniformSampling{T <: Real} <: MCSampling{T}
+struct UniformSampling{T} <: MCSampling{T} 
     a::T
     b::T
 end
+@functor UniformSampling
 
-function (mc_sample::UniformSampling)(x)
-    T = eltype(x)
-    x_mc = similar(x)
+
+function (mc_sample::UniformSampling{T})(x_mc, kwargs...) where T
+    Tel = eltype(T)
     rand!(x_mc)
-    m = (mc_sample.b + mc_sample.a)/2
-    x_mc .= (x_mc .- convert(T,0.5)) * (mc_sample.b - mc_sample.a) .+ m
-    return x_mc 
+    m = (mc_sample.b + mc_sample.a) ./ convert(Tel,2)
+    x_mc .= (x_mc .- convert(Tel,0.5)) .* (mc_sample.b - mc_sample.a) .+ m
 end
+
 
 """
     NormalSampling
@@ -31,20 +32,25 @@ Arguments:
 * `σ`: the standard devation of the sampling
 * `shifted` : if true, the integration is shifted by `x`
 """
-struct NormalSampling{T<:Real} <: MCSampling{T}
+struct NormalSampling{T} <: MCSampling{T}
     σ::T
     shifted::Bool # if true, we shift integration by x when invoking mc_sample::MCSampling(x)
 end
+@functor NormalSampling
 
-NormalSampling(σ::Real) = NormalSampling(σ,false)
+NormalSampling(σ) = NormalSampling(σ,false)
 
-function (mc_sample::NormalSampling)(x)
-    x_mc = similar(x)
+function (mc_sample::NormalSampling)(x_mc)
     randn!(x_mc)
     x_mc .*=  mc_sample.σ  
+end
+
+function (mc_sample::NormalSampling)(x_mc, x)
+    mc_sample(x_mc)
     mc_sample.shifted ? x_mc .+= x : nothing
-    return x_mc
-end                                    
+end
+
+
 
 struct NoSampling <: MCSampling{Nothing} end
 

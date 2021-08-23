@@ -19,38 +19,40 @@ end
 MLP(;M=4,L=4,K=10,mc_sample=NoSampling()) = MLP(M,L,K,mc_sample)
     
     
-function DiffEqBase.__solve(
+# function DiffEqBase.__solve(
+function solve(
         prob::PIDEProblem,
         alg::MLP;
         multithreading=true,
         verbose=false,
+        neumann = nothing
         )
 
     # unbin stuff
-    u_domain = prob.u_domain
-    x = prob.X0
+    x = prob.x
     K = alg.K
     M = alg.M
     L = alg.L
     mc_sample = alg.mc_sample
     g, f, μ, σ, p = prob.g, prob.f, prob.μ, prob.σ, prob.p
 
+    isnothing(x) || !isnothing(prob.u_domain) ? error("MLP scheme needs a grid 'x', and cannot be solved on a domain") : nothing
     function sde_loop(y0, s, t)
         dt = t - s
         # @show y1
         y1 = y0 - ( μ(y0, p, t) .* dt .+ σ(y0, p, t) .* sqrt(dt) .* randn(size(y0)))
-        if !isnothing(u_domain)
-            y1 = _reflect(y0, y1, u_domain[1], u_domain[2])
+        if !isnothing(neumann)
+            y1 = _reflect(y0, y1, neumann[:,1], neumann[:,2])
         end
         return y1
     end
     
     if multithreading
-        sol = _ml_picard_mlt(M, L, K, x, prob.tspan[1], prob.tspan[2], sde_loop, mc_sample, g, f, verbose)
+        usol = _ml_picard_mlt(M, L, K, x, prob.tspan[1], prob.tspan[2], sde_loop, mc_sample, g, f, verbose)
     else
-        sol = _ml_picard(M, L, K, x, prob.tspan[1], prob.tspan[2], sde_loop, mc_sample, g, f, verbose)
+        usol = _ml_picard(M, L, K, x, prob.tspan[1], prob.tspan[2], sde_loop, mc_sample, g, f, verbose)
     end 
-    return sol
+    return x, prob.tspan, [g(x),usol]
     # sol = DiffEqBase.build_solution(prob,alg,ts,usol)
     # save_everystep ? iters : u0(X0)[1]
 
@@ -147,7 +149,7 @@ function _ml_picard_mlt(
         verbose && println("loop l")
         b = Threads.Atomic{Float64}(0.) 
         num = M^(L - l) # ? why 0.5 in sebastian code?
-        @Threads.threads for k in 1:num
+        Threads.@threads for k in 1:num
             verbose && println("loop k")
             r = s + (t - s) * rand()
             x2 = sde_loop(x, s, r)
@@ -167,7 +169,7 @@ function _ml_picard_mlt(
     for l in 2:(L-1)
         b = Threads.Atomic{Float64}(0.) 
         num = M^(L - l)
-        @Threads.threads for k in 1:num
+        Threads.@threads for k in 1:num
             r = s + (t - s) * rand()
             x2 = sde_loop(x, s, r)
             b2 = _ml_picard(M, l, K, x2, r, t, sde_loop, mc_sample, g, f, verbose)
