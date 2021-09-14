@@ -88,8 +88,9 @@ function solve(
     eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing : error("Type of mc_sample! not the same as x0")
 
     function splitting_model(y0, y1, z, t)
-        # TODO: fix it, for now hardcoded
-        ∇vi(x) = 0f0 #gradient(vi,x)[1]
+        # TODO: for now hardcoded because of a bug in Zygote differentiation rules for adjoints
+        # ∇vi(x) = vcat(first.(Flux.jacobian.(vi, eachcol(x)))...)'
+        ∇vi(x) = [0f0]
         # Monte Carlo integration
         _int = reshape(sum(f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(z), t), dims = 3), 1, :)
         vj(y0) - (vi(y1) + dt * _int / K)
