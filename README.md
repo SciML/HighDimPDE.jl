@@ -4,7 +4,8 @@
 <div style="overflow-x: scroll;" align=center>                          
 <img src="docs/equation.png"/>
 </div>
-(papers in prep.).
+
+> (papers in prep.)
 
 **HighDimPDE.jl** implements schemes that break down the curse of dimensionality, including
 
