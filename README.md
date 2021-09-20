@@ -1,14 +1,25 @@
 # HighDimPDE.jl
 
-This package provides the Deep Splitting and the MLP algorithms to solve for non-local, non-linear PDEs (papers in prep.).
-It aims at solving PDEs for which the solution u satisfies
+**HighDimPDE.jl** is a Julia package to **solve highly dimensional non-linear, non-local PDEs** of the form
 <div style="overflow-x: scroll;" align=center>                          
 <img src="docs/equation.png"/>
 </div>
+(papers in prep.).
 
-Those schemes are particularly performant when the domain of the solution is highly dimensional, as they overcome the so called *curse of dimensionality*.
+**HighDimPDE.jl** implements schemes that break down the curse of dimensionality, including
 
-HighDimPDE.jl builds upon [DiffEqBase.jl](https://github.com/SciML/DiffEqBase.jl) and [SciMLBase.jl](https://github.com/SciML/SciMLBase.jl) for the interface, and uses [Flux.jl](https://github.com/FluxML/Flux.jl) for the machine learning part in the case of the Deep Splitting algorithm.
+* the Deep BSDE scheme
+
+* the Deep Splitting scheme
+
+* the Multi-Level Picard iterations scheme.
+
+**HighDimPDE.jl** 
+* is user friendly, and in particular it is grid-free! ➡️ no mesh required,
+
+* can run both on CPUs and GPUs with no extra fuss. `use_cuda = true`
+
+**HighDimPDE.jl** builds upon [DiffEqBase.jl](https://github.com/SciML/DiffEqBase.jl) and [SciMLBase.jl](https://github.com/SciML/SciMLBase.jl) for the interface, and uses [Flux.jl](https://github.com/FluxML/Flux.jl) for the machine learning part in the case of the Deep Splitting algorithm.
 
 ## Installation
 Open Julia REPL and type the following
