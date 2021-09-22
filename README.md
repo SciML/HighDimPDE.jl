@@ -4,6 +4,7 @@
 <div style="overflow-x: scroll;" align=center>                          
 <img src="docs/equation.png"/>
 </div>
+where <img src="docs/function_u.png" height="20"/>
 
 > (papers in prep.)
 
@@ -35,7 +36,7 @@ This will download latest version from git repo and download all dependencies.
 ## Getting started
 ### MLP algorithm
 #### Local PDE
-Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) PDE in dimension 10 with the MLP algorithm.
+Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) PDE in dimension 10 with the `MLP` algorithm, short for Multi-Level Picard iteration algorithm (see documentation - in preparation - and section [Related papers](#related-papers)).
 ```julia
 using HighDimPDE
 
@@ -85,7 +86,7 @@ sol = solve(prob, alg, multithreading=true)
 ```
 
 ### Deep splitting algorithm
-Let's solve the previous equation with the DeepSplitting algorithm.
+Let's solve the previous equation with the `DeepSplitting` algorithm (see documentation - in preparation - and section [Related papers](#related-papers)).
 ```julia
 using HighDimPDE
 
@@ -131,7 +132,7 @@ sol = solve(prob,
             batch_size = 1000)
 ```
 ### Solving on the GPU
-`HighDimPDE.jl` allows to run the `DeepSplitting` algorithm on the GPU for (much) improved performance. To do so, just set `use_cude = true`.
+`HighDimPDE.jl` allows to run the `DeepSplitting` algorithm on the GPU for (much) improved performance. To do so, just set `use_cuda = true`.
 
 ```julia
 sol = solve(prob, 
@@ -147,8 +148,9 @@ sol = solve(prob,
 That's all!
 
 # Related papers
-- [`DeepSplitting` method for parabolic PDEs](https://arxiv.org/abs/1907.03452)
-- [Numerical simulations for full history recursive multilevel Picard (`MLP`) approximations for systems of high-dimensional partial differential equations](https://arxiv.org/abs/2005.10206)
+- [`MLP`: Numerical simulations for full history recursive multilevel Picard approximations for systems of high-dimensional partial differential equations](https://arxiv.org/abs/2005.10206)
+- [`DeepSplitting`: Deep Splitting method for parabolic PDEs](https://arxiv.org/abs/1907.03452)
+- [`DeepBSDE`: Solving high-dimensional partial differential equations using deep learning](https://www.pnas.org/content/115/34/8505)
 
 # Acknowledgements
 Dr. Sebastian Becker wrote the original scripts in Python, TensorFlow and C++, and Pr. Arnulf Jentzen largely contributed to the theoretical developments of the schemes implemented.
