@@ -2,7 +2,7 @@
 
 **HighDimPDE.jl** is a Julia package to **solve highly dimensional non-linear, non-local PDEs** of the form
 <div style="overflow-x: scroll;" align=center>                          
-<img src="docs/equation.png" height="50"/>
+<img src="docs/equation.png" height="60"/>
 </div>
 where <img src="docs/function_u.png" height="20"/>.
 
