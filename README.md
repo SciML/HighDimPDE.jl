@@ -3,9 +3,9 @@
 **HighDimPDE.jl** is a Julia package to **solve highly dimensional non-linear, non-local PDEs** of the form
 
 <div style="overflow-x: scroll;" align=center>                          
-<img src="docs/equation.png" height="60"/>
+<img src="docs/equation.png" height="80"/>
 </div>
-<p>subject to initial and boundary conditions, where <img src="docs/function_u.png" height="20"/></p>.
+<p>subject to initial and boundary conditions, where <img src="docs/function_u.png" height="20"/>.</p>
 
 > (papers in prep.)
 
