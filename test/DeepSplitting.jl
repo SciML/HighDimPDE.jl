@@ -540,11 +540,15 @@ end
 
 
 @testset "DeepSplitting algorithm - allen cahn non local reflected example" begin
-    batch_size = 100
+    batch_size = 2000
     train_steps = 1000
-    K = 50
+    K = 1
     tspan = (0f0, 5f-1)
     dt = 5f-2  # time step
+
+    μ(X,p,t) = 0f0 # advection coefficients
+    σ(X,p,t) = 1f-1 #1f-1 # diffusion coefficients
+    
     for d in [1,2,5]
         u1s = []
         for _ in 1:2
@@ -573,6 +577,7 @@ end
                             neumann = u_domain,
                             # verbose = true, 
                             # abstol=1e-5,
+                            use_cuda = use_cuda,
                             maxiters = train_steps,
                             batch_size=batch_size)
             push!(u1s, sol[end])
