@@ -9,9 +9,9 @@ Base.eltype(::MCSampling{T}) where T = eltype(T)
     UniformSampling
 Uniform sampling method for the Monte Carlo integration, in the hypercube `[a, b]^2`.
 """
-struct UniformSampling{T} <: MCSampling{T} 
-    a::T
-    b::T
+struct UniformSampling{A} <: MCSampling{eltype(A)}
+    a::A
+    b::A
 end
 @functor UniformSampling
 

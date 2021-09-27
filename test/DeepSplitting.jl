@@ -253,6 +253,9 @@ end
     tspan = (0f0, 5f-1)
     dt = 5f-2  # time step
 
+    μ(X,p,t) = 0f0 # advection coefficients
+    σ(X,p,t) = 1f0 # diffusion coefficients
+
     for d in [1,2,5]
         u_domain = repeat([-5f-1, 5f-1]', d, 1)
 

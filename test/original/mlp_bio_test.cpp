@@ -1,6 +1,6 @@
-#define N_MAX 5
+#define N_MAX 4
 #define M_PI 3.14159265358979323846
-#define NUM_THREADS 100
+#define NUM_THREADS 10
 
 // #define EX37
 
@@ -200,7 +200,7 @@ int main() {
 	out_file << "elapsed_secs" << std::endl;
 
 	double T[1] = {1.0}; //0.1,0.5,
-	uint16_t d[1] = {1}; //,2,5,10
+	uint16_t d[1] = {2}; //,2,5,10
 
 	for (uint8_t k = 0; k < sizeof(T) / sizeof(T[0]); k++) {
 		for (uint8_t l = 0; l < sizeof(d) / sizeof(d[0]); l++) {
@@ -213,6 +213,8 @@ int main() {
 				std::chrono::time_point<std::chrono::high_resolution_clock> end_time = std::chrono::high_resolution_clock::now();
 				double elapsed_secs = double(std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count()) / 1000. / 1000.;
 				std::cout << "T: " << T[k] << std::endl << "d: " << (int)d[l] << std::endl;
+				g(xi);
+				std::cout << "g(x): " << tmp << std::endl;
 				std::cout << "n: " << (int)N_MAX << std::endl << "Result:" << std::endl << result << std::endl;
 				std::cout << "Elapsed secs: " << elapsed_secs << std::endl << std::endl;
 
