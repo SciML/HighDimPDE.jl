@@ -19,8 +19,8 @@ module HighDimPDE
 
     """
         PIDEProblem(g,f, μ, σ, x, tspan)
-    A non local non linear PDE problem.
-    Consider `du/dt = 1/2 Tr(\\sigma \\sigma^T) Δu(t,x) + μ ∇u(t,x) + \\int f(u,x) dx`; where f is the nonlinear Lipschitz function
+    Partial Integro Differential Problem, of the form
+    `du/dt = 1/2 Tr(\\sigma \\sigma^T) Δu(t,x) + μ ∇u(t,x) + \\int f(u,x) dx`; where f is a nonlinear Lipschitz function
     # Arguments
     * `g` : The terminal condition for the equation.
     * `f` : The function f(u(x),u(y),du(x),du(y),x,y)
@@ -68,15 +68,15 @@ module HighDimPDE
                 typeof(x),
                 typeof(tspan),
                 typeof(p),typeof(u_domain),typeof(kwargs)}(
-                g(x),NLFunction(g),NLFunction(f),μ,σ,x,tspan,p,u_domain,kwargs)
+                g(x), NLFunction(g), NLFunction(f), μ, σ, x, tspan, p, u_domain, kwargs)
     end
 
     Base.summary(prob::PIDEProblem) = string(nameof(typeof(prob)))
 
     function Base.show(io::IO, A::PIDEProblem)
-    println(io,summary(A))
-    print(io,"timespan: ")
-    show(io,A.tspan)
+    println(io, summary(A))
+    print(io, "timespan: ")
+    show(io, A.tspan)
     end
 
     include("MCSample.jl")

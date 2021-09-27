@@ -1,6 +1,6 @@
 #define N_MAX 5
 #define M_PI 3.14159265358979323846
-#define NUM_THREADS 32
+#define NUM_THREADS 100
 
 // #define EX37
 
