@@ -1,13 +1,15 @@
 """
-    DeepSplitting
+DeepSplitting(f, K, opt, mc_sample)
 Deep splitting algorithm for solving non local non linear PDES.
 
 Arguments:
-* `nn`: a Flux.jl chain with a d-dimensional input and a 1-dimensional output,
+* `f`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain),
+or more generally a [functor](https://github.com/FluxML/Functors.jl) function
 * `K`: the number of Monte Carlo integrations
 * `opt`: optimiser to be use. By default, `Flux.ADAM(0.1)`.
 * `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term.
 Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling)`, or `NoSampling` (by default).
+
 """
 struct DeepSplitting{C1,O} <: HighDimPDEAlgorithm
     nn::C1
@@ -77,7 +79,8 @@ function solve(
     N = length(ts) - 1
 
     # allocating
-    y1 = repeat(x0, 1, batch_size)
+    x0_batch = repeat(x0, 1, batch_size)
+    y1 = similar(x0_batch)
     y0 = similar(y1)
     z = similar(x0, d, batch_size, K) # for MC non local integration
 
@@ -85,8 +88,9 @@ function solve(
     eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing : error("Type of mc_sample! not the same as x0")
 
     function splitting_model(y0, y1, z, t)
-        # TODO: fix it, for now hardcoded
-        ∇vi(x) = 0f0 #gradient(vi,x)[1]
+        # TODO: for now hardcoded because of a bug in Zygote differentiation rules for adjoints
+        # ∇vi(x) = vcat(first.(Flux.jacobian.(vi, eachcol(x)))...)'
+        ∇vi(x) = [0f0]
         # Monte Carlo integration
         _int = reshape(sum(f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(z), t), dims = 3), 1, :)
         vj(y0) - (vi(y1) + dt * _int / K)
@@ -94,7 +98,7 @@ function solve(
 
     function loss(y0, y1, z, t)
         u = splitting_model(y0, y1, z, t)
-        return mean(u.^2)
+        return sum(u.^2) / batch_size
     end
 
     # calculating SDE trajectories
@@ -123,7 +127,7 @@ function solve(
 
         # @showprogress
         for epoch in 1:maxiters
-
+            y1 .= x0_batch
             # generating sdes
             sde_loop!(y0, y1, dWall)
 

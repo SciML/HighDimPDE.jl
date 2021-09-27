@@ -3,6 +3,15 @@ using Random
 using Test
 using Statistics
 
+#relative error l2
+function rel_error_l2(u, uanal) 
+    if abs(uanal) >= 10 * eps(eltype(uanal))
+        sqrt((u - uanal)^2 / u^2) 
+    else # overflow
+        abs(u-uanal)
+    end
+end
+
 tspan = (0.0,0.5)
 # using the MLP alg
 μ(X,p,t) = 0.0 # advection coefficients
@@ -27,8 +36,9 @@ atols = [5e-2,1e-1,2e0]
         prob = PIDEProblem(g, f, μ, σ, tspan, x = x)
         # solving
         @time xs,ts,sol = solve(prob, alg, verbose = false,  multithreading = false)
-        @test isapprox(sol[end], anal_res[i],atol = atols[i])
-        println("MLP, d = $d, u1 = $sol")
+        rel2 = rel_error_l2(sol[end],  anal_res[i])
+        @test rel2 < atols[i]
+        println("MLP, d = $d, u1 = $sol", " analytical sol = ", anal_res[i], " rel error = ", rel2)
     end
 end
 
@@ -47,12 +57,13 @@ end
         prob = PIDEProblem(g, f, μ, σ, tspan, x = x)
         # solving
         @time xs,ts,sol = solve(prob, alg, verbose = false, multithreading=true)
-        @test isapprox(sol[end], anal_res[i], atol = atols[i])
-        println("MLP, d = $d, u1 = $(sol[end])")
+        rel2 = rel_error_l2(sol[end],  anal_res[i])
+        @test rel2 < atols[i]
+        println("MLP, d = $d, u1 = $sol", " analytical sol = ", anal_res[i], " rel error = ", rel2)
     end
 end
 
-@testset "MLP algorithm - allen cahn reflected example" begin
+@testset "MLP algorithm - allen cahn non local reflected example" begin
     for i in 1:length(ds)
         d = ds[i]
         u_domain = repeat([-5e-1,5e-1]', d, 1)

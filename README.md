@@ -7,8 +7,6 @@
 </div>
 <p>subject to initial and boundary conditions, where <img src="docs/function_u.png" height="20"/>.</p>
 
-> (papers in prep.)
-
 **HighDimPDE.jl** implements schemes that break down the curse of dimensionality, including
 
 * the Deep BSDE scheme

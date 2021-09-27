@@ -2,122 +2,259 @@ using HighDimPDE
 using Random
 using Test
 using Flux
+using Statistics
+using CUDA
+CUDA.functional() ? use_cuda = true : use_cuda = false
+# import DiffEqFlux: FastChain, FastDense
 
-# using the DeepSplitting alg
-
-
-tspan = (0.0,0.5)
-dt = 0.10  # time step
-μ(X,p,t) = 0.0 # advection coefficients
-σ(X,p,t) = 0.1 # diffusion coefficients
-
-
-anal_res = [1.398, 1.9567, 5.3554]
-ds = [1,2,5]
-atols = [5e-2,1e-1,5e-1]
-
-# TODO: this one is not full converging yet
-@testset "DeepSplitting - Hamel example - udomain - CPU" begin
-        U = 1e0
-        batch_size = 200
-        train_steps = 1000
-        K = 20
-        for i in 1:length(ds)
-            d = ds[i]
-            u_domain = repeat([-U, U]', d, 1)
-
-            hls = d + 50 #hidden layer size
-
-            nn = Flux.Chain(Dense(d,hls,tanh),
-                    Dense(hls,hls,tanh),
-                    Dense(hls,1)) # Neural network used by the scheme
-
-            opt = Flux.Optimiser(ExpDecay(0.1,
-                            5.0,
-                            200,
-                            1e-6),
-                            ADAM() )#optimiser
-
-            mc_sample = UniformSampling(u_domain[:,1], u_domain[:,2])
-
-            alg = DeepSplitting(nn, K=K, opt = opt, mc_sample = mc_sample )
-
-
-            x = fill(0.,d)  # initial point
-            g(x) = 2.0^(d/2)* exp.(-2. * π  * sum( x.^2, dims=1))   # initial condition
-            m(x) = - 0.5 * sum(x.^2, dims=1)
-            vol = prod(u_domain[:,2] - u_domain[:,1])
-            f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max.(0.0, v_y) .* (m(y) .- vol * max.(0.0, v_z) .* m(z) )
-
-            # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, tspan, u_domain = u_domain )
-            # solving
-            @time xs,ts,sol = solve(prob, 
-                            alg, 
-                            dt, 
-                            verbose = true, 
-                            abstol=2e-3,
-                            maxiters = train_steps,
-                            batch_size = batch_size)
-            u1 = sol[end](x)[]
-            # @test isapprox(u1, anal_res[i], atol = atols[i])
-            @test !isnan(u1)
-            println("Deep splitting CPU, d = $d, u1 = $u1)")
-        end
+#relative error l2
+function rel_error_l2(u, uanal) 
+    if abs(uanal) >= 10 * eps(eltype(uanal))
+        sqrt((u - uanal)^2 / u^2) 
+    else # overflow
+        abs(u-uanal)
+    end
 end
 
+# https://en.wikipedia.org/wiki/Heat_equation#Fundamental_solutions
+@testset "DeepSplitting - heat equation - single point" begin # solving at one unique point
+    for d in [1, 10, 50]
+        println("test for d = ", d)
+        tspan = (0f0, 5f-1)
+        dt = 5f-1  # time step
+        μ(X,p,t) = 0f0 # advection coefficients
+        σ(X,p,t) = 1f-1 # diffusion coefficients
 
-@testset "DeepSplitting algorithm - allen cahn reflected example - CPU" begin
-    batch_size = 100
-    train_steps = 1000
-    K = 50
-    for i in 1:length(ds)
-        d = ds[i]
-        u_domain = repeat([-5e-1, 5e-1]', d, 1)
+        u_anal(x, t) = sum(x.^2) + d * σ(0., 0., 0.)^2 * t
+        g(x) = sum(x.^2, dims=1)
 
-        hls = d + 50 #hidden layer size
+        # d = 10
+        x0 = fill(2f0,d)
+        hls = d + 10 #hidden layer size
 
-        nn = Flux.Chain(Dense(d,hls,tanh),
-                Dense(hls,hls,tanh),
-                Dense(hls,1)) # Neural network used by the scheme
+        nn = Flux.Chain(Dense(d,hls,relu),
+                        Dense(hls,hls,relu),
+                        Dense(hls,1)) # Neural network used by the scheme
 
-        opt = Flux.Optimiser(ExpDecay(0.1,
-                        0.1,
-                        200,
-                        1e-4),
-                        ADAM() )#optimiser
-        alg = DeepSplitting(nn, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1],u_domain[2]) )
+        opt = ADAM(0.01) #optimiser
+        alg = DeepSplitting(nn, opt = opt)
 
-
-        x = fill(0e0,d)  # initial point
-        g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
-        a(u) = u - u^3
-        f(y,z,v_y,v_z,∇v_y,∇v_z, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = 0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x = x)
+        prob = PIDEProblem(g, f, μ, σ, tspan, 
+                            x = x0
+                            )
         # solving
-        @time xs,ts,sol = solve(prob, 
-                        alg, 
-                        dt, 
-                        neumann = u_domain,
-                        verbose = true, 
-                        abstol=1e-5,
-                        maxiters = train_steps,
-                        batch_size=batch_size)
+        xs,ts,sol = solve(prob, alg, dt, 
+                        verbose = false, 
+                        use_cuda = use_cuda,
+                        maxiters = 1000,
+                        batch_size = 10000)
         u1 = sol[end]
-        @test !isnan(u1)
-        println("Deep splitting CPU, d = $d, u1 = $(u1)")
+        u1_anal = u_anal(x0, tspan[end])
+        e_l2 = rel_error_l2(u1, u1_anal)
+        println("rel_error_l2 = ", e_l2, "\n")
+        @test e_l2 < 0.1
+    end
+end
+
+@testset "DeepSplitting - heat equation - interval" begin # solving on interval [-5f-1, 5f-1]^d
+    for d in [1, 10, 50]
+        println("test for d = ", d)
+        tspan = (0f0, 5f-1)
+        dt = 5f-1  # time step
+        μ(X,p,t) = 0f0 # advection coefficients
+        σ(X,p,t) = 1f-1 # diffusion coefficients
+
+        u_anal(x, t) = sum(x.^2) + d * σ(0., 0., 0.)^2 * t
+        g(x) = sum(x.^2, dims=1)
+
+        # d = 10
+        u_domain = repeat([-5f-1, 5f-1]', d, 1)
+        hls = d + 10 #hidden layer size
+
+        nn = Flux.Chain(Dense(d,hls,relu),
+                        Dense(hls,hls,relu),
+                        Dense(hls,1)) # Neural network used by the scheme
+
+        opt = ADAM(0.01) #optimiser
+        alg = DeepSplitting(nn, opt = opt)
+
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = 0f0 .* v_y #TODO: this fix is not nice
+
+        # defining the problem
+        prob = PIDEProblem(g, f, μ, σ, tspan, 
+                            u_domain = u_domain,
+                            )
+        # solving
+        xs,ts,sol = solve(prob, alg, dt, 
+                        verbose = false, 
+                        use_cuda = use_cuda,
+                        maxiters = 1000,
+                        batch_size = 20000)
+        u1 = [sol[end](x)[] for x in xs]
+        u1_anal = u_anal.(xs, tspan[end])
+        e_l2 = mean(rel_error_l2.(u1, u1_anal))
+        println("rel_error_l2 = ", e_l2, "\n")
+        @test e_l2 < 0.1
+    end
+end
+
+@testset "DeepSplitting - heat equation - interval - Neumann BC" begin
+    # no known analytical solutions, so we compare 2 runs
+    sols = []
+    xs = []
+    d = 5
+    for _ in 1:2
+        tspan = (0f0, 5f-1)
+        dt = 5f-1  # time step
+        μ(X,p,t) = 0f0 # advection coefficients
+        σ(X,p,t) = 1f-1 # diffusion coefficients
+
+        u_anal(x, t) = sum(x.^2) + d * σ(0., 0., 0.)^2 * t
+        g(x) = sum(x.^2, dims=1)
+
+        # d = 10
+        u_domain = repeat([-5f-1, 5f-1]', d, 1)
+        hls = d + 10 #hidden layer size
+
+        nn = Flux.Chain(Dense(d,hls,relu),
+                        Dense(hls,hls,relu),
+                        Dense(hls,1)) # Neural network used by the scheme
+
+        opt = ADAM(0.01) #optimiser
+        alg = DeepSplitting(nn, opt = opt)
+
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = 0f0 .* v_y #TODO: this fix is not nice
+
+        # defining the problem
+        prob = PIDEProblem(g, f, μ, σ, tspan, 
+                            u_domain = u_domain,
+                            )
+        # solving
+        xs,ts,sol = solve(prob, alg, dt, 
+                        verbose = false, 
+                        use_cuda = use_cuda,
+                        maxiters = 1000,
+                        batch_size = 20000,
+                        neumann = u_domain)
+        push!(sols, sol[end])
+    end
+    u1 = [sols[1](x)[] for x in xs]
+    u1_anal = [sols[2](x)[] for x in xs]
+    e_l2 = mean(rel_error_l2.(u1, u1_anal))
+    println("rel_error_l2 = ", e_l2, "\n")
+    @test e_l2 < 0.1
+
+    # for fun: plotting
+    # close("all")    
+    # fig, ax = plt.subplots()
+    # xgrid = hcat([x[1:2] for x in xs]...)
+    # #Deepsplitting sol
+    # ax.scatter(xgrid[1,:], xgrid[2,:], c = reduce(vcat, sols[end].(xs))[:], s=.2)
+    # ax.set_title("DeepSplitting")
+    # gcf()
+end
+
+@testset "DeepSplitting - exponential - interval" begin
+    for d in [1, 3, 10]
+        println("test for d = ", d)
+        tspan = (0f0, 5f-1)
+        dt = 5f-2  # time step
+        μ(X,p,t) = 0f0 # advection coefficients
+        σ(X,p,t) = 0f0 # diffusion coefficients
+        r = 1f-1
+
+        u_anal(x, t) = (g(x) * exp(r * t))[]
+        g(x) = sum(x.^2, dims=1) .+ 2f0
+
+        # d = 10
+        u_domain = repeat([-5f-1, 5f-1]', d, 1)
+        hls = d + 50 #hidden layer size
+
+        nn = Flux.Chain(Dense(d,hls,relu),
+                        Dense(hls,hls,relu),
+                        Dense(hls,1)) # Neural network used by the scheme
+
+        opt = ADAM(0.01) #optimiser
+        alg = DeepSplitting(nn, opt = opt)
+
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = r * v_y #TODO: this fix is not nice
+
+        # defining the problem
+        prob = PIDEProblem(g, f, μ, σ, tspan, 
+                            u_domain = u_domain,
+                            )
+        # solving
+        xs,ts,sol = solve(prob, alg, dt, 
+                        verbose = false, 
+                        use_cuda = use_cuda,
+                        maxiters = 1000,
+                        batch_size = 100)
+        u1 = [sol[end](x)[] for x in xs]
+        u1_anal = u_anal.(xs, tspan[end])
+        e_l2 = mean(rel_error_l2.(u1, u1_anal))
+        println("rel_error_l2 = ", e_l2, "\n")
+        @test e_l2 < 0.1
     end
 end
 
 
-@testset "DeepSplitting algorithm - allen cahn local, reflected example - CPU" begin
+@testset "DeepSplitting algorithm - allen cahn" begin
+    batch_size = 2000
+    train_steps = 500
+
+    tspan = (3f-1, 6f-1)
+    dt = 2f-2  # time step
+
+    μ(X,p,t) = 0f0 # advection coefficients
+    σ(X,p,t) = 1f0 # diffusion coefficients
+
+    for d in [10]
+
+        hls = d + 50 #hidden layer size
+
+        nn = Flux.Chain(Dense(d,hls,tanh),
+                        Dense(hls,hls,tanh),
+                        Dense(hls,1)) # Neural network used by the scheme
+
+        opt = ADAM(1e-3) #optimiser
+        alg = DeepSplitting(nn, opt = opt )
+
+
+        X0 = fill(0f0,d)  # initial point
+        g(X) =  1f0 ./ (2f0 .+ 4f-1 * sum(X.^2, dims=1))   # initial condition
+        a(u) = u - u^3
+        f(y,z,v_y,v_z,∇v_y,∇v_z, t) = - a.(v_y) # nonlocal nonlinear part of the
+
+        # defining the problem
+        prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
+        # solving
+        @time xs,ts,sol = solve(prob, 
+                        alg, 
+                        dt, 
+                        verbose = true, 
+                        # abstol = 1e-5,
+                        use_cuda = use_cuda,
+                        maxiters = train_steps,
+                        batch_size=batch_size)
+        u1 = sol[end]
+        # value coming from \cite{Beck2017a}
+        @test rel_error_l2(u1, 0.30879) < 0.5 # this is quite high as a relative error. 
+        println("Deep splitting CPU, d = $d, rel_error_l2 = $(rel_error_l2)")
+    end
+end
+
+@testset "DeepSplitting algorithm - allen cahn local, reflected example" begin
     batch_size = 1000
     train_steps = 1000
-    for i in 1:length(ds)
-        d = ds[i]
-        u_domain = repeat([-5e-1, 5e-1]', d, 1)
+
+    tspan = (0f0, 5f-1)
+    dt = 5f-2  # time step
+
+    for d in [1,2,5]
+        u_domain = repeat([-5f-1, 5f-1]', d, 1)
 
         hls = d + 50 #hidden layer size
 
@@ -125,11 +262,7 @@ end
                 Dense(hls,hls,tanh),
                 Dense(hls,1)) # Neural network used by the scheme
 
-        opt = Flux.Optimiser(ExpDecay(0.1,
-                        1,
-                        200,
-                        1e-4),
-                        ADAM() )#optimiser
+        opt = ADAM(1e-2) #optimiser
         alg = DeepSplitting(nn, opt = opt )
 
 
@@ -146,7 +279,8 @@ end
                         dt, 
                         neumann = u_domain,
                         verbose = true, 
-                        abstol=1e-5,
+                        abstol = 1e-5,
+                        use_cuda = use_cuda,
                         maxiters = train_steps,
                         batch_size=batch_size)
         u1 = sol[end]
@@ -154,3 +288,305 @@ end
         println("Deep splitting CPU, d = $d, u1 = $(u1)")
     end
 end
+
+# TODO: not working because of a bug in Zygote differentiation rules for adjoints
+if false
+    @testset "DeepSplitting algorithm - Black-Scholes-Barenblatt equation" begin
+        batch_size = 20
+        train_steps = 500
+
+        tspan = (0f0, 1f0)
+        dt = 25f-2  # time step
+
+        r = 5f-2
+        sigma = 4f-1
+
+        μ(X,p,t) = 0f0 # advection coefficients
+        σ(X,p,t) =  sigma * X.^2 # diffusion coefficients
+
+        for d in [30]
+
+            hls = d + 50 #hidden layer size
+
+            nn = Flux.Chain(Dense(d,hls,tanh),
+                            Dense(hls,hls,tanh),
+                            Dense(hls,1)) # Neural network used by the scheme
+
+            opt = ADAM(1e-3) #optimiser
+            alg = DeepSplitting(nn, opt = opt )
+
+
+            X0 = repeat([1.0f0, 0.5f0], div(d,2))  # initial point
+            g(X) =  sum(X.^2, dims=1) # initial condition
+            f(y,z,v_y,v_z,∇v_y,∇v_z, t) = r * (v_y .- sum(y .* ∇v_y, dims=1))
+
+            # defining the problem
+            prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
+            # solving
+            @time xs,ts,sol = solve(prob, 
+                            alg, 
+                            dt, 
+                            verbose = true, 
+                            # abstol = 1e-5,
+                            use_cuda = false,
+                            maxiters = train_steps,
+                            batch_size=batch_size)
+            u1 = sol[end]
+            @test !isnan(u1)
+            println("Deep splitting CPU, d = $d, u1 = $(u1)")
+        end
+    end
+
+    @testset "DeepSplitting algorithm - Hamilton Jacobi Bellman Equation" begin
+
+        batch_size = 20
+        train_steps = 500
+
+        tspan = (0f0, 1f0)
+        dt = 2f-1  # time step
+
+        λ = 1.0f0
+
+        μ(X,p,t) = 0f0 # advection coefficients
+        σ(X,p,t) =  sqrt(2f0) # diffusion coefficients
+
+        d = 20
+
+        T = tspan[2]
+        MC = 10^5
+        W() = randn(d,1)
+        u_analytical(x, t) = -(1/λ)*log(mean(exp(-λ*g(x .+ sqrt(2f0)*abs.(T-t).*W())) for _ = 1:MC))
+
+        hls = d + 50 #hidden layer size
+
+        nn = Flux.Chain(Dense(d,hls,tanh),
+                        Dense(hls,hls,tanh),
+                        Dense(hls,1)) # Neural network used by the scheme
+
+        opt = ADAM(1e-3) #optimiser
+        alg = DeepSplitting(nn, opt = opt )
+
+        X0 = fill(0.0f0,d)  # initial point
+        g(X) =  log.(5f-1 .+ 5f-1 * sum(X.^2, dims=1)) # initial condition
+        f(y,z,v_y,v_z,∇v_y,∇v_z, t) = λ * sum(∇v_y.^2, dims=1)
+
+        # defining the problem
+        prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
+        # solving
+        @time xs,ts,sol = solve(prob, 
+                        alg, 
+                        dt, 
+                        verbose = true, 
+                        # abstol = 1e-5,
+                        use_cuda = false,
+                        maxiters = train_steps,
+                        batch_size=batch_size)
+
+        u1 = sol[end]
+
+        analytical_ans = u_analytical(x0, tspan[1])
+        error_l2 = rel_error_l2(u1, analytical_ans)
+
+        @test error_l2 < 2f0
+
+        println("Deep splitting CPU, d = $d, u1 = $(u1)")
+
+    end
+end
+
+@testset "DeepSplitting algorithm - Black-Scholes Equation with Default Risk" begin
+
+    batch_size = 1000
+    train_steps = 5000
+
+    tspan = (0f0, 1f0)
+    dt = 1.25f-1  # time step
+
+    μ(X,p,t) = 0.02f0 * X # advection coefficients
+    σ(X,p,t) = 0.2f0 * X # diffusion coefficients
+
+    d = 5
+
+    T = tspan[2]
+    MC = 10^5
+    W() = randn(d,1)
+    u_analytical(x, t) = -(1/λ)*log(mean(exp(-λ*g(x .+ sqrt(2f0)*abs.(T-t).*W())) for _ = 1:MC))
+
+    hls = d + 50 #hidden layer size
+
+    nn = Flux.Chain(Dense(d,hls,tanh),
+                    Dense(hls,hls,tanh),
+                    Dense(hls,1)) # Neural network used by the scheme
+
+    opt = ADAM(1e-3) #optimiser
+    alg = DeepSplitting(nn, opt = opt )
+
+    X0 = fill(100f0,d)  # initial point
+    g(X) =  minimum(X, dims=1) # initial condition
+
+    δ = 2.0f0/3f0
+    R = 0.02f0
+
+    vh = 50.0f0
+    vl = 70.0f0
+    γh = 0.2f0
+    γl = 0.02f0
+
+    Q(u) = (u .< vh) .* γh .+ (u .>= vl) .*  γl .+ ( (u .>= vh) .* (u .< vl)) .* (((γh - γl) / (vh - vl)) * (u .- vh) .+ γh)
+
+    µc = 0.02f0
+    σc = 0.2f0
+
+    f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = -(1f0 - δ) * Q.(v_y) .* v_y .- R * v_y
+
+    # defining the problem
+    prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
+    # solving
+    @time xs,ts,sol = solve(prob, 
+                    alg, 
+                    dt, 
+                    verbose = true, 
+                    # abstol = 1e-5,
+                    use_cuda = true,
+                    maxiters = train_steps,
+                    batch_size=batch_size)
+
+    u1 = sol[end]
+
+    analytical_ans = u_analytical(X0, tspan[1])[]
+    error_l2 = rel_error_l2(u1, analytical_ans)
+
+    @test error_l2 < 2f0
+
+    println("Deep splitting CPU, d = $d, error_l2 = $(error_l2)")
+
+end
+
+###################################################
+########### NON LOCAL #############################
+###################################################
+
+# TODO: Victor, this example is not working properly
+@testset "DeepSplitting - Hamel example - udomain" begin
+    tspan = (0f0,2f-1)
+    dt = 1f-2 # time step
+    μ(X,p,t) = 0f0 # advection coefficients
+    σ(X,p,t) = 1f-1 #1f-1 # diffusion coefficients
+
+    # Analytic sol
+    function _SS(x, t, p)
+        d = length(x)
+        MM = σ(x, p, t) * ones(d)
+        SSt = MM .* ((MM .* sinh.(MM *t) .+ ss0 .* cosh.( MM * t)) ./ (MM .* cosh.(MM * t ) .+ ss0 .* sinh.(MM * t)))
+        return SSt
+    end
+
+    function uanal(x, t, p)
+            d = length(x)
+            return (2*π)^(-d/2) * prod(_SS(x, t, p) .^(-1/2)) * exp(-0.5 *sum(x .^2 ./ _SS(x, t, p)) )
+    end
+
+    sols = []
+    xs = []
+    for d in [1,2,5]
+        ss0 = 1f-2#std g0
+        U = 5f-1
+        u_domain = repeat([-U,U]', d, 1)
+
+        batch_size = 10000
+        train_steps = 2000
+        K = 2
+
+        hls = d + 50 #hidden layer size
+
+        nn_batch = Flux.Chain(
+                            BatchNorm(d, affine = true, dim = 1),
+                            Dense(d, hls, tanh),
+                            BatchNorm(hls, affine = true, dim = 1),
+                            Dense(hls, hls, tanh),
+                            BatchNorm(hls, affine = true, dim = 1),
+                            Dense(hls, 1, relu)) # Neural network used by the scheme, with batch normalisation
+
+        opt = ADAM(1e-4)#optimiser
+        alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[:,1], u_domain[:,2]) )
+
+        g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
+        m(x) = - 5f-1 * sum(x.^2, dims=1)
+        vol = prod(u_domain[:,2] - u_domain[:,1])
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
+
+        # defining the problem
+        prob = PIDEProblem(g, f, μ, σ, tspan, 
+                            u_domain = u_domain
+                            )
+        # solving
+        xgrid,ts,sol = solve(prob, 
+                        alg, 
+                        dt, 
+                        verbose = true, 
+                        # abstol = 2f-1,
+                        maxiters = train_steps,
+                        batch_size = batch_size,
+                        use_cuda = use_cuda
+                        )
+        u1 = [sol[end](x)[] for x in xgrid]
+        u1_anal = uanal.(xgrid, tspan[end], Ref(Dict()))
+        e_l2 = mean(rel_error_l2.(u1, u1_anal))
+        println("rel_error_l2 = ", e_l2, "\n") # TODO: Victor, this is throwing an Inf because of small values - that should be fixed
+        @test e_l2 < 0.1
+        push!(sols, sol[end])
+    end
+end
+
+
+@testset "DeepSplitting algorithm - allen cahn non local reflected example" begin
+    batch_size = 2000
+    train_steps = 1000
+    K = 1
+    tspan = (0f0, 5f-1)
+    dt = 5f-2  # time step
+
+    μ(X,p,t) = 0f0 # advection coefficients
+    σ(X,p,t) = 1f-1 #1f-1 # diffusion coefficients
+    
+    for d in [1,2,5]
+        u1s = []
+        for _ in 1:2
+            u_domain = repeat([-5f-1, 5f-1]', d, 1)
+
+            hls = d + 50 #hidden layer size
+
+            nn = Flux.Chain(Dense(d,hls,tanh),
+                            Dense(hls,hls,tanh),
+                            Dense(hls,1)) # Neural network used by the scheme
+
+            opt = ADAM(1e-2) #optimiser
+            alg = DeepSplitting(nn, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1],u_domain[2]) )
+
+            x = fill(0f0,d)  # initial point
+            g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
+            a(u) = u - u^3
+            f(y,z,v_y,v_z,∇v_y,∇v_z, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
+
+            # defining the problem
+            prob = PIDEProblem(g, f, μ, σ, tspan, x = x)
+            # solving
+            @time xs,ts,sol = solve(prob, 
+                            alg, 
+                            dt, 
+                            neumann = u_domain,
+                            # verbose = true, 
+                            # abstol=1e-5,
+                            use_cuda = use_cuda,
+                            maxiters = train_steps,
+                            batch_size=batch_size)
+            push!(u1s, sol[end])
+            println("d = $d, u1 = $(sol[end])")
+
+        end
+        e_l2 = mean(rel_error_l2.(u1s[1], u1s[2]))
+        println("rel_error_l2 = ", e_l2, "\n")
+        @test e_l2 < 0.1
+    end
+end
+

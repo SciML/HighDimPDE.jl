@@ -28,7 +28,7 @@ module HighDimPDE
     * `σ` : The noise function of X from Ito's Lemma
     * `tspan`: The timespan of the problem.
     # Options
-    * `u_domain` : the domain of the solution required, correspoding to the hypercube
+    * `u_domain` : the domain of the solution required, corresponding to the hypercube
     `u_domain[:,1] × u_domain[:,2]`. 
     * `x`: the point of the solution required
     """
@@ -53,12 +53,12 @@ module HighDimPDE
     if isnothing(x) && !isnothing(u_domain)
         size(u_domain,2) == 2 ? nothing : error("`u_domain` needs to be of dimension `(d,2)`")
         x = u_domain[:,1]
-    elseif !isnothing(x) && !isnothing(u_domain)
+    elseif isnothing(x) && isnothing(u_domain)
         error("Need to provide whether `x` or `u_domain`")
     end
 
-    eltype(g(x)) == eltype(x) ? nothing : error("Type of `g(x)` not matching type of x")
-    eltype(f(x, x, g(x), g(x), 0f0, 0f0, tspan[1])) == eltype(x) ? nothing : error("Type of non linear function `f(x)` not matching type of x")
+    eltype(g(x)) == eltype(x) ? nothing : error("Type of `g(x)` must match type of x")
+    eltype(f(x, x, g(x), g(x), 0f0, 0f0, tspan[1])) == eltype(x) ? nothing : error("Type of non linear function `f(x)` must type of x")
 
     PIDEProblem{typeof(g(x)),
                 NLFunction,
@@ -67,7 +67,8 @@ module HighDimPDE
                 typeof(σ),
                 typeof(x),
                 typeof(tspan),
-                typeof(p),typeof(u_domain),typeof(kwargs)}(g(x),NLFunction(g),NLFunction(f),μ,σ,x,tspan,p,u_domain,kwargs)
+                typeof(p),typeof(u_domain),typeof(kwargs)}(
+                g(x),NLFunction(g),NLFunction(f),μ,σ,x,tspan,p,u_domain,kwargs)
     end
 
     Base.summary(prob::PIDEProblem) = string(nameof(typeof(prob)))
