@@ -1,5 +1,5 @@
 """
-    MLP
+    MLP( M=4, L=4, K=10, mc_sample = NoSampling())
 Multi level Picard algorithm for solving non local non linear PDES.
     
     Arguments:
@@ -7,7 +7,7 @@ Multi level Picard algorithm for solving non local non linear PDES.
     * `M`: number of Monte Carlo integrations (at each level `l`, `M^(l)` 
     integrations),
     * `K`: number of Monte Carlo integrations for the non local term    
-    * `mc_sample!::MCSampling` : sampling method for Monte Carlo integrations of the non local term.
+    * `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term.
     Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling)`, or `NoSampling` (by default).
     """
 struct MLP{T, U} <: HighDimPDEAlgorithm where {T <: Int, U}

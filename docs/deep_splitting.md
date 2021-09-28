@@ -18,7 +18,7 @@ with initial conditions $u(0, x) = g(x)$, where $u \colon \R^d \to \R$ is soluti
 If the function $f$ is continuous and linear in $u$, the Feynman-Kac formula provides an explicit soltution in terms of the mean trajectory of the stochastic trajectory of particles  $X^x_t$ 
 $$
 \begin{equation}
-u(T, x) = \E \left[ \int_0^T f(X^x_{T - s})ds + u(0, X^x_T) \right]
+u(T, x) = \int_0^T \E \left[ f(X^x_{T - s})ds \right] + \E \left[ u(0, X^x_T) \right]
 \end{equation}
 $$
 where 
