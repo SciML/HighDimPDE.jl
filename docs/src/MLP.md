@@ -19,13 +19,13 @@ The `MLP` algorithm overcomes the curse of dimensionality, with a computational 
 ## The general idea 💡
 Consider the PDE
 ```math
-\partial_t u(t,x) = \mu(t, x) \nabla_x u(t,x) + \frac{1}{2} \sigma^2(t, x) \Delta_x u(t,x) + f(x, u(t,x))
+\partial_t u(t,x) = \mu(t, x) \nabla_x u(t,x) + \frac{1}{2} \sigma^2(t, x) \Delta_x u(t,x) + f(x, u(t,x)) \tag{1}
 ```
 with initial conditions $u(0, x) = g(x)$, where $u \colon \R^d \to \R$. 
 
 Recall that the nonlinear Feynman-Kac formula provides a solution in terms of the mean trajectory of the stochastic trajectory of particles  $X^x_t$ 
 ```math
-u(t, x) = \int_0^t \mathbb{E} \left[ f(X^x_{t - s}, u(T-s, X^x_{t - s}))ds \right] + \mathbb{E} \left[ u(0, X^x_t) \right]
+u(t, x) = \int_0^t \mathbb{E} \left[ f(X^x_{t - s}, u(T-s, X^x_{t - s}))ds \right] + \mathbb{E} \left[ u(0, X^x_t) \right] \tag{2}
 ```
 where 
 ```math
@@ -35,7 +35,7 @@ X_t^x = \int_0^t \mu(X_s^x)ds + \int_0^t\sigma(X_s^x)dB_s + x,
 > The Feynman Kac formula is often expressed for terminal condition problems where $u(T,x) = g(x)$. See Ref. for the equivalence between initial condition problems $u(0,x) = g(x)$.
 
 ### Picard Iterations
-The `MLP` algorithm observes that Eq. (1_ can be viewed as a fixed point equation, i.e. $u = \phi(u)$. Introducing a sequence $(u_k)$ defined as $u_0 = g$ and 
+The `MLP` algorithm observes that Eq. (2) can be viewed as a fixed point equation, i.e. $u = \phi(u)$. Introducing a sequence $(u_k)$ defined as $u_0 = g$ and 
 ```
 u_{l+1} = \phi(u_l),
 ```

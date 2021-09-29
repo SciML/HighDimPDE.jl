@@ -16,13 +16,13 @@ The algorithm relies on two main ideas:
 ## The general idea 💡
 Consider the PDE
 ```math
-\partial_t u(t,x) = \mu(t, x) \nabla_x u(t,x) + \frac{1}{2} \sigma^2(t, x) \Delta_x u(t,x) + f(x, u(t,x))
+\partial_t u(t,x) = \mu(t, x) \nabla_x u(t,x) + \frac{1}{2} \sigma^2(t, x) \Delta_x u(t,x) + f(x, u(t,x)) \tag{1}
 ```
 with initial conditions $u(0, x) = g(x)$, where $u \colon \R^d \to \R$. 
 
 Recall that the nonlinear Feynman-Kac formula provides a solution in terms of the mean trajectory of the stochastic trajectory of particles  $X^x_t$ 
 ```math
-u(t, x) = \int_0^t \mathbb{E} \left[ f(X^x_{t - s}, u(T-s, X^x_{t - s}))ds \right] + \mathbb{E} \left[ u(0, X^x_t) \right]
+u(t, x) = \int_0^t \mathbb{E} \left[ f(X^x_{t - s}, u(T-s, X^x_{t - s}))ds \right] + \mathbb{E} \left[ u(0, X^x_t) \right] \tag{2}
 ```
 where 
 ```math
@@ -36,7 +36,7 @@ X_t^x = \int_0^t \mu(X_s^x)ds + \int_0^t\sigma(X_s^x)dB_s + x,
 
 More specifically, considering a small time step $dt = t_{n+1} - t_n$ one has that
 ```math
-u(t_{n+1}, X_{T - t_{n+1}}) \approx \mathbb{E} \left[ f(t, X_{T - t_{n}}, u(t_{n},X_{T - t_{n}}))(t_{n+1} - t_n) + u(t_{n}, X_{T - t_{n}}) | X_{T - t_{n+1}}\right]
+u(t_{n+1}, X_{T - t_{n+1}}) \approx \mathbb{E} \left[ f(t, X_{T - t_{n}}, u(t_{n},X_{T - t_{n}}))(t_{n+1} - t_n) + u(t_{n}, X_{T - t_{n}}) | X_{T - t_{n+1}}\right] \tag{3}
 ```
 
 > may be use a simple version u(t_{n+1}, X_{T - t_{n+1}}) and then talk about this tower property for conditional expectations
@@ -65,7 +65,7 @@ In `HighDimPDE.jl` the right parameter combination $\theta$ is found by iterativ
 In practice, the `DeepSplitting` allows to obtain $u(t,x)$ on a singular point. This is done exactly as described above, and in this case ...
 
 ```julia
-prob = PIDEProblem(g, f, μ_f, σ_f, X0, tspan)
+prob = PIDEProblem(g, f, μ, σ, tspan, x = x)
 ```
 
 ### Hypercube
@@ -100,12 +100,10 @@ u(t_{n+1}, X_{T - t_{n+1}}) & \approx  \mathbb{E}_X \big[ \mathbb{E}_Y \big[ f(t
 In practice, if you have a non-local model you need to provide the sampling method for $Y$, which is to be given to the algorithm method: 
 
 ```julia
-alg = DeepSplitting(nn,
-                    opt = opt,
-                    mc_sample = mc_sample
+alg = DeepSplitting(nn, opt = opt, mc_sample = mc_sample
 ```
 
-`mc_sample` can be whether ` = UniformSampling(u_domain[1], u_domain[2]))` or ` NormalSampling(σ_sampling, centered)`.
+`mc_sample` can be whether `UniformSampling(u_domain[1], u_domain[2]))` or ` NormalSampling(σ_sampling, shifted)`.
 
  choose in `HighDimPDE.jl` between two different distributions for $Y$ : Normal with 
 
