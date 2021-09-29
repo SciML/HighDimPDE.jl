@@ -51,18 +51,19 @@ function solve(
 end
 
 function _ml_picard(
-        M::F, # monte carlo integration
-        L::F, # level
-        K::F, # non local term monte carlo
-        x::xType, # initial point
-        s::tType, # time
-        t::tType, # time
-        mc_sample!::MCSampling, 
-        g::Function, 
-        f::Function,
-        verbose::Bool,
-        prob::PIDEProblem,
-        ) where {F <: Int, tType <: AbstractFloat}
+        M, # monte carlo integration
+        L, # level
+        K, # non local term monte carlo
+        x, # initial point
+        s, # time
+        t, # time
+        mc_sample!, 
+        g, 
+        f,
+        verbose,
+        prob,
+        neumann_bc
+        )
     
     x2 = similar(x)
     x3 = similar(x)
@@ -126,19 +127,18 @@ end
 _ml_picard(M::Int, L::Int, K::Int, x::Nothing, s::Real, t::Real, mc_sample!, g, f, verbose::Bool, prob, neumann_bc) = nothing
 
 function _ml_picard_mlt(
-    M::F, # monte carlo integration
-    L::F, # level
-    K::F, # non local term monte carlo
-    x::xType, # initial point
-    s::tType, # time
-    t::tType, # time
-    mc_sample!::MCSampling, 
-    g::Function, 
-    f::Function,
-    verbose::Bool,
-    prob::PIDEProblem,
-    neumann_bc::Union{Nothing,Array{xType}}
-    ) where {F <: Int, tType <: AbstractFloat}
+    M, # monte carlo integration
+    L, # level
+    K, # non local term monte carlo
+    x, # initial point
+    s, # time
+    t, # time
+    mc_sample!, 
+    g, 
+    f,
+    verbose,
+    prob,
+    neumann_bc)
     
     a2 = zero(xType)
     
@@ -167,20 +167,20 @@ end
 
 
 function _ml_picard_call(
-    M::F, # monte carlo integration
-    L::F, # level
-    K::F, # non local term monte carlo
-    x::Vector{xType}, # initial point
-    s::tType, # time
-    t::tType, # time
-    mc_sample!::MCSampling{xType}, 
-    g::Function, 
-    f::Function,
-    verbose::Bool,
-    NUM_THREADS::Int64,
-    thread_id::Int64,
-    prob::PIDEProblem,
-    neumann_bc::Union{Nothing,Array{xType}}
+    M, # monte carlo integration
+    L, # level
+    K, # non local term monte carlo
+    x, # initial point
+    s, # time
+    t, # time
+    mc_sample!, 
+    g, 
+    f,
+    verbose,
+    NUM_THREADS,
+    thread_id,
+    prob,
+    neumann_bc
     ) where {F <: Int, xType <: AbstractFloat, tType <: AbstractFloat}
 
     x2 = similar(x)

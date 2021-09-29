@@ -39,7 +39,7 @@ end
         opt = ADAM(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = 0f0 .* v_y #TODO: this fix is not nice
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -81,7 +81,7 @@ end
         opt = ADAM(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = 0f0 .* v_y #TODO: this fix is not nice
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -126,7 +126,7 @@ end
         opt = ADAM(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = 0f0 .* v_y #TODO: this fix is not nice
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -180,7 +180,7 @@ end
         opt = ADAM(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = r * v_y #TODO: this fix is not nice
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = r * v_y #TODO: this fix is not nice
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -226,7 +226,7 @@ end
         X0 = fill(0f0,d)  # initial point
         g(X) =  1f0 ./ (2f0 .+ 4f-1 * sum(X.^2, dims=1))   # initial condition
         a(u) = u - u^3
-        f(y,z,v_y,v_z,∇v_y,∇v_z, t) = - a.(v_y) # nonlocal nonlinear part of the
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = - a.(v_y) # nonlocal nonlinear part of the
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
@@ -272,7 +272,7 @@ end
         X0 = fill(0f0,d)  # initial point
         g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
         a(u) = u - u^3
-        f(y,z,v_y,v_z,∇v_y,∇v_z, t) = a.(v_y) # nonlocal nonlinear part of the
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = a.(v_y) # nonlocal nonlinear part of the
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
@@ -321,7 +321,7 @@ if false
 
             X0 = repeat([1.0f0, 0.5f0], div(d,2))  # initial point
             g(X) =  sum(X.^2, dims=1) # initial condition
-            f(y,z,v_y,v_z,∇v_y,∇v_z, t) = r * (v_y .- sum(y .* ∇v_y, dims=1))
+            f(y,z,v_y,v_z,∇v_y,∇v_z, p, t) = r * (v_y .- sum(y .* ∇v_y, dims=1))
 
             # defining the problem
             prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
@@ -371,7 +371,7 @@ if false
 
         X0 = fill(0.0f0,d)  # initial point
         g(X) =  log.(5f-1 .+ 5f-1 * sum(X.^2, dims=1)) # initial condition
-        f(y,z,v_y,v_z,∇v_y,∇v_z, t) = λ * sum(∇v_y.^2, dims=1)
+        f(y,z,v_y,v_z,∇v_y,∇v_z, p, t) = λ * sum(∇v_y.^2, dims=1)
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
@@ -440,7 +440,7 @@ end
     µc = 0.02f0
     σc = 0.2f0
 
-    f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = -(1f0 - δ) * Q.(v_y) .* v_y .- R * v_y
+    f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = -(1f0 - δ) * Q.(v_y) .* v_y .- R * v_y
 
     # defining the problem
     prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
@@ -516,7 +516,7 @@ end
         g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
         m(x) = - 5f-1 * sum(x.^2, dims=1)
         vol = prod(u_domain[:,2] - u_domain[:,1])
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -569,7 +569,7 @@ end
             x = fill(0f0,d)  # initial point
             g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
             a(u) = u - u^3
-            f(y,z,v_y,v_z,∇v_y,∇v_z, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
+            f(y,z,v_y,v_z,∇v_y,∇v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
 
             # defining the problem
             prob = PIDEProblem(g, f, μ, σ, tspan, x = x)

@@ -33,19 +33,19 @@ module HighDimPDE
     * `u_domain` : if provided, approximating the solution on the hypercube `u_domain[1] × u_domain[2]`. 
     * `neumann_bc`: if provided, neumann boundary conditions on the hypercube `neumann_bc[1] × neumann_bc[2]`. 
     """
-    struct PIDEProblem{uType,G,F,Mu,Sigma,xType,tType,P,UD,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false}
+    struct PIDEProblem{uType,G,F,Mu,Sigma,xType,tType,P,UD,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false} where {tType <: Abstractfloat}
         u0::uType
         g::G # initial condition
         f::F # nonlinear part
         μ::Mu
         σ::Sigma
         x::xType
-        tspan::tType
+        tspan::Tuple{tType}
         p::P
-        u_domain::Tuple{X,X} # for DeepSplitting only
-        neumann_bc::Union{Nothing,Tuple{X,X}} # neumann boundary conditions
+        u_domain::Tuple{xType,xType} # for DeepSplitting only
+        neumann_bc::Union{Nothing,Tuple{xType,xType}} # neumann boundary conditions
         kwargs::K
-    end
+    end 
 
     function PIDEProblem(g, f, μ, σ, tspan;
                                     p=nothing,
@@ -54,7 +54,8 @@ module HighDimPDE
                                     neumann_bc=nothing,
                                     kwargs...)
 
-    @assert eltype(x) <: AbstractFloat 
+    @assert eltype(x) <: AbstractFloat "`x` \in \R should be a Float"
+
     if isnothing(x) && !isnothing(u_domain)
         x = first(u_domain)
     elseif isnothing(x) && isnothing(u_domain)
