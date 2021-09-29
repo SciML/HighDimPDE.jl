@@ -14,8 +14,8 @@ end
 
 tspan = (0.0,0.5)
 # using the MLP alg
-μ(X,p,t) = 0.0 # advection coefficients
-σ(X,p,t) = 0.1 # diffusion coefficients
+μ(x, t) = 0.0 # advection coefficients
+σ(x, t) = 0.1 # diffusion coefficients
 
 
 anal_res = [1.398, 1.9567, 5.3554]
