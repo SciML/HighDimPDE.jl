@@ -471,7 +471,7 @@ end
 # TODO: Victor, this example is not working properly
 @testset "DeepSplitting - Hamel example - udomain" begin
     tspan = (0f0,5f-1)
-    dt = 1f-1 # time step
+    dt = 5f-2 # time step
     μ(x, p, t) = 0f0 # advection coefficients
     σ(x, p, t) = 1f-1 #1f-1 # diffusion coefficients
     ss0 = 1f-2#std g0
@@ -491,7 +491,7 @@ end
 
     sols = []
     xs = []
-    for d in [1,2,5]
+    for d in [1, 2, 5]
         U = 5f-1
         u_domain = (fill(-U, d), fill(U, d))
 

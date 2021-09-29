@@ -14,7 +14,7 @@ The `MLP`, for Multi-Level Picard iterations, reformulates the PDE problem as a 
 The `MLP` algorithm overcomes the curse of dimensionality, with a computational complexity that grows polynomially in the number of dimension (see [M. Hutzenthaler et al. 2020](https://arxiv.org/abs/1807.01212v3)).
 
 !!! warning "`MLP` can only solve for one point at a time"
-    `MLP` works only with `PIDEProblem` defined with `x = x` option). If you want to solve over an entire domain, you definitely want to check the `DeepSplitting` algorithm.
+    `MLP` works only with `PIDEProblem` defined with `x = x` option. If you want to solve over an entire domain, you definitely want to check the `DeepSplitting` algorithm.
 
 ## The general idea 💡
 Consider the PDE
@@ -36,7 +36,7 @@ X_t^x = \int_0^t \mu(X_s^x)ds + \int_0^t\sigma(X_s^x)dB_s + x,
 
 ### Picard Iterations
 The `MLP` algorithm observes that Eq. (2) can be viewed as a fixed point equation, i.e. $u = \phi(u)$. Introducing a sequence $(u_k)$ defined as $u_0 = g$ and 
-```
+```math
 u_{l+1} = \phi(u_l),
 ```
 the [Banach fixed-point theorem](https://en.wikipedia.org/wiki/Banach_fixed-point_theorem) ensures that the sequence converges to the true solution $u$.
@@ -72,7 +72,7 @@ As $l$ grows, the term $[\phi(u_{l-1}) - \phi(u_{l-2})]$ becomes smaller - and d
 
 ```math
 \begin{aligned}
-u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_i^{M^{L-l}} \left[ f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}})) + \1_\N(l) f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}}))\right]
+u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_i^{M^{L-l}} \left[ f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}})) + \mathbf{q}_\N(l) f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}}))\right]
 \\
 &\qquad + \frac{1}{M^{L}}\sum_i^{M^{L}} u(0, X^{x,(l, i)}_t)\\
 \end{aligned}
@@ -90,7 +90,7 @@ The non-localness is again handled by a plain vanilla Monte Carlo integration.
 \begin{aligned}
 u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_{i=1}^{M^{L-l}} \frac{1}{K}\sum_{j=1}^{K}  \bigg[ f(X^{x,(l, i)}_{t - s_{(l, i)}}, Z^{(l,j)}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}}), u(T-s_{l,i}, Z^{(l,j)})) + \\
 &\qquad 
-\1_\N(l) f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}}))\bigg] + \frac{1}{M^{L}}\sum_i^{M^{L}} u(0, X^{x,(l, i)}_t)\\
+\mathbf{q}_\N(l) f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}}))\bigg] + \frac{1}{M^{L}}\sum_i^{M^{L}} u(0, X^{x,(l, i)}_t)\\
 \end{aligned}
 ```
 

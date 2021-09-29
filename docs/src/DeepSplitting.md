@@ -105,8 +105,6 @@ alg = DeepSplitting(nn, opt = opt, mc_sample = mc_sample
 
 `mc_sample` can be whether `UniformSampling(u_domain[1], u_domain[2]))` or ` NormalSampling(σ_sampling, shifted)`.
 
- choose in `HighDimPDE.jl` between two different distributions for $Y$ : Normal with 
-
 The approximation error of [Monte Carlo integrations decreases as $1/\sqrt{N}$](https://en.wikipedia.org/wiki/Monte_Carlo_integration) with $N$ the number of samples, and is therefore not dependent on the dimensions. On the other hand, the computational complexity of traditional deterministic techniques grows exponentially in the number of dimensions. 
 
 ### References
