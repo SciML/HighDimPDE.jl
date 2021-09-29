@@ -1,7 +1,7 @@
 """
     MLP( M=4, L=4, K=10, mc_sample = NoSampling())
 
-Multi level Picard algorithm for solving non local non linear PDES.
+Multi level Picard algorithm.
     
 Arguments:
 * `L`: number of Picard iterations (Level),

@@ -1,15 +1,13 @@
 """
-DeepSplitting(f, K, opt, mc_sample)
-Deep splitting algorithm for solving non local non linear PDES.
+    DeepSplitting(nn, K, opt, mc_sample)
+
+Deep splitting algorithm.
 
 Arguments:
-* `f`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain),
-or more generally a [functor](https://github.com/FluxML/Functors.jl) function
+* `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl)
 * `K`: the number of Monte Carlo integrations
 * `opt`: optimiser to be use. By default, `Flux.ADAM(0.1)`.
-* `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term.
-Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling)`, or `NoSampling` (by default).
-
+* `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
 """
 struct DeepSplitting{NN,F,O,MCS} <: HighDimPDEAlgorithm
     nn::NN
