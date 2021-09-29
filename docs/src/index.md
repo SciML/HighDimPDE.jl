@@ -26,12 +26,8 @@ as both schemes heavily rely on it.
 
 ----------------------------------------------
 Features  |    `DeepSplitting`   | `MLP`     |
------------------------------------
-time discretization free| ❌ | ✅ |
------------------------------------
-mesh-free| ✅ | ✅|
------------------------------------
-Hypercube approximation| ✅ | ❌ |
------------------------------------
-CPU | ✅ | ❌ |
------------------------------------
+----------|:----------------------:|:------------:
+Time discretization free|   ❌ |         ✅ |
+Mesh-free       | ✅ |                   ✅ |
+Hypercube approximation| ✅   |          ❌ |
+CPU             | ✅ |                   ❌ |
