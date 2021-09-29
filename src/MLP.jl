@@ -3,7 +3,7 @@
 
 Multi level Picard algorithm.
     
-Arguments:
+# Arguments
 * `L`: number of Picard iterations (Level),
 * `M`: number of Monte Carlo integrations (at each level `l`, `M^(L-l)`integrations),
 * `K`: number of Monte Carlo integrations for the non local term    
@@ -15,6 +15,7 @@ struct MLP{T, MCS} <: HighDimPDEAlgorithm where {T <: Int, U}
     K::T # nb MC integration non local term
     mc_sample!::MCS
 end
+
 MLP(; M=4, L=4, K=10, mc_sample = NoSampling()) = MLP(M ,L, K, mc_sample) #Note: mc_sample mutates its first argument but for the user interface we hide this technicality
     
     

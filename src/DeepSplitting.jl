@@ -3,7 +3,7 @@
 
 Deep splitting algorithm.
 
-Arguments:
+# Arguments
 * `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl)
 * `K`: the number of Monte Carlo integrations
 * `opt`: optimiser to be use. By default, `Flux.ADAM(0.1)`.
