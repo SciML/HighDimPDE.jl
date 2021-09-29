@@ -126,7 +126,7 @@
 #define eq_name "Example 3.8"
 #define rdim 1
 #define g(x) ArrayXd tmp = ArrayXd::Zero(1, 1); tmp(0) = pow(2, double(x.size()/2.)) * exp( - 2. * double(M_PI) * x.square().sum())
-#define X_sde(s, t, x, w) w = (x - 0.1 * sqrt( (t - s)) * w );
+#define X_sde(s, t, x, w) w = (x + 0.1 * sqrt( (t - s)) * w );
 #define shift_me(a, b) a
 // todo: change 10 to d
 #define fn(x, xx, y, yy,d) ArrayXd ret = ArrayXd::Zero(1, 1); ret(0) = std::max(0.,y(0)) * ( - 0.5 * x.square().sum() + std::max(0.,yy(0)) * 0.5 * xx.square().sum() * pow(2. * double(M_PI), d / 2.) * exp( 0.5 * xx.square().sum()  ) )
