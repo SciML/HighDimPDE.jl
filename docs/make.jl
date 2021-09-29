@@ -12,4 +12,4 @@ makedocs(sitename="HighDimPDE.jl",
             "Feynman Kac formula" => "Feynman_Kac.md",
         ],)
 
-deploydocs(repo = "github.com/vboussange/HighDimPDE.jl")
+deploydocs(repo = "github.com/vboussange/HighDimPDE.jl", devbranch="main")

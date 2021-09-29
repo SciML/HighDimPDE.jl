@@ -23,7 +23,7 @@
 
 * can run both on CPUs and GPUs with no extra fuss. `use_cuda = true`
 
-**HighDimPDE.jl** builds upon [DiffEqBase.jl](https://github.com/SciML/DiffEqBase.jl) and [SciMLBase.jl](https://github.com/SciML/SciMLBase.jl) for the interface, and uses [Flux.jl](https://github.com/FluxML/Flux.jl) for the machine learning part in the case of the Deep Splitting algorithm.
+**HighDimPDE.jl** builds upon [DiffEqBase.jl](https://github.com/SciML/DiffEqBase.jl) and [SciMLBase.jl](https://github.com/SciML/SciMLBase.jl) for the interface, and uses [Flux.jl](https://github.com/FluxML/Flux.jl) for the machine learning part in the case of the `DeepSplitting` algorithm.
 
 ## Installation
 Open Julia REPL and type the following
@@ -36,7 +36,7 @@ Pkg.add("https://github.com/vboussange/HighDimPDE.jl.git")
 This will download latest version from git repo and download all dependencies.
 
 ## Getting started
-### MLP algorithm
+### `MLP`
 #### Local PDE
 Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) PDE in dimension 10 with the `MLP` algorithm, short for Multi-Level Picard iteration algorithm (see documentation - in preparation - and section [Related papers](#related-papers)).
 ```julia
@@ -87,7 +87,7 @@ alg = MLP(mc_sample = UniformSampling(u_domain[1], u_domain[2]) )
 sol = solve(prob, alg, multithreading=true)
 ```
 
-### Deep splitting algorithm
+### `DeepSplitting`
 Let's solve the previous equation with the `DeepSplitting` algorithm (see documentation - in preparation - and section [Related papers](#related-papers)).
 ```julia
 using HighDimPDE
@@ -155,4 +155,4 @@ That's all!
 - [`DeepBSDE`: Solving high-dimensional partial differential equations using deep learning](https://www.pnas.org/content/115/34/8505)
 
 # Acknowledgements
-Dr. Sebastian Becker wrote the original scripts in Python, TensorFlow and C++, and Pr. Arnulf Jentzen largely contributed to the theoretical developments of the schemes implemented.
+`HighDimPDE.jl` is inspired from Sebastian Becker's scripts in Python, TensorFlow and C++, and Pr. Arnulf Jentzen largely contributed to the theoretical developments of the schemes implemented.
