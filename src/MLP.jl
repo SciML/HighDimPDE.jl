@@ -66,12 +66,16 @@ function _ml_picard(
         neumann_bc
         ) where {xType, tType}
     
+    elxType = eltype(xType)
+    if L == 0 
+        return zero(elxType)
+    end
+
     x2 = similar(x)
     x3 = similar(x)
     x32 = similar(x)
     x34 = similar(x)
     p = prob.p
-    elxType = eltype(xType)
 
     a = zero(elxType)
     for l in 0:(min(L- 1, 1))
@@ -267,7 +271,7 @@ function _mlt_sde_loop!(x2,
     #randn! allows to save one allocation
     dt = t - s
     randn!(x2)
-    x2 .= x - (prob.μ(x, prob.p, t) .* dt .+ prob.σ(x, prob.p, t) .* sqrt(dt) .* x2)
+    x2 .= x + (prob.μ(x, prob.p, t) .* dt .+ prob.σ(x, prob.p, t) .* sqrt(dt) .* x2)
     if !isnothing(neumann_bc)
         x2 .= _reflect(x, x2, neumann_bc[1], neumann_bc[2])
     end
