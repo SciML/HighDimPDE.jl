@@ -59,9 +59,9 @@ module HighDimPDE
     @assert eltype(x) <: AbstractFloat "`x` should be a Float"
     @assert eltype(tspan) <: AbstractFloat "`tspan` should be a tuple of Float"
     @assert typeof(u_domain) <: Union{Nothing,Tuple} "type of `u_domain` can be whether `Nothing` or Tuple{AbstractVector, AbstractVector}"
-    isnothing(u_domain) ? nothing : @assert eltype(u_domain) <: AbstractFloat "`tspan` should be a tuple of Float"
+    isnothing(u_domain) ? nothing : @assert eltype(eltype(u_domain)) <: AbstractFloat "`tspan` should be a tuple of Float"
     @assert typeof(neumann_bc) <: Union{Nothing,Tuple} "type of `neumann_bc` can be whether `Nothing` or Tuple{AbstractVector, AbstractVector}"
-    isnothing(neumann_bc) ? nothing : @assert eltype(neumann_bc) <: eltype(x)
+    isnothing(neumann_bc) ? nothing : @assert eltype(eltype(neumann_bc)) <: eltype(x)
     @assert eltype(g(x)) == eltype(x) "Type of `g(x)` must match type of x"
     @assert eltype(f(x, x, g(x), g(x), 0f0, 0f0, p, tspan[1])) == eltype(x) "Type of non linear function `f(x)` must type of x"
 
@@ -71,7 +71,7 @@ module HighDimPDE
                 typeof(μ),
                 typeof(σ),
                 typeof(x),
-                typeof(tspan),
+                eltype(tspan),
                 typeof(p),
                 typeof(u_domain),
                 typeof(neumann_bc),

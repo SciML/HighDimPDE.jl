@@ -22,8 +22,8 @@ end
         println("test for d = ", d)
         tspan = (0f0, 5f-1)
         dt = 5f-1  # time step
-        μ(x, t) = 0f0 # advection coefficients
-        σ(x, t) = 1f-1 # diffusion coefficients
+        μ(x, p, t) = 0f0 # advection coefficients
+        σ(x, p, t) = 1f-1 # diffusion coefficients
 
         u_anal(x, t) = sum(x.^2) + d * σ(0., 0., 0.)^2 * t
         g(x) = sum(x.^2, dims=1)
@@ -64,8 +64,8 @@ end
         println("test for d = ", d)
         tspan = (0f0, 5f-1)
         dt = 5f-1  # time step
-        μ(x, t) = 0f0 # advection coefficients
-        σ(x, t) = 1f-1 # diffusion coefficients
+        μ(x, p, t) = 0f0 # advection coefficients
+        σ(x, p, t) = 1f-1 # diffusion coefficients
 
         u_anal(x, t) = sum(x.^2) + d * σ(0., 0., 0.)^2 * t
         g(x) = sum(x.^2, dims=1)
@@ -109,8 +109,8 @@ end
     for _ in 1:2
         tspan = (0f0, 5f-1)
         dt = 5f-1  # time step
-        μ(x, t) = 0f0 # advection coefficients
-        σ(x, t) = 1f-1 # diffusion coefficients
+        μ(x, p, t) = 0f0 # advection coefficients
+        σ(x, p, t) = 1f-1 # diffusion coefficients
 
         u_anal(x, t) = sum(x.^2) + d * σ(0., 0., 0.)^2 * t
         g(x) = sum(x.^2, dims=1)
@@ -162,8 +162,8 @@ end
         println("test for d = ", d)
         tspan = (0f0, 5f-1)
         dt = 5f-2  # time step
-        μ(x, t) = 0f0 # advection coefficients
-        σ(x, t) = 0f0 # diffusion coefficients
+        μ(x, p, t) = 0f0 # advection coefficients
+        σ(x, p, t) = 0f0 # diffusion coefficients
         r = 1f-1
 
         u_anal(x, t) = (g(x) * exp(r * t))[]
@@ -208,8 +208,8 @@ end
     tspan = (3f-1, 6f-1)
     dt = 2f-2  # time step
 
-    μ(x, t) = 0f0 # advection coefficients
-    σ(x, t) = 1f0 # diffusion coefficients
+    μ(x, p, t) = 0f0 # advection coefficients
+    σ(x, p, t) = 1f0 # diffusion coefficients
 
     for d in [10]
 
@@ -253,8 +253,8 @@ end
     tspan = (0f0, 5f-1)
     dt = 5f-2  # time step
 
-    μ(x, t) = 0f0 # advection coefficients
-    σ(x, t) = 1f0 # diffusion coefficients
+    μ(x, p, t) = 0f0 # advection coefficients
+    σ(x, p, t) = 1f0 # diffusion coefficients
 
     for d in [1,2,5]
         u_domain = repeat([-5f-1, 5f-1]', d, 1)
@@ -304,8 +304,8 @@ if false
         r = 5f-2
         sigma = 4f-1
 
-        μ(x, t) = 0f0 # advection coefficients
-        σ(x, t) =  sigma * X.^2 # diffusion coefficients
+        μ(x, p, t) = 0f0 # advection coefficients
+        σ(x, p, t) =  sigma * X.^2 # diffusion coefficients
 
         for d in [30]
 
@@ -350,8 +350,8 @@ if false
 
         λ = 1.0f0
 
-        μ(x, t) = 0f0 # advection coefficients
-        σ(x, t) =  sqrt(2f0) # diffusion coefficients
+        μ(x, p, t) = 0f0 # advection coefficients
+        σ(x, p, t) =  sqrt(2f0) # diffusion coefficients
 
         d = 20
 
@@ -405,8 +405,8 @@ end
     tspan = (0f0, 1f0)
     dt = 1.25f-1  # time step
 
-    μ(x, t) = 0.02f0 * X # advection coefficients
-    σ(x, t) = 0.2f0 * X # diffusion coefficients
+    μ(x, p, t) = 0.02f0 * X # advection coefficients
+    σ(x, p, t) = 0.2f0 * X # diffusion coefficients
 
     d = 5
 
@@ -473,8 +473,8 @@ end
 @testset "DeepSplitting - Hamel example - udomain" begin
     tspan = (0f0,2f-1)
     dt = 1f-2 # time step
-    μ(x, t) = 0f0 # advection coefficients
-    σ(x, t) = 1f-1 #1f-1 # diffusion coefficients
+    μ(x, p, t) = 0f0 # advection coefficients
+    σ(x, p, t) = 1f-1 #1f-1 # diffusion coefficients
 
     # Analytic sol
     function _SS(x, t, p)
@@ -549,8 +549,8 @@ end
     tspan = (0f0, 5f-1)
     dt = 5f-2  # time step
 
-    μ(x, t) = 0f0 # advection coefficients
-    σ(x, t) = 1f-1 #1f-1 # diffusion coefficients
+    μ(x, p, t) = 0f0 # advection coefficients
+    σ(x, p, t) = 1f-1 #1f-1 # diffusion coefficients
     
     for d in [1,2,5]
         u1s = []
