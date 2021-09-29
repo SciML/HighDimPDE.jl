@@ -54,8 +54,8 @@ module HighDimPDE
                                     neumann_bc=nothing,
                                     kwargs...)
 
-    !isnothing(u_domain) ? x = first(u_domain) : nothing # x is required for even when solving on u_domain
     @assert !isnothing(x) ⊻ !isnothing(u_domain) "Need to provide whether `x` or `u_domain`"
+    !isnothing(u_domain) ? x = first(u_domain) : nothing # x is required for even when solving on u_domain
     @assert eltype(x) <: AbstractFloat "`x` should be a Float"
     @assert eltype(tspan) <: AbstractFloat "`tspan` should be a tuple of Float"
     @assert typeof(u_domain) <: Union{Nothing,Tuple} "type of `u_domain` can be whether `Nothing` or Tuple{AbstractVector, AbstractVector}"

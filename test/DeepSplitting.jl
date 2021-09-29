@@ -71,7 +71,7 @@ end
         g(x) = sum(x.^2, dims=1)
 
         # d = 10
-        u_domain = repeat([-5f-1, 5f-1]', d, 1)
+        u_domain = (fill(-5e-1, d), fill(5e-1, d))
         hls = d + 10 #hidden layer size
 
         nn = Flux.Chain(Dense(d,hls,relu),
@@ -84,9 +84,7 @@ end
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, 
-                            u_domain = u_domain,
-                            )
+        prob = PIDEProblem(g, f, μ, σ, tspan, u_domain = u_domain)
         # solving
         xs,ts,sol = solve(prob, alg, dt, 
                         verbose = false, 
@@ -116,7 +114,7 @@ end
         g(x) = sum(x.^2, dims=1)
 
         # d = 10
-        u_domain = repeat([-5f-1, 5f-1]', d, 1)
+        u_domain = (fill(-5e-1, d), fill(5e-1, d))
         hls = d + 10 #hidden layer size
 
         nn = Flux.Chain(Dense(d,hls,relu),
@@ -131,6 +129,7 @@ end
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, 
                             u_domain = u_domain,
+                            neumann = u_domain
                             )
         # solving
         xs,ts,sol = solve(prob, alg, dt, 
@@ -138,7 +137,7 @@ end
                         use_cuda = use_cuda,
                         maxiters = 1000,
                         batch_size = 20000,
-                        neumann = u_domain)
+                        )
         push!(sols, sol[end])
     end
     u1 = [sols[1](x)[] for x in xs]
@@ -170,7 +169,7 @@ end
         g(x) = sum(x.^2, dims=1) .+ 2f0
 
         # d = 10
-        u_domain = repeat([-5f-1, 5f-1]', d, 1)
+        u_domain = (fill(-5e-1, d), fill(5e-1, d))
         hls = d + 50 #hidden layer size
 
         nn = Flux.Chain(Dense(d,hls,relu),
@@ -241,8 +240,9 @@ end
                         batch_size=batch_size)
         u1 = sol[end]
         # value coming from \cite{Beck2017a}
-        @test rel_error_l2(u1, 0.30879) < 0.5 # this is quite high as a relative error. 
-        println("Deep splitting CPU, d = $d, rel_error_l2 = $(rel_error_l2)")
+        e_l2 = rel_error_l2(u1, 0.30879)
+        @test e_l2 < 0.5 # this is quite high as a relative error. 
+        println("Deep splitting CPU, d = $d, rel_error_l2 = $e_l2")
     end
 end
 
@@ -257,7 +257,7 @@ end
     σ(x, p, t) = 1f0 # diffusion coefficients
 
     for d in [1,2,5]
-        u_domain = repeat([-5f-1, 5f-1]', d, 1)
+        u_domain = (fill(-5e-1, d), fill(5e-1, d))
 
         hls = d + 50 #hidden layer size
 
@@ -275,12 +275,11 @@ end
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = a.(v_y) # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
+        prob = PIDEProblem(g, f, μ, σ, tspan, x = X0, neumann = u_domain )
         # solving
         @time xs,ts,sol = solve(prob, 
                         alg, 
                         dt, 
-                        neumann = u_domain,
                         verbose = true, 
                         abstol = 1e-5,
                         use_cuda = use_cuda,
@@ -405,8 +404,8 @@ end
     tspan = (0f0, 1f0)
     dt = 1.25f-1  # time step
 
-    μ(x, p, t) = 0.02f0 * X # advection coefficients
-    σ(x, p, t) = 0.2f0 * X # diffusion coefficients
+    μ(x, p, t) = 0.02f0 * x # advection coefficients
+    σ(x, p, t) = 0.2f0 * x # diffusion coefficients
 
     d = 5
 
@@ -448,7 +447,7 @@ end
     @time xs,ts,sol = solve(prob, 
                     alg, 
                     dt, 
-                    verbose = true, 
+                    # verbose = true, 
                     # abstol = 1e-5,
                     use_cuda = true,
                     maxiters = train_steps,
@@ -471,10 +470,11 @@ end
 
 # TODO: Victor, this example is not working properly
 @testset "DeepSplitting - Hamel example - udomain" begin
-    tspan = (0f0,2f-1)
-    dt = 1f-2 # time step
+    tspan = (0f0,5f-1)
+    dt = 1f-1 # time step
     μ(x, p, t) = 0f0 # advection coefficients
     σ(x, p, t) = 1f-1 #1f-1 # diffusion coefficients
+    ss0 = 1f-2#std g0
 
     # Analytic sol
     function _SS(x, t, p)
@@ -492,30 +492,29 @@ end
     sols = []
     xs = []
     for d in [1,2,5]
-        ss0 = 1f-2#std g0
         U = 5f-1
-        u_domain = repeat([-U,U]', d, 1)
+        u_domain = (fill(-U, d), fill(U, d))
 
         batch_size = 10000
-        train_steps = 2000
+        train_steps = 5000
         K = 2
 
         hls = d + 50 #hidden layer size
 
         nn_batch = Flux.Chain(
-                            BatchNorm(d, affine = true, dim = 1),
+                            # BatchNorm(d, affine = true, dim = 1),
                             Dense(d, hls, tanh),
-                            BatchNorm(hls, affine = true, dim = 1),
+                            # BatchNorm(hls, affine = true, dim = 1),
                             Dense(hls, hls, tanh),
-                            BatchNorm(hls, affine = true, dim = 1),
+                            # BatchNorm(hls, affine = true, dim = 1),
                             Dense(hls, 1, relu)) # Neural network used by the scheme, with batch normalisation
 
         opt = ADAM(1e-4)#optimiser
-        alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[:,1], u_domain[:,2]) )
+        alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1], u_domain[2]) )
 
         g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
         m(x) = - 5f-1 * sum(x.^2, dims=1)
-        vol = prod(u_domain[:,2] - u_domain[:,1])
+        vol = prod(u_domain[2] - u_domain[1])
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
 
         # defining the problem
@@ -527,7 +526,7 @@ end
                         alg, 
                         dt, 
                         verbose = true, 
-                        # abstol = 2f-1,
+                        abstol = 1f-3,
                         maxiters = train_steps,
                         batch_size = batch_size,
                         use_cuda = use_cuda
@@ -555,7 +554,7 @@ end
     for d in [1,2,5]
         u1s = []
         for _ in 1:2
-            u_domain = repeat([-5f-1, 5f-1]', d, 1)
+            u_domain = (fill(-5e-1, d), fill(5e-1, d))
 
             hls = d + 50 #hidden layer size
 
@@ -572,12 +571,11 @@ end
             f(y,z,v_y,v_z,∇v_y,∇v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, tspan, x = x)
+            prob = PIDEProblem(g, f, μ, σ, tspan, x = x, neumann = u_domain)
             # solving
             @time xs,ts,sol = solve(prob, 
                             alg, 
                             dt, 
-                            neumann = u_domain,
                             # verbose = true, 
                             # abstol=1e-5,
                             use_cuda = use_cuda,

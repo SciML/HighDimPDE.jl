@@ -53,6 +53,7 @@ function solve(
     K = alg.K
     opt = alg.opt
     g,f,μ,σ,p = prob.g,prob.f,prob.μ,prob.σ,prob.p
+    T = eltype(x0)
 
     # neural network model
     nn = alg.nn |> _device
@@ -64,10 +65,8 @@ function solve(
     if isnothing(u_domain)
         sample_initial_points! = NoSampling()
         usol = [g(x0 |>cpu)[]]
-        T = eltype(x0)
     else
         usol = Any[g]
-        T = eltype(u_domain)
         sample_initial_points! = UniformSampling(u_domain[1], u_domain[2])
     end
 
@@ -82,7 +81,7 @@ function solve(
     z = similar(x0, d, batch_size, K) # for MC non local integration
 
     # checking element types
-    eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing : error("Type of mc_sample! not the same as x0")
+    eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing : error("Element type of `mc_sample` not the same as element type of `x`")
 
     function splitting_model(y0, y1, z, t)
         # TODO: for now hardcoded because of a bug in Zygote differentiation rules for adjoints

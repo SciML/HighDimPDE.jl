@@ -11,7 +11,7 @@ Base.eltype(::MCSampling{T}) where T = eltype(T)
 
 Uniform sampling for the Monte Carlo integration, in the hypercube `[a, b]^2`.
 """
-struct UniformSampling{A} <: MCSampling{eltype(A)}
+struct UniformSampling{A} <: MCSampling{A}
     a::A
     b::A
 end
@@ -32,7 +32,7 @@ end
 
 Normal sampling method for the Monte Carlo integration.
 
-Arguments:
+# Arguments
 * `σ`: the standard devation of the sampling
 * `shifted` : if true, the integration is shifted by `x`. Defaults to false.
 """

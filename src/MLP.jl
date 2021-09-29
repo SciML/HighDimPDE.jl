@@ -9,7 +9,7 @@ Multi level Picard algorithm.
 * `K`: number of Monte Carlo integrations for the non local term    
 * `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling)`, or `NoSampling` (by default).
 """
-struct MLP{T, MCS} <: HighDimPDEAlgorithm where {T <: Int, U}
+struct MLP{T, MCS} <: HighDimPDEAlgorithm where {T <: Int, MCS <: MCSampling}
     M::T # nb of MC integrations
     L::T # nb of levels
     K::T # nb MC integration non local term
