@@ -33,17 +33,17 @@ module HighDimPDE
     * `u_domain` : if provided, approximating the solution on the hypercube `u_domain[1] × u_domain[2]`. 
     * `neumann_bc`: if provided, neumann boundary conditions on the hypercube `neumann_bc[1] × neumann_bc[2]`. 
     """
-    struct PIDEProblem{uType,G,F,Mu,Sigma,xType,tType,P,UD,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false} where {tType <: Abstractfloat}
+    struct PIDEProblem{uType,G,F,Mu,Sigma,xType,tType,P,UD,NBC,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false} 
         u0::uType
         g::G # initial condition
         f::F # nonlinear part
         μ::Mu
         σ::Sigma
         x::xType
-        tspan::Tuple{tType}
+        tspan::Tuple{tType,tType}
         p::P
-        u_domain::Tuple{xType,xType} # for DeepSplitting only
-        neumann_bc::Union{Nothing,Tuple{xType,xType}} # neumann boundary conditions
+        u_domain::UD # for DeepSplitting only
+        neumann_bc::NBC # neumann boundary conditions
         kwargs::K
     end 
 
@@ -54,16 +54,16 @@ module HighDimPDE
                                     neumann_bc=nothing,
                                     kwargs...)
 
-    @assert eltype(x) <: AbstractFloat "`x` \in \R should be a Float"
-
-    if isnothing(x) && !isnothing(u_domain)
-        x = first(u_domain)
-    elseif isnothing(x) && isnothing(u_domain)
-        error("Need to provide whether `x` or `u_domain`")
-    end
-
-    eltype(g(x)) == eltype(x) ? nothing : error("Type of `g(x)` must match type of x")
-    eltype(f(x, x, g(x), g(x), 0f0, 0f0, prob.p, tspan[1])) == eltype(x) ? nothing : error("Type of non linear function `f(x)` must type of x")
+    !isnothing(u_domain) ? x = first(u_domain) : nothing # x is required for even when solving on u_domain
+    @assert !isnothing(x) ⊻ !isnothing(u_domain) "Need to provide whether `x` or `u_domain`"
+    @assert eltype(x) <: AbstractFloat "`x` should be a Float"
+    @assert eltype(tspan) <: AbstractFloat "`tspan` should be a tuple of Float"
+    @assert typeof(u_domain) <: Union{Nothing,Tuple} "type of `u_domain` can be whether `Nothing` or Tuple{AbstractVector, AbstractVector}"
+    isnothing(u_domain) ? nothing : @assert eltype(u_domain) <: AbstractFloat "`tspan` should be a tuple of Float"
+    @assert typeof(neumann_bc) <: Union{Nothing,Tuple} "type of `neumann_bc` can be whether `Nothing` or Tuple{AbstractVector, AbstractVector}"
+    isnothing(neumann_bc) ? nothing : @assert eltype(neumann_bc) <: eltype(x)
+    @assert eltype(g(x)) == eltype(x) "Type of `g(x)` must match type of x"
+    @assert eltype(f(x, x, g(x), g(x), 0f0, 0f0, p, tspan[1])) == eltype(x) "Type of non linear function `f(x)` must type of x"
 
     PIDEProblem{typeof(g(x)),
                 NLFunction,
@@ -72,7 +72,10 @@ module HighDimPDE
                 typeof(σ),
                 typeof(x),
                 typeof(tspan),
-                typeof(p),typeof(u_domain),typeof(neumann_bc),typeof(kwargs)}(
+                typeof(p),
+                typeof(u_domain),
+                typeof(neumann_bc),
+                typeof(kwargs)}(
                 g(x), NLFunction(g), NLFunction(f), μ, σ, x, tspan, p, u_domain, neumann_bc, kwargs)
     end
 
