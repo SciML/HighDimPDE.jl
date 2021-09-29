@@ -1,13 +1,15 @@
-"""
-    MCSampling
-Sampling method for the Monte Carlo integration
-"""
+# """
+#     MCSampling
+
+# Sampling method for the Monte Carlo integration.
+# """
 abstract type MCSampling{T} end
 Base.eltype(::MCSampling{T}) where T = eltype(T)
 
 """
-    UniformSampling
-Uniform sampling method for the Monte Carlo integration, in the hypercube `[a, b]^2`.
+    UniformSampling(a, b)
+
+Uniform sampling for the Monte Carlo integration, in the hypercube `[a, b]^2`.
 """
 struct UniformSampling{A} <: MCSampling{eltype(A)}
     a::A
@@ -25,12 +27,14 @@ end
 
 
 """
-    NormalSampling
+    NormalSampling(σ)
+    NormalSampling(σ, shifted)
+
 Normal sampling method for the Monte Carlo integration.
 
 Arguments:
 * `σ`: the standard devation of the sampling
-* `shifted` : if true, the integration is shifted by `x`
+* `shifted` : if true, the integration is shifted by `x`. Defaults to false.
 """
 struct NormalSampling{T} <: MCSampling{T}
     σ::T

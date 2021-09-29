@@ -11,11 +11,11 @@ or more generally a [functor](https://github.com/FluxML/Functors.jl) function
 Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling)`, or `NoSampling` (by default).
 
 """
-struct DeepSplitting{C1,O} <: HighDimPDEAlgorithm
-    nn::C1
-    K::Int
+struct DeepSplitting{NN,F,O,MCS} <: HighDimPDEAlgorithm
+    nn::NN
+    K::F
     opt::O
-    mc_sample!::MCSampling # Monte Carlo sample
+    mc_sample!::MCS # Monte Carlo sample
 end
 
 function DeepSplitting(nn; K=1, opt=Flux.ADAM(0.1), mc_sample::MCSampling = NoSampling()) 
@@ -31,7 +31,6 @@ function solve(
     verbose = false,
     maxiters = 300,
     use_cuda = false,
-    neumann = nothing
     )
     if use_cuda
         if CUDA.functional()
@@ -48,7 +47,7 @@ function solve(
 
     # unbin stuff
     u_domain = prob.u_domain |> _device # domain on which we want to approximate u, nothing if only one point wanted
-    neumann = neumann |> _device
+    neumann_bc = prob.neumann_bc |> _device
     x0 = prob.x |> _device
     mc_sample! =  alg.mc_sample! |> _device
 
@@ -71,7 +70,7 @@ function solve(
     else
         usol = Any[g]
         T = eltype(u_domain)
-        sample_initial_points! = UniformSampling(u_domain[:,1], u_domain[:,2])
+        sample_initial_points! = UniformSampling(u_domain[1], u_domain[2])
     end
 
     dt = convert(T,dt)
@@ -92,7 +91,7 @@ function solve(
         # ∇vi(x) = vcat(first.(Flux.jacobian.(vi, eachcol(x)))...)'
         ∇vi(x) = [0f0]
         # Monte Carlo integration
-        _int = reshape(sum(f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(z), t), dims = 3), 1, :)
+        _int = reshape(sum(f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(z), p, t), dims = 3), 1, :)
         vj(y0) - (vi(y1) + dt * _int / K)
     end
 
@@ -112,8 +111,8 @@ function solve(
             dW = @view dWall[:,:,i]
             y0 .= y1
             y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW
-            if !isnothing(neumann)
-                y1 .= _reflect_GPU(y0, y1, neumann[:,1], neumann[:,2])
+            if !isnothing(neumann_bc)
+                y1 .= _reflect_GPU(y0, y1, neumann_bc[1], neumann_bc[2])
             end
         end
     end
@@ -135,10 +134,10 @@ function solve(
                 # generating z for MC non local integration
                 mc_sample!(z, y1)
                 # need to reflect the sampling
-                if !isnothing(neumann) && typeof(mc_sample!) == NormalSampling
+                if !isnothing(neumann_bc) && typeof(mc_sample!) == NormalSampling
                     _y1K = similar(z)
                     _y1K .= y1
-                    z .= _reflect_GPU(_y1K, z, neumann[:,1], neumann[:,2])
+                    z .= _reflect_GPU(_y1K, z, neumann_bc[1], neumann_bc[2])
                 end
             end
 

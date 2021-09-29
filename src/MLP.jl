@@ -1,20 +1,19 @@
 """
     MLP( M=4, L=4, K=10, mc_sample = NoSampling())
+
 Multi level Picard algorithm for solving non local non linear PDES.
     
-    Arguments:
-    * `L`: number of Picard iterations (Level),
-    * `M`: number of Monte Carlo integrations (at each level `l`, `M^(l)` 
-    integrations),
-    * `K`: number of Monte Carlo integrations for the non local term    
-    * `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term.
-    Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling)`, or `NoSampling` (by default).
-    """
-struct MLP{T, U} <: HighDimPDEAlgorithm where {T <: Int, U}
+Arguments:
+* `L`: number of Picard iterations (Level),
+* `M`: number of Monte Carlo integrations (at each level `l`, `M^(L-l)`integrations),
+* `K`: number of Monte Carlo integrations for the non local term    
+* `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling)`, or `NoSampling` (by default).
+"""
+struct MLP{T, MCS} <: HighDimPDEAlgorithm where {T <: Int, U}
     M::T # nb of MC integrations
     L::T # nb of levels
     K::T # nb MC integration non local term
-    mc_sample!::MCSampling{U}
+    mc_sample!::MCS
 end
 MLP(; M=4, L=4, K=10, mc_sample = NoSampling()) = MLP(M ,L, K, mc_sample) #Note: mc_sample mutates its first argument but for the user interface we hide this technicality
     
@@ -25,24 +24,25 @@ function solve(
         alg::MLP;
         multithreading=true,
         verbose=false,
-        neumann = nothing
         )
 
     # unbin stuff
     x = prob.x
+    neumann_bc = prob.neumann_bc
     K = alg.K
     M = alg.M
     L = alg.L
     mc_sample! = alg.mc_sample!
     g, f = prob.g, prob.f
 
+    # errors
     !isnothing(prob.u_domain) ? error("`MLP` algorithm cannot be solved on a domain, i.e with argument `u_domain`.") : nothing
     isnothing(x) ? error("`MLP` algorithm needs a grid 'x'") : nothing
     
     if multithreading
-        usol = _ml_picard_mlt(M, L, K, x, prob.tspan[1], prob.tspan[2], mc_sample!, g, f, verbose, prob, neumann)
+        usol = _ml_picard_mlt(M, L, K, x, prob.tspan[1], prob.tspan[2], mc_sample!, g, f, verbose, prob, neumann_bc)
     else
-        usol = _ml_picard(M, L, K, x, prob.tspan[1], prob.tspan[2], mc_sample!, g, f, verbose, prob, neumann)
+        usol = _ml_picard(M, L, K, x, prob.tspan[1], prob.tspan[2], mc_sample!, g, f, verbose, prob, neumann_bc)
     end 
     return x, prob.tspan, [g(x),usol]
     # sol = DiffEqBase.build_solution(prob,alg,ts,usol)
@@ -54,25 +54,21 @@ function _ml_picard(
         M::F, # monte carlo integration
         L::F, # level
         K::F, # non local term monte carlo
-        x::Vector{xType}, # initial point
+        x::xType, # initial point
         s::tType, # time
         t::tType, # time
-        mc_sample!::MCSampling{xType}, 
+        mc_sample!::MCSampling, 
         g::Function, 
         f::Function,
         verbose::Bool,
         prob::PIDEProblem,
-        neumann::Union{Nothing,Array{xType}}
-        ) where {F <: Int, xType <: AbstractFloat, tType <: AbstractFloat}
+        ) where {F <: Int, tType <: AbstractFloat}
     
-    r = zeros(tType)
-    a = zero(xType)
-    a2 = zero(xType)
-    b = zero(xType)
     x2 = similar(x)
     x3 = similar(x)
     x32 = similar(x)
     x34 = similar(x)
+    p = prob.p
 
     for l in 0:(min(L- 1, 1))
         verbose && println("loop l")
@@ -81,14 +77,14 @@ function _ml_picard(
         for k in 1:num
             verbose && println("loop k")
             r = s + (t - s) * rand(tType)
-            _mlt_sde_loop!(x2, x, s, r, prob, neumann)
-            b2 = _ml_picard(M, l, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann)
+            _mlt_sde_loop!(x2, x, s, r, prob, neumann_bc)
+            b2 = _ml_picard(M, l, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann_bc)
             b3 = zero(xType)
             # non local integration
             for h in 1:K
                 verbose && println("loop h")
                 mc_sample!(x3, x2)
-                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann), 0., 0., t) #TODO:hardcode, not sure about t
+                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), 0., 0., p, t) #TODO:hardcode, not sure about t
             end
             b += b3 / K
         end
@@ -100,16 +96,16 @@ function _ml_picard(
         num = M^(L - l)
         for k in 1:num
             r = s + (t - s) * rand(tType)
-            _mlt_sde_loop!(x2, x, s, r, prob, neumann)
-            b2 = _ml_picard(M, l, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann)
-            b4 = _ml_picard(M, l - 1, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann)
+            _mlt_sde_loop!(x2, x, s, r, prob, neumann_bc)
+            b2 = _ml_picard(M, l, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann_bc)
+            b4 = _ml_picard(M, l - 1, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann_bc)
             b3 = zero(xType)
                 # non local integration
             for h in 1:K
                 mc_sample!(x3, x2)
-                x32 = x3
-                x34 = x3
-                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, mc_sample!, g, f, verbose, prob, neumann), 0., 0., t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, mc_sample!, g, f, verbose, prob, neumann),0., 0., t) #TODO:hardcode, not sure about t
+                x32 .= x3
+                x34 .= x3
+                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), 0., 0., p, t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, mc_sample!, g, f, verbose, prob, neumann_bc),0., 0., p, t) #TODO:hardcode, not sure about t
             end
             b += b3 / K
         end
@@ -119,7 +115,7 @@ function _ml_picard(
     num = M^(L)
     for k in 1:num
         verbose && println("loop k3")
-        _mlt_sde_loop!(x2, x, s, t, prob, neumann)
+        _mlt_sde_loop!(x2, x, s, t, prob, neumann_bc)
         a2 += g(x2)
     end
     a2 /= num
@@ -127,28 +123,28 @@ function _ml_picard(
     return a + a2
 end
 
-_ml_picard(M::Int, L::Int, K::Int, x::Nothing, s::Real, t::Real, mc_sample!, g, f, verbose::Bool, prob, neumann) = nothing
+_ml_picard(M::Int, L::Int, K::Int, x::Nothing, s::Real, t::Real, mc_sample!, g, f, verbose::Bool, prob, neumann_bc) = nothing
 
 function _ml_picard_mlt(
     M::F, # monte carlo integration
     L::F, # level
     K::F, # non local term monte carlo
-    x::Vector{xType}, # initial point
+    x::xType, # initial point
     s::tType, # time
     t::tType, # time
-    mc_sample!::MCSampling{xType}, 
+    mc_sample!::MCSampling, 
     g::Function, 
     f::Function,
     verbose::Bool,
     prob::PIDEProblem,
-    neumann::Union{Nothing,Array{xType}}
-    ) where {F <: Int, xType <: AbstractFloat, tType <: AbstractFloat}
+    neumann_bc::Union{Nothing,Array{xType}}
+    ) where {F <: Int, tType <: AbstractFloat}
     
     a2 = zero(xType)
     
     # distributing tasks
     NUM_THREADS = Threads.nthreads()
-    tasks = [Threads.@spawn(_ml_picard_call(M, L, K, x, s, t, mc_sample!, g, f, verbose, NUM_THREADS, thread_id, prob, neumann)) for thread_id in 1:NUM_THREADS]
+    tasks = [Threads.@spawn(_ml_picard_call(M, L, K, x, s, t, mc_sample!, g, f, verbose, NUM_THREADS, thread_id, prob, neumann_bc)) for thread_id in 1:NUM_THREADS]
     
     # ? not sure whether we should have Threads.nthreads-1 to allow next lines to run on the last threads available
     # this pretty much depends on the time required to perform following for-loop
@@ -158,7 +154,7 @@ function _ml_picard_mlt(
     x2 = similar(x)
     for k in 1:num
         verbose && println("loop k3")
-        _mlt_sde_loop!(x2, x, s, t, prob, neumann)
+        _mlt_sde_loop!(x2, x, s, t, prob, neumann_bc)
         a2 += g(x2)
     end
     a2 /= num
@@ -184,14 +180,14 @@ function _ml_picard_call(
     NUM_THREADS::Int64,
     thread_id::Int64,
     prob::PIDEProblem,
-    neumann::Union{Nothing,Array{xType}}
+    neumann_bc::Union{Nothing,Array{xType}}
     ) where {F <: Int, xType <: AbstractFloat, tType <: AbstractFloat}
 
-    a = zero(xType)
     x2 = similar(x)
     x3 = similar(x)
     x32 = similar(x)
     x34 = similar(x)
+    p = prob.p
 
     for l in 0:(min(L - 1, 1))
         b = zero(xType)
@@ -200,13 +196,13 @@ function _ml_picard_call(
         for k in 1:loop_num
             verbose && println("loop k")
             r = s + (t - s) * rand(tType)
-            _mlt_sde_loop!(x2, x, s, r, prob, neumann)
-            b2 = _ml_picard(M, l, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann)
+            _mlt_sde_loop!(x2, x, s, r, prob, neumann_bc)
+            b2 = _ml_picard(M, l, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann_bc)
             b3 = zero(xType)
             for h in 1:K # non local integration
                 verbose && println("loop h")
                 mc_sample!(x3, x2)
-                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann), 0., 0., t) #TODO:hardcode, not sure about t
+                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), 0., 0., p, t) #TODO:hardcode, not sure about t
             end
         b += b3 / K
         end
@@ -215,20 +211,20 @@ function _ml_picard_call(
             
     for l in 2:(L-1)
         b = zero(xType)
-        num = (M^(L - l))
+        num = M^(L - l)
         loop_num = _get_loop_num(M, num, thread_id, NUM_THREADS)
         for k in 1:loop_num
             r = s + (t - s) * rand(tType)
-            _mlt_sde_loop!(x2, x, s, r, prob, neumann)
-            b2 = _ml_picard(M, l, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann)
-            b4 = _ml_picard(M, l - 1, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann)
+            _mlt_sde_loop!(x2, x, s, r, prob, neumann_bc)
+            b2 = _ml_picard(M, l, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann_bc)
+            b4 = _ml_picard(M, l - 1, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann_bc)
             b3 = zero(xType)
                 # non local integration
             for h in 1:K
                 mc_sample!(x3, x2)
-                x32 = x3
-                x34 = x3
-                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, mc_sample!, g, f, verbose, prob, neumann), 0., 0., t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, mc_sample!, g, f, verbose, prob, neumann),0., 0., t) #TODO:hardcode, not sure about t
+                x32 .= x3
+                x34 .= x3
+                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), 0., 0., p, t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, mc_sample!, g, f, verbose, prob, neumann_bc),0., 0., p, t) #TODO:hardcode, not sure about t
             end
         b += b3 / K
         end
@@ -259,13 +255,13 @@ function _mlt_sde_loop!(x2::Vector{xType},
                         s::tType, 
                         t::tType, 
                         prob::PIDEProblem, 
-                        neumann::Union{Nothing,Array{xType}}) where {xType <: AbstractFloat, tType <: AbstractFloat}
+                        neumann_bc::Union{Nothing,Array{xType}}) where {xType <: AbstractFloat, tType <: AbstractFloat}
     # @show x2
     #randn! allows to save one allocation
     dt = t - s
     randn!(x2)
     x2 .= x - (prob.μ(x, prob.p, t) .* dt .+ prob.σ(x, prob.p, t) .* sqrt(dt) .* x2)
-    if !isnothing(neumann)
-        x2 .= _reflect(x, x2, neumann[:,1], neumann[:,2])
+    if !isnothing(neumann_bc)
+        x2 .= _reflect(x, x2, neumann_bc[1], neumann_bc[2])
     end
 end
