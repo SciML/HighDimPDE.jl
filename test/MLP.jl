@@ -20,7 +20,7 @@ tspan = (0.0,0.5)
 
 anal_res = [1.398, 1.9567, 5.3554]
 ds = [1,2,5]
-atols = [5e-2,1e-1,2e0]
+atols = [5e-2,1e-1,2e-1]
 
 @testset "MLP algorithm - single threaded" begin
     σ_sampling = 0.1
