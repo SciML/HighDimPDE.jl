@@ -99,8 +99,8 @@ if plotting
 
         ax[1].set_title("DeepSplitting")
 
-        for _a in ax
-                # _a.legend()
+        for _a in ax[1:1]
+                _a.legend()
         end
         gcf()
         savefig("hamel_$(d)d.pdf")
@@ -114,4 +114,11 @@ if plotting
                 plt.contourf(x,x,g.(repeat(x,2)))
         end
 end
+ax[1].set_ylabel(L"u(t,(x_1,0,\dots,0))")
+ax[1].set_xlabel(L"x_1")
+ax[2].set_xlabel(L"x_1")
+
+fig.tight_layout()
 gcf()
+
+fig.savefig("hamel_5d.pdf", dpi=800)

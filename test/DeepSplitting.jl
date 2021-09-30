@@ -246,7 +246,7 @@ end
     end
 end
 
-@testset "DeepSplitting algorithm - allen cahn local, reflected example" begin
+@testset "DeepSplitting - allen cahn local-  Neumann BC" begin
     batch_size = 1000
     train_steps = 1000
 
@@ -293,7 +293,7 @@ end
 
 # TODO: not working because of a bug in Zygote differentiation rules for adjoints
 if false
-    @testset "DeepSplitting algorithm - Black-Scholes-Barenblatt equation" begin
+    @testset "DeepSplitting - Black-Scholes-Barenblatt equation" begin
         batch_size = 20
         train_steps = 500
 
@@ -339,7 +339,7 @@ if false
         end
     end
 
-    @testset "DeepSplitting algorithm - Hamilton Jacobi Bellman Equation" begin
+    @testset "DeepSplitting - Hamilton Jacobi Bellman Equation" begin
 
         batch_size = 20
         train_steps = 500
@@ -396,7 +396,7 @@ if false
     end
 end
 
-@testset "DeepSplitting algorithm - Black-Scholes Equation with Default Risk" begin
+@testset "DeepSplitting - Black-Scholes Equation with Default Risk" begin
 
     batch_size = 1000
     train_steps = 5000
@@ -531,7 +531,7 @@ end
 end
 
 
-@testset "DeepSplitting algorithm - allen cahn non local reflected example" begin
+@testset "DeepSplitting algorithm - allen cahn non local - Neumann BC" begin
     batch_size = 2000
     train_steps = 1000
     K = 1

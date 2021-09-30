@@ -36,8 +36,9 @@ Features  |    `DeepSplitting`   | `MLP`     |
 ----------|:----------------------:|:------------:
 Time discretization free|   ❌ |         ✅ |
 Mesh-free       | ✅ |                   ✅ |
-Hypercube approximation| ✅   |          ❌ |
-CPU             | ✅ |                   ❌ |
-gradient non-linearities    | ✔️|       ❌ |
+Single point $x \in \R^d$ approximation| ✅   |  ✅ |
+$d$-dimensional cube $[a,b]^d$ approximation| ✅   |          ❌ |
+GPU             | ✅ |                   ❌ |
+Gradient non-linearities    | ✔️|       ❌ |
 
 ✔️ : will be supported in the future
