@@ -39,7 +39,11 @@ function solve(
     # errors
     !isnothing(prob.u_domain) ? error("`MLP` algorithm cannot be solved on a domain, i.e with argument `u_domain`.") : nothing
     isnothing(x) ? error("`MLP` algorithm needs a grid 'x'") : nothing
-    
+    # if !isnothing(neumann_bc) 
+    #     if !(typeof(mc_sample!) <: UniformSampling || typeof(mc_sample!) <: NoSampling)
+    #         error("Only `UniformSampling` or  is covered with Neumann BC")
+    #     end
+    # end
     if multithreading
         usol = _ml_picard_mlt(M, L, K, x, prob.tspan[1], prob.tspan[2], mc_sample!, g, f, verbose, prob, neumann_bc)
     else
@@ -91,7 +95,7 @@ function _ml_picard(
             # non local integration
             for h in 1:K
                 verbose && println("loop h")
-                mc_sample!(x3, x2)
+                _integrate(mc_sample!) ? mc_sample!(x3, x2) : nothing
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), 0., 0., p, t) #TODO:hardcode, not sure about t
             end
             b += b3 / K
@@ -110,7 +114,7 @@ function _ml_picard(
             b3 = zero(elxType)
                 # non local integration
             for h in 1:K
-                mc_sample!(x3, x2)
+                _integrate(mc_sample!) ? mc_sample!(x3, x2) : nothing
                 x32 .= x3
                 x34 .= x3
                 b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), 0., 0., p, t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, mc_sample!, g, f, verbose, prob, neumann_bc),0., 0., p, t) #TODO:hardcode, not sure about t
@@ -212,7 +216,7 @@ function _ml_picard_call(
             b3 = zero(elxType)
             for h in 1:K # non local integration
                 verbose && println("loop h")
-                mc_sample!(x3, x2)
+                _integrate(mc_sample!) ? mc_sample!(x3, x2) : nothing
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), 0., 0., p, t) #TODO:hardcode, not sure about t
             end
         b += b3 / K
@@ -232,7 +236,10 @@ function _ml_picard_call(
             b3 = zero(elxType)
                 # non local integration
             for h in 1:K
-                mc_sample!(x3, x2)
+                _integrate(mc_sample!) ? mc_sample!(x3, x2) : nothing
+                if !isnothing(neumann_bc)
+                    x2 .= _reflect(x, x2, neumann_bc[1], neumann_bc[2])
+                end
                 x32 .= x3
                 x34 .= x3
                 b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), 0., 0., p, t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, mc_sample!, g, f, verbose, prob, neumann_bc),0., 0., p, t) #TODO:hardcode, not sure about t
@@ -273,6 +280,7 @@ function _mlt_sde_loop!(x2,
     randn!(x2)
     x2 .= x + (prob.μ(x, prob.p, t) .* dt .+ prob.σ(x, prob.p, t) .* sqrt(dt) .* x2)
     if !isnothing(neumann_bc)
+        # @show "hey"
         x2 .= _reflect(x, x2, neumann_bc[1], neumann_bc[2])
     end
 end

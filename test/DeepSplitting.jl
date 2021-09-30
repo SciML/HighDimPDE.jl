@@ -71,7 +71,7 @@ end
         g(x) = sum(x.^2, dims=1)
 
         # d = 10
-        u_domain = (fill(-5e-1, d), fill(5e-1, d))
+        u_domain = (fill(-5f-1, d), fill(5f-1, d))
         hls = d + 10 #hidden layer size
 
         nn = Flux.Chain(Dense(d,hls,relu),
@@ -114,7 +114,7 @@ end
         g(x) = sum(x.^2, dims=1)
 
         # d = 10
-        u_domain = (fill(-5e-1, d), fill(5e-1, d))
+        u_domain = (fill(-5f-1, d), fill(5f-1, d))
         hls = d + 10 #hidden layer size
 
         nn = Flux.Chain(Dense(d,hls,relu),
@@ -169,7 +169,7 @@ end
         g(x) = sum(x.^2, dims=1) .+ 2f0
 
         # d = 10
-        u_domain = (fill(-5e-1, d), fill(5e-1, d))
+        u_domain = (fill(-5f-1, d), fill(5f-1, d))
         hls = d + 50 #hidden layer size
 
         nn = Flux.Chain(Dense(d,hls,relu),
@@ -257,7 +257,7 @@ end
     σ(x, p, t) = 1f0 # diffusion coefficients
 
     for d in [1,2,5]
-        u_domain = (fill(-5e-1, d), fill(5e-1, d))
+        u_domain = (fill(-5f-1, d), fill(5f-1, d))
 
         hls = d + 50 #hidden layer size
 
@@ -407,12 +407,7 @@ end
     μ(x, p, t) = 0.02f0 * x # advection coefficients
     σ(x, p, t) = 0.2f0 * x # diffusion coefficients
 
-    d = 5
-
-    T = tspan[2]
-    MC = 10^5
-    W() = randn(d,1)
-    u_analytical(x, t) = -(1/λ)*log(mean(exp(-λ*g(x .+ sqrt(2f0)*abs.(T-t).*W())) for _ = 1:MC))
+    d = 20
 
     hls = d + 50 #hidden layer size
 
@@ -455,7 +450,7 @@ end
 
     u1 = sol[end]
 
-    analytical_ans = u_analytical(X0, tspan[1])[]
+    analytical_ans = 57.3
     error_l2 = rel_error_l2(u1, analytical_ans)
 
     @test error_l2 < 2f0
@@ -554,7 +549,7 @@ end
     for d in [1,2,5]
         u1s = []
         for _ in 1:2
-            u_domain = (fill(-5e-1, d), fill(5e-1, d))
+            u_domain = (fill(-5f-1, d), fill(5f-1, d))
 
             hls = d + 50 #hidden layer size
 

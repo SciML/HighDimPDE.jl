@@ -58,7 +58,7 @@ end
 
 struct NoSampling <: MCSampling{Nothing} end
 
-(mc_sample::NoSampling)(x) = nothing
+(mc_sample::NoSampling)(x...) = nothing
 
 function _integrate(::MCS) where {MCS <: MCSampling}
     if MCS <: NoSampling

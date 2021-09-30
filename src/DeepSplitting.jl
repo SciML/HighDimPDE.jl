@@ -130,12 +130,6 @@ function solve(
             if _integrate(mc_sample!)
                 # generating z for MC non local integration
                 mc_sample!(z, y1)
-                # need to reflect the sampling
-                if !isnothing(neumann_bc) && typeof(mc_sample!) == NormalSampling
-                    _y1K = similar(z)
-                    _y1K .= y1
-                    z .= _reflect_GPU(_y1K, z, neumann_bc[1], neumann_bc[2])
-                end
             end
 
             # training

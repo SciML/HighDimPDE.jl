@@ -38,3 +38,6 @@ Time discretization free|   ❌ |         ✅ |
 Mesh-free       | ✅ |                   ✅ |
 Hypercube approximation| ✅   |          ❌ |
 CPU             | ✅ |                   ❌ |
+gradient non-linearities    | ✔️|       ❌ |
+
+✔️ : will be supported in the future
