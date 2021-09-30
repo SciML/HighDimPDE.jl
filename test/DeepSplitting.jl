@@ -450,10 +450,10 @@ end
 
     u1 = sol[end]
 
-    analytical_ans = 57.3
+    analytical_ans = 60.781
     error_l2 = rel_error_l2(u1, analytical_ans)
 
-    @test error_l2 < 2f0
+    @test error_l2 < 0.1
 
     println("Deep splitting CPU, d = $d, error_l2 = $(error_l2)")
 
@@ -502,7 +502,7 @@ end
                             # BatchNorm(hls, affine = true, dim = 1),
                             Dense(hls, hls, tanh),
                             # BatchNorm(hls, affine = true, dim = 1),
-                            Dense(hls, 1, relu)) # Neural network used by the scheme, with batch normalisation
+                            Dense(hls, 1, x->x^2)) # Neural network used by the scheme, with batch normalisation
 
         opt = ADAM(1e-4)#optimiser
         alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1], u_domain[2]) )

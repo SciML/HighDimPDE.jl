@@ -233,7 +233,7 @@ end
 
     u1 = sol[end]
 
-    analytical_ans = 57.3
+    analytical_ans = 60.781
     error_l2 = rel_error_l2(u1, analytical_ans)
 
     @test error_l2 < 0.1
@@ -246,13 +246,12 @@ end
 ########### NON LOCAL #############################
 ###################################################
 
-# TODO: Victor, this example is not working properly
-@testset "DeepSplitting - Hamel example - udomain" begin
-    tspan = (0f0,5f-1)
-    dt = 5f-2 # time step
-    μ(x, p, t) = 0f0 # advection coefficients
-    σ(x, p, t) = 1f-1 #1f-1 # diffusion coefficients
-    ss0 = 1f-2#std g0
+@testset "MLP - replicator mutator" begin
+    tspan = (0e0,5e-1)
+    σ_sampling = 1e0
+    μ(x, p, t) = 0e0 # advection coefficients
+    σ(x, p, t) = 1e-1 #1f-1 # diffusion coefficients
+    ss0 = 1e-2#std g0
 
     # Analytic sol
     function _SS(x, t, p)
@@ -270,47 +269,22 @@ end
     sols = []
     xs = []
     for d in [1, 2, 5]
-        U = 5f-1
-        u_domain = (fill(-U, d), fill(U, d))
 
-        batch_size = 10000
-        train_steps = 5000
-        K = 2
+        x = fill(0e0, d)
 
-        hls = d + 50 #hidden layer size
+        alg = MLP(M=4, K=10, L = 4, mc_sample = NormalSampling(σ_sampling) )
 
-        nn_batch = Flux.Chain(
-                            # BatchNorm(d, affine = true, dim = 1),
-                            Dense(d, hls, tanh),
-                            # BatchNorm(hls, affine = true, dim = 1),
-                            Dense(hls, hls, tanh),
-                            # BatchNorm(hls, affine = true, dim = 1),
-                            Dense(hls, 1, relu)) # Neural network used by the scheme, with batch normalisation
+        g(x) = (2*π)^(-d/2) * ss0^(- d * 5e-1) * exp.(-5e-1 *sum(x .^2e0 / ss0)) # initial condition
+        m(x) = - 5e-1 * sum(x.^2)
 
-        opt = ADAM(1e-4)#optimiser
-        alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1], u_domain[2]) )
-
-        g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
-        m(x) = - 5f-1 * sum(x.^2, dims=1)
-        vol = prod(u_domain[2] - u_domain[1])
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = max(0.0, v_y) * (m(y) - max(0.0, v_z) * m(z) * (2.0 * π)^(d/2) * σ_sampling^d * exp(0.5 * sum(z.^2) / σ_sampling^2)) # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, 
-                            u_domain = u_domain
-                            )
+        prob = PIDEProblem(g, f, μ, σ, tspan,x=x)
         # solving
-        xgrid,ts,sol = solve(prob, 
-                        alg, 
-                        dt, 
-                        verbose = true, 
-                        abstol = 1f-3,
-                        maxiters = train_steps,
-                        batch_size = batch_size,
-                        use_cuda = use_cuda
-                        )
-        u1 = [sol[end](x)[] for x in xgrid]
-        u1_anal = uanal.(xgrid, tspan[end], Ref(Dict()))
+        xgrid,ts,sol = solve(prob, alg,)
+        u1 = sol[end]
+        u1_anal = uanal(x,tspan[2],Dict())
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
         println("rel_error_l2 = ", e_l2, "\n") # TODO: Victor, this is throwing an Inf because of small values - that should be fixed
         @test e_l2 < 0.1
@@ -319,12 +293,9 @@ end
 end
 
 
-@testset "DeepSplitting algorithm - allen cahn non local reflected example" begin
-    batch_size = 2000
-    train_steps = 1000
-    K = 1
+@testset "MLP- allen cahn non local reflected example" begin
+    
     tspan = (0f0, 5f-1)
-    dt = 5f-2  # time step
 
     μ(x, p, t) = 0f0 # advection coefficients
     σ(x, p, t) = 1f-1 #1f-1 # diffusion coefficients
@@ -332,33 +303,19 @@ end
     for d in [1,2,5]
         u1s = []
         for _ in 1:2
-            u_domain = (fill(-5f-1, d), fill(5f-1, d))
+            neumann = (fill(-5f-1, d), fill(5f-1, d))
 
-            hls = d + 50 #hidden layer size
-
-            nn = Flux.Chain(Dense(d,hls,tanh),
-                            Dense(hls,hls,tanh),
-                            Dense(hls,1)) # Neural network used by the scheme
-
-            opt = ADAM(1e-2) #optimiser
-            alg = DeepSplitting(nn, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1],u_domain[2]) )
+            alg = MLP(M=4, K=10, L = 4, mc_sample = UniformSampling(neumann...) )
 
             x = fill(0f0,d)  # initial point
-            g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
+            g(X) = exp.(-0.25f0 * sum(X.^2))   # initial condition
             a(u) = u - u^3
             f(y,z,v_y,v_z,∇v_y,∇v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, tspan, x = x, neumann = u_domain)
+            prob = PIDEProblem(g, f, μ, σ, tspan, x = x, neumann = neumann)
             # solving
-            @time xs,ts,sol = solve(prob, 
-                            alg, 
-                            dt, 
-                            # verbose = true, 
-                            # abstol=1e-5,
-                            use_cuda = use_cuda,
-                            maxiters = train_steps,
-                            batch_size=batch_size)
+            @time xs,ts,sol = solve(prob, alg)
             push!(u1s, sol[end])
             println("d = $d, u1 = $(sol[end])")
 
