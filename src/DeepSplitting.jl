@@ -109,7 +109,7 @@ function solve(
             y0 .= y1
             y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW
             if !isnothing(neumann_bc)
-                y1 .= _reflect_GPU(y0, y1, neumann_bc[1], neumann_bc[2])
+                y1 .= _reflect(y0, y1, neumann_bc[1], neumann_bc[2])
             end
         end
     end

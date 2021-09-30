@@ -1,14 +1,14 @@
 """
     _reflect(a,b,s,e)
-reflection of the vector (b-a) from a on the cube [s,e]^2
+
+reflection of the Brownian motion `B` where `B_{t-1} = a` and  `B_{t} = b` 
+on the hypercube `[s,e]^d` where `d = size(a,1)`
 """
-function _reflect(a, b, s, e)
+function _reflect(a::T, b::T, s::T, e::T) where T <: Vector
     r = 2; n = zeros(size(a))
     # first checking if b is in the hypercube
     all((a .>= s) .& (a .<= e)) ? nothing : error("a = $a not in hypercube")
     size(a) == size(b) ? nothing : error("a not same dim as b")
-    #TODO: change "for i in 1:length(a)" to "for i in 1:size(a,2)"
-    # right now the scheme is not efficient, as it proceeds one reflection for one batch at a time
     for i in 1:length(a)
         if b[i] < s[i]
             rtemp = (a[i] - s[i]) / (a[i] - b[i])
@@ -57,13 +57,7 @@ function _reflect(a, b, s, e)
 end
 
 
-"""
-    _reflect_GPU(a,b,s,e)
-reflection of the Brownian motion `B` where `B_{t-1} = a` and  `B_{t} = b` 
-on the hypercube `[s,e]^d` where `d = size(a,1)`
-
-"""
-function _reflect_GPU(a, b, s, e)
+function _reflect(a::T, b::T, s, e) where T <: CuArray
     @assert all((a .>= s) .& (a .<= e)) "a = $a not in hypercube"
     @assert size(a) == size(b) "a not same dim as b"
     out1 = b .< s

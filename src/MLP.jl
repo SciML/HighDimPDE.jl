@@ -96,7 +96,7 @@ function _ml_picard(
             for h in 1:K
                 verbose && println("loop h")
                 _integrate(mc_sample!) ? mc_sample!(x3, x2) : nothing
-                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), 0., 0., p, t) #TODO:hardcode, not sure about t
+                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) #TODO:hardcode, not sure about t
             end
             b += b3 / K
         end
@@ -117,7 +117,7 @@ function _ml_picard(
                 _integrate(mc_sample!) ? mc_sample!(x3, x2) : nothing
                 x32 .= x3
                 x34 .= x3
-                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), 0., 0., p, t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, mc_sample!, g, f, verbose, prob, neumann_bc),0., 0., p, t) #TODO:hardcode, not sure about t
+                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) #TODO:hardcode, not sure about t
             end
             b += b3 / K
         end
@@ -217,7 +217,7 @@ function _ml_picard_call(
             for h in 1:K # non local integration
                 verbose && println("loop h")
                 _integrate(mc_sample!) ? mc_sample!(x3, x2) : nothing
-                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), 0., 0., p, t) #TODO:hardcode, not sure about t
+                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) #TODO:hardcode, not sure about t
             end
         b += b3 / K
         end
@@ -242,7 +242,7 @@ function _ml_picard_call(
                 end
                 x32 .= x3
                 x34 .= x3
-                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), 0., 0., p, t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, mc_sample!, g, f, verbose, prob, neumann_bc),0., 0., p, t) #TODO:hardcode, not sure about t
+                b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) #TODO:hardcode, not sure about t
             end
         b += b3 / K
         end
