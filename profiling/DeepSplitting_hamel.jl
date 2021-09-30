@@ -8,47 +8,43 @@ using PyPlot
 using UnPack
 plotting = true
 
-tspan = (0f0,1f-2)
-dt = 1f-2 # time step
+tspan = (0f0,15f-2)
+dt = 5f-2 # time step
 μ(X,p,t) = 0f0 # advection coefficients
 σ(X,p,t) = 1f-1 # diffusion coefficients
 d = 5
-ss0 = 1f-2#std g0
-U = 5f-1
-u_domain = repeat([-U,U]', d, 1)
+ss0 = 5f-2#std g0
+U = 25f-2
+u_domain = (fill(-U, d), fill(U, d))
 
 ##############################
 ####### Neural Network #######
 ##############################
-batch_size = 1000
-train_steps = 10000
-K = 100
+batch_size = 10000
+train_steps = 2000
+K = 1
 
 hls = d + 50 #hidden layer size
 
 nn_batch = Flux.Chain(
-        BatchNorm(d,affine = true, axis = 1),
+        # BatchNorm(d,affine = true, dim = 1),
         Dense(d, hls, tanh),
-        BatchNorm(hls,affine = true, axis = 1),
+        # BatchNorm(hls,affine = true, dim = 1),
         Dense(hls,hls,tanh),
-        BatchNorm(hls, affine = true, axis = 1),
-        # Dense(hls,hls,relu),
-        Dense(hls, 1, relu)) # Neural network used by the scheme, with batch normalisation
+        # BatchNorm(hls, affine = true, dim = 1),
+        # Dense(hls,hls,tanh),
+        Dense(hls, 1, x->x^2)) # Neural network used by the scheme, with batch normalisation
 
-opt = Flux.Optimiser(ExpDecay(1e-1,
-                1e-1,
-                1000,
-                1e-6),
-                ADAM() )#optimiser
-alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[:,1], u_domain[:,2]) )
+opt = ADAM(1e-2)#optimiser
+alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = NormalSampling(1f0) )
 
 ##########################
 ###### PDE Problem #######
 ##########################
 g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
 m(x) = - 5f-1 * sum(x.^2, dims=1)
-vol = prod(u_domain[:,2] - u_domain[:,1])
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) =  v_y .* (m(y) .- vol * v_z .* m(z) ) # nonlocal nonlinear part of the
+vol = prod(u_domain[2] - u_domain[1])
+f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) =  v_y .* (m(y) .- vol * v_z .* m(z) ) # nonlocal nonlinear part of the
 
 # defining the problem
 prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -59,7 +55,7 @@ prob = PIDEProblem(g, f, μ, σ, tspan,
                 alg, 
                 dt, 
                 verbose = true, 
-                abstol = 1f0,
+                # abstol = 1f0,
                 maxiters = train_steps,
                 batch_size = batch_size,
                 use_cuda = true

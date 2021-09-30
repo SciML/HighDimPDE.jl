@@ -242,7 +242,7 @@ end
         # value coming from \cite{Beck2017a}
         e_l2 = rel_error_l2(u1, 0.30879)
         @test e_l2 < 0.5 # this is quite high as a relative error. 
-        println("Deep splitting CPU, d = $d, rel_error_l2 = $e_l2")
+        println("d = $d, rel_error_l2 = $e_l2")
     end
 end
 
@@ -287,7 +287,7 @@ end
                         batch_size=batch_size)
         u1 = sol[end]
         @test !isnan(u1)
-        println("Deep splitting CPU, d = $d, u1 = $(u1)")
+        println("d = $d, u1 = $(u1)")
     end
 end
 
@@ -335,7 +335,7 @@ if false
                             batch_size=batch_size)
             u1 = sol[end]
             @test !isnan(u1)
-            println("Deep splitting CPU, d = $d, u1 = $(u1)")
+            println("d = $d, u1 = $(u1)")
         end
     end
 
@@ -391,7 +391,7 @@ if false
 
         @test error_l2 < 2f0
 
-        println("Deep splitting CPU, d = $d, u1 = $(u1)")
+        println("d = $d, u1 = $(u1)")
 
     end
 end
@@ -449,27 +449,22 @@ end
                     batch_size=batch_size)
 
     u1 = sol[end]
-
     analytical_ans = 60.781
     error_l2 = rel_error_l2(u1, analytical_ans)
-
     @test error_l2 < 0.1
-
-    println("Deep splitting CPU, d = $d, error_l2 = $(error_l2)")
-
+    println("d = $d, error_l2 = $(error_l2)")
 end
 
 ###################################################
 ########### NON LOCAL #############################
 ###################################################
 
-# TODO: Victor, this example is not working properly
 @testset "DeepSplitting - Hamel example - udomain" begin
     tspan = (0f0,5f-1)
-    dt = 5f-2 # time step
+    dt = 1f-1 # time step
     μ(x, p, t) = 0f0 # advection coefficients
     σ(x, p, t) = 1f-1 #1f-1 # diffusion coefficients
-    ss0 = 1f-2#std g0
+    ss0 = 5f-2#std g0
 
     # Analytic sol
     function _SS(x, t, p)
@@ -492,7 +487,7 @@ end
 
         batch_size = 10000
         train_steps = 5000
-        K = 2
+        K = 1
 
         hls = d + 50 #hidden layer size
 
@@ -502,9 +497,9 @@ end
                             # BatchNorm(hls, affine = true, dim = 1),
                             Dense(hls, hls, tanh),
                             # BatchNorm(hls, affine = true, dim = 1),
-                            Dense(hls, 1, x->x^2)) # Neural network used by the scheme, with batch normalisation
+                            Dense(hls, 1, x->x^2)) # positive function
 
-        opt = ADAM(1e-4)#optimiser
+        opt = ADAM(1e-2)#optimiser
         alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1], u_domain[2]) )
 
         g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
