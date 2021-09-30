@@ -79,36 +79,32 @@ end
 
 
 @testset "MLP - heat equation - single thread - Neumann BC" begin # solving at one unique point
-    for d in [10]
-        println("test for d = ", d)
-        tspan = (0e0, 1e0)
+    tspan = (0f0, 5f-1)
+    μ(x, p, t) = 0f0 # advection coefficients
+    σ(x, p, t) = 1f-1 #1f-1 # diffusion coefficients
+    for d in [1,2,5]
+        u1s = []
+        for _ in 1:2
+            neumann_bc = (fill(-5e-1, d), fill(5e-1, d))
+            g(x) = sum(x.^2)
+            # d = 10
+            x0 = fill(3e-1,d)
+            alg = MLP()
+            f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
 
-        μ(x, p, t) = 0e0 # advection coefficients
-        σ(x, p, t) = 1e-1 # diffusion coefficients
-        neumann_bc = (fill(-5e-1, d), fill(5e-1, d))
+            # defining the problem
+            prob = PIDEProblem(g, f, μ, σ, tspan, x = x0, neumann_bc = neumann_bc)
+            # solving
+            xs,ts,sol = solve(prob, alg)
+            push!(u1s, sol[end])
+            println("d = $d, u1 = $(sol[end])")
 
-        u_anal(x, t) = sum(x.^2) + d * σ(0., 0., 0.)^2 * t
-        g(x) = sum(x.^2)
-
-        # d = 10
-        x0 = fill(3e-1,d)
-       
-        alg = MLP()
-
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
-
-        # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x = x0, neumann_bc = neumann_bc)
-        # solving
-        xs,ts,sol = solve(prob, alg, multithreading = false)
-        u1 = sol[end]
-        u1_anal = u_anal(x0, tspan[end])
-        e_l2 = rel_error_l2(u1, u1_anal)
+        end
+        e_l2 = mean(rel_error_l2.(u1s[1], u1s[2]))
         println("rel_error_l2 = ", e_l2, "\n")
         @test e_l2 < 0.1
     end
 end
-
 
 @testset "MLP - exponential - interval" begin
     for d in [1, 3, 10]
@@ -160,7 +156,7 @@ end
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
         # solving
-        @time xs,ts,sol = solve(prob, alg,)
+        xs,ts,sol = solve(prob, alg,)
         u1 = sol[end]
         # value coming from \cite{Beck2017a}
         e_l2 = rel_error_l2(u1, 0.30879)
@@ -170,7 +166,7 @@ end
 end
 
 
-@testset "MLP - allen cahn local, reflected example" begin
+@testset "MLP - allen cahn local, Neumann BC" begin
     
     tspan = (0f0, 5f-1)
    
@@ -190,7 +186,7 @@ end
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x = X0, neumann = neumann )
         # solving
-        @time xs,ts,sol = solve(prob, alg, )
+        xs,ts,sol = solve(prob, alg, )
         u1 = sol[end]
         @test !isnan(u1)
         println("d = $d, u1 = $(u1)")
@@ -229,7 +225,7 @@ end
     # defining the problem
     prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
     # solving
-    @time xs,ts,sol = solve(prob, alg, )
+    xs,ts,sol = solve(prob, alg, )
 
     u1 = sol[end]
 
@@ -286,14 +282,14 @@ end
         u1 = sol[end]
         u1_anal = uanal(x,tspan[2],Dict())
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
-        println("rel_error_l2 = ", e_l2, "\n") # TODO: Victor, this is throwing an Inf because of small values - that should be fixed
+        println("rel_error_l2 = ", e_l2, "\n")
         @test e_l2 < 0.1
         push!(sols, sol[end])
     end
 end
 
 
-@testset "MLP- allen cahn non local reflected example" begin
+@testset "MLP- allen cahn non local Neumann BC" begin
     
     tspan = (0f0, 5f-1)
 
@@ -315,7 +311,7 @@ end
             # defining the problem
             prob = PIDEProblem(g, f, μ, σ, tspan, x = x, neumann = neumann)
             # solving
-            @time xs,ts,sol = solve(prob, alg)
+            xs,ts,sol = solve(prob, alg)
             push!(u1s, sol[end])
             println("d = $d, u1 = $(sol[end])")
 
@@ -323,79 +319,5 @@ end
         e_l2 = mean(rel_error_l2.(u1s[1], u1s[2]))
         println("rel_error_l2 = ", e_l2, "\n")
         @test e_l2 < 0.1
-    end
-end
-
-
-
-
-tspan = (0.0,0.5)
-# using the MLP alg
-μ(x, p, t) = 0.0 # advection coefficients
-σ(x, p, t) = 0.1 # diffusion coefficients
-
-
-anal_res = [1.398, 1.9567, 5.3554]
-ds = [1,2,5]
-atols = [5e-2,1e-1,2e-1]
-
-@testset "MLP  - single threaded" begin
-    σ_sampling = 0.1
-    for i in 1:length(ds)
-        d = ds[i]
-        x = fill(0.,d)  # initial point
-        g(X) = 2.0^(d/2)* exp(-2. * π  * sum( X.^2))   # initial condition
-        m(x) = - 0.5 * sum(x.^2)
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = max(0.0, v_y) * (m(y) - max(0.0, v_z) * m(z) * (2.0 * π)^(d/2) * σ_sampling^d * exp(0.5 * sum(z.^2) / σ_sampling^2)) # nonlocal nonlinear part of the
-        alg = MLP(M=4, K=10, L = 4, mc_sample = NormalSampling(σ_sampling) )
-
-        # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x = x)
-        # solving
-        @time xs,ts,sol = solve(prob, alg, verbose = false,  multithreading = false)
-        rel2 = rel_error_l2(sol[end],  anal_res[i])
-        @test rel2 < atols[i]
-        println("MLP, d = $d, u1 = $(sol[end])", " analytical sol = ", anal_res[i], " rel error = ", rel2)
-    end
-end
-
-
-@testset "MLP  - multi threaded" begin
-    σ_sampling = 0.1
-    for i in 1:length(ds)
-        d = ds[i]
-        x = fill(0.,d)  # initial point
-        g(X) = 2.0^(d/2)* exp(-2. * π  * sum( X.^2))   # initial condition
-        m(x) = - 0.5 * sum(x.^2)
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = max(0.0, v_y) * (m(y) - max(0.0, v_z) * m(z) * (2.0 * π)^(d/2) * σ_sampling^d * exp(0.5 * sum(z.^2) / σ_sampling^2)) # nonlocal nonlinear part of the
-        alg = MLP(M=4, K=10, L = 4, mc_sample = NormalSampling(σ_sampling) )
-
-        # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x = x)
-        # solving
-        @time xs,ts,sol = solve(prob, alg, verbose = false, multithreading=true)
-        rel2 = rel_error_l2(sol[end],  anal_res[i])
-        @test rel2 < atols[i]
-        println("MLP, d = $d, u1 = $(sol[end])", " analytical sol = ", anal_res[i], " rel error = ", rel2)
-    end
-end
-
-@testset "MLP  - allen cahn non local reflected example" begin
-    for i in 1:length(ds)
-        d = ds[i]
-        u_domain = (fill(-5e-1, d), fill(5e-1, d))
-        d = ds[i]
-        x = fill(0e0,d)  # initial point
-        g(X) = exp.(-0.25e0 * sum(X.^2))   # initial condition
-        a(u) = u - u^3
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2) / σ_sampling^2) # nonlocal nonlinear part of the
-        alg = MLP(M = 4, K = 10, L = 4, mc_sample = UniformSampling(u_domain[1], u_domain[2]) )
-
-        # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x = x, neumann_bc = u_domain )
-        # solving
-        @time xs,ts,sol = solve(prob, alg, verbose = false, multithreading=true)
-        @test !isnan(sol[end])
-        println("MLP, d = $d, u1 = $(sol[end])")
     end
 end
