@@ -460,8 +460,8 @@ end
 ###################################################
 
 @testset "DeepSplitting - Hamel example - udomain" begin
-    tspan = (0f0,5f-1)
-    dt = 1f-1 # time step
+    tspan = (0f0,15f-2)
+    dt = 5f-2 # time step
     μ(x, p, t) = 0f0 # advection coefficients
     σ(x, p, t) = 1f-1 #1f-1 # diffusion coefficients
     ss0 = 5f-2#std g0
@@ -481,12 +481,12 @@ end
 
     sols = []
     xs = []
-    for d in [1, 2, 5]
-        U = 5f-1
+    for d in [5]
+        U = 25f-2
         u_domain = (fill(-U, d), fill(U, d))
 
         batch_size = 10000
-        train_steps = 5000
+        train_steps = 2000
         K = 1
 
         hls = d + 50 #hidden layer size
@@ -522,7 +522,7 @@ end
                         use_cuda = use_cuda
                         )
         u1 = [sol[end](x)[] for x in xgrid]
-        u1_anal = uanal.(xgrid, tspan[end], Ref(Dict()))
+        u1_anal = uanal.(xgrid, tspan[end], nothing)
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
         println("rel_error_l2 = ", e_l2, "\n") # TODO: Victor, this is throwing an Inf because of small values - that should be fixed
         @test e_l2 < 0.1

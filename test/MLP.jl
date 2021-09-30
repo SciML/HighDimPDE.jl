@@ -79,7 +79,7 @@ end
 
 
 @testset "MLP - heat equation - single thread - Neumann BC" begin # solving at one unique point
-    for d in [1, 10, 50]
+    for d in [10]
         println("test for d = ", d)
         tspan = (0e0, 1e0)
 

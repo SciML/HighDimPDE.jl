@@ -55,20 +55,19 @@ function solve(
 
 end
 
-function _ml_picard(
-        M, # monte carlo integration
-        L, # level
-        K, # non local term monte carlo
-        x::xType, # initial point
-        s, # time
-        t::tType, # time
-        mc_sample!, 
-        g, 
-        f,
-        verbose,
-        prob,
-        neumann_bc
-        ) where {xType, tType}
+function _ml_picard(M, # monte carlo integration
+                    L, # level
+                    K, # non local term monte carlo
+                    x::xType, # initial point
+                    s, # time
+                    t::tType, # time
+                    mc_sample!, 
+                    g, 
+                    f,
+                    verbose,
+                    prob,
+                    neumann_bc
+                    ) where {xType, tType}
     
     elxType = eltype(xType)
     if L == 0 
@@ -76,7 +75,7 @@ function _ml_picard(
     end
 
     x2 = similar(x)
-    x3 = similar(x)
+    x3 = copy(x)
     x32 = similar(x)
     x34 = similar(x)
     p = prob.p
@@ -138,29 +137,25 @@ end
 
 _ml_picard(M::Int, L::Int, K::Int, x::Nothing, s::Real, t::Real, mc_sample!, g, f, verbose::Bool, prob, neumann_bc) = nothing
 
-function _ml_picard_mlt(
-    M, # monte carlo integration
-    L, # level
-    K, # non local term monte carlo
-    x::xType, # initial point
-    s, # time
-    t, # time
-    mc_sample!, 
-    g, 
-    f,
-    verbose,
-    prob,
-    neumann_bc) where {xType}
+function _ml_picard_mlt(M, # monte carlo integration
+                        L, # level
+                        K, # non local term monte carlo
+                        x::xType, # initial point
+                        s, # time
+                        t, # time
+                        mc_sample!, 
+                        g, 
+                        f,
+                        verbose,
+                        prob,
+                        neumann_bc) where {xType}
     
     elxType = eltype(xType)
 
     # distributing tasks
     NUM_THREADS = Threads.nthreads()
     tasks = [Threads.@spawn(_ml_picard_call(M, L, K, x, s, t, mc_sample!, g, f, verbose, NUM_THREADS, thread_id, prob, neumann_bc)) for thread_id in 1:NUM_THREADS]
-    
-    # ? not sure whether we should have Threads.nthreads-1 to allow next lines to run on the last threads available
-    # this pretty much depends on the time required to perform following for-loop
-
+  
     # first level
     num = M^(L)
     x2 = similar(x)
@@ -179,25 +174,24 @@ function _ml_picard_mlt(
 end
 
 
-function _ml_picard_call(
-    M, # monte carlo integration
-    L, # level
-    K, # non local term monte carlo
-    x::xType, # initial point
-    s, # time
-    t::tType, # time
-    mc_sample!, 
-    g, 
-    f,
-    verbose,
-    NUM_THREADS,
-    thread_id,
-    prob,
-    neumann_bc
-    ) where {xType, tType}
+function _ml_picard_call(M, # monte carlo integration
+                        L, # level
+                        K, # non local term monte carlo
+                        x::xType, # initial point
+                        s, # time
+                        t::tType, # time
+                        mc_sample!, 
+                        g, 
+                        f,
+                        verbose,
+                        NUM_THREADS,
+                        thread_id,
+                        prob,
+                        neumann_bc
+                        ) where {xType, tType}
 
     x2 = similar(x)
-    x3 = similar(x)
+    x3 = copy(x)
     x32 = similar(x)
     x34 = similar(x)
     p = prob.p
@@ -237,9 +231,6 @@ function _ml_picard_call(
                 # non local integration
             for h in 1:K
                 _integrate(mc_sample!) ? mc_sample!(x3, x2) : nothing
-                if !isnothing(neumann_bc)
-                    x2 .= _reflect(x, x2, neumann_bc[1], neumann_bc[2])
-                end
                 x32 .= x3
                 x34 .= x3
                 b3 += f(x2, x32, b2, _ml_picard(M, l, K, x32, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) - f(x2, x34, b4, _ml_picard(M, l - 1, K, x34, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) #TODO:hardcode, not sure about t
@@ -274,13 +265,11 @@ function _mlt_sde_loop!(x2,
                         t, 
                         prob, 
                         neumann_bc)
-    # @show x2
     #randn! allows to save one allocation
     dt = t - s
     randn!(x2)
     x2 .= x + (prob.μ(x, prob.p, t) .* dt .+ prob.σ(x, prob.p, t) .* sqrt(dt) .* x2)
     if !isnothing(neumann_bc)
-        # @show "hey"
-        x2 .= _reflect(x, x2, neumann_bc[1], neumann_bc[2])
+        x2 .= _reflect(x, x2, neumann_bc...)
     end
 end
