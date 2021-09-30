@@ -39,7 +39,7 @@ end
         opt = ADAM(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
+        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0f0 .* v_y
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -233,7 +233,7 @@ end
         @time xs,ts,sol = solve(prob, 
                         alg, 
                         dt, 
-                        verbose = true, 
+                        verbose = false, 
                         # abstol = 1e-5,
                         use_cuda = use_cuda,
                         maxiters = train_steps,
@@ -280,7 +280,7 @@ end
         @time xs,ts,sol = solve(prob, 
                         alg, 
                         dt, 
-                        verbose = true, 
+                        verbose = false, 
                         abstol = 1e-5,
                         use_cuda = use_cuda,
                         maxiters = train_steps,
@@ -328,7 +328,7 @@ if false
             @time xs,ts,sol = solve(prob, 
                             alg, 
                             dt, 
-                            verbose = true, 
+                            verbose = false, 
                             # abstol = 1e-5,
                             use_cuda = false,
                             maxiters = train_steps,
@@ -378,7 +378,7 @@ if false
         @time xs,ts,sol = solve(prob, 
                         alg, 
                         dt, 
-                        verbose = true, 
+                        verbose = false, 
                         # abstol = 1e-5,
                         use_cuda = false,
                         maxiters = train_steps,
@@ -515,7 +515,7 @@ end
         xgrid,ts,sol = solve(prob, 
                         alg, 
                         dt, 
-                        verbose = true, 
+                        verbose = false, 
                         abstol = 1f-3,
                         maxiters = train_steps,
                         batch_size = batch_size,
@@ -524,7 +524,7 @@ end
         u1 = [sol[end](x)[] for x in xgrid]
         u1_anal = uanal.(xgrid, tspan[end], nothing)
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
-        println("rel_error_l2 = ", e_l2, "\n") # TODO: Victor, this is throwing an Inf because of small values - that should be fixed
+        println("rel_error_l2 = ", e_l2, "\n")
         @test e_l2 < 0.1
         push!(sols, sol[end])
     end
