@@ -80,6 +80,6 @@ Eq. (3) also applies to PDE problems with zero-flux boundary conditions (Neumann
 ```math
 \langle \nabla_x u(t,x) \cdot \vec{n} \rangle = 0
 ```
-where $\vec{n}$ denotes the outer normal vector associated to $\Omega$,** if the stochastic particles $X_t^x$ are reflected at the boundary of the domains.**
+where $\vec{n}$ denotes the outer normal vector associated to $\Omega$, **if the stochastic particles $X_t^x$ are reflected at the boundary of the domains.**
 
 ![](img/animRBM_southamerica.gif)

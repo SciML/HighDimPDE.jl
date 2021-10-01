@@ -1,8 +1,20 @@
 
 # Getting started
+The general workflow for using `HighDimPDE.jl` is as follows:
+
+- Define a Partial Integro Differential Equation problem
+```@autodocs
+Modules = [HighDimPDE]
+Pages   = ["HighDimPDE.jl"]
+```
+- Select a solver algorithm
+- Solve the problem
+
+Let's illustrate that with some examples.
+
 ## `MLP`
 ### Local PDE
-Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) PDE in dimension 10 with [`MLP`](@id MLP).
+Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) PDE in dimension 10 with [`MLP`](@ref mlp).
 ```math
 \partial_t u = u (1 - u) + \frac{1}{2}\sigma^2\Delta_xu \tag{1}
 ```
@@ -56,7 +68,7 @@ sol = solve(prob, alg, multithreading=true)
 ```
 
 ## `DeepSplitting`
-Let's solve the previous equation with [`DeepSplitting`](@id deepsplitting).
+Let's solve the previous equation with [`DeepSplitting`](@ref deepsplitting).
 ```julia
 using HighDimPDE
 

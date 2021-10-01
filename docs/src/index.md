@@ -19,7 +19,7 @@ subject to initial and boundary conditions.
 
 * the [Deep Splitting scheme](@ref deepsplitting)
 
-* the [Multi-Level Picard iterations scheme](@ref MLP).
+* the [Multi-Level Picard iterations scheme](@ref mlp).
 
 To make the most out of **HighDimPDE.jl**, we advise to first have a look at the 
 

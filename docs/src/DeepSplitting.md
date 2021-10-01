@@ -78,12 +78,12 @@ X_t^\xi = \int_0^t \mu(X_s^x)ds + \int_0^t\sigma(X_s^x)dB_s + \xi,
 where $\xi$ a random variable uniformly distributed over $[a,b]^d$. This way, the neural network is trained on the whole interval $[a,b]^d$ instead of a single point.
 
 ## Nonlocal PDEs
-An extension of the `DeepSplitting` method offers to solve for non-local reaction diffusion equations of the type
+`DeepSplitting` can solve for non-local reaction diffusion equations of the type
 ```math
 \partial_t u = \mu(x) \nabla_x u + \frac{1}{2} \sigma^2(x) \Delta u + \int_{\Omega}f(x,y, u(t,x), u(t,y))dy
 ```
 
-The non-localness is handled by a plain vanilla Monte Carlo integration.
+The non-localness is handled by a Monte Carlo integration.
 
 ```math
 u(t_{n+1}, X_{T - t_{n+1}}) \approx \sum_{j=1}^{\text{batch\_size}} \left[ u(t_{n}, X_{T - t_{n}}^{(j)}) + \frac{(t_{n+1} - t_n)}{K}\sum_{k=1}^{K} \big[ f(t, X_{T - t_{n}}^{(j)}, Y_{X_{T - t_{n}}^{(j)}}^{(k)}, u(t_{n},X_{T - t_{n}}^{(j)}), u(t_{n},Y_{X_{T - t_{n}}^{(j)}}^{(k)})) \big] \right]

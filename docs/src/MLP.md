@@ -1,4 +1,4 @@
-# [The `MLP` algorithm](@id MLP)
+# [The `MLP` algorithm](@id mlp)
 
 ```@autodocs
 Modules = [HighDimPDE]
@@ -31,7 +31,7 @@ u_{l+1} = \phi(u_l),
 the [Banach fixed-point theorem](https://en.wikipedia.org/wiki/Banach_fixed-point_theorem) ensures that the sequence converges to the true solution $u$. Such a technique is known as [Picard iterations](https://en.wikipedia.org/wiki/Picard–Lindelöf_theorem).
 
 
-The time integral term is evaluated by a [Monte-Carlo integration]()
+The time integral term is evaluated by a [Monte-Carlo integration](https:/en.wikipedia.org/wiki/Monte_Carlo_integration)
 
 ```math
 u_L  = \frac{1}{M}\sum_i^M \mathbb{E} \left[ f(X^x_{t - s_i}, u_{L-1}(T-s_i, X^x_{t - s_i})) \right] + \mathbb{E} \left[ u(0, X^x_t) \right].
@@ -68,12 +68,12 @@ u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_i^{M^{L-l}} \left[ f(X^{x,(l, i)}_
 Note that the superscripts $(l, i)$ indicate the independence of the random variables $l$.
 
 ## Nonlocal PDEs
-Similar to the `DeepSplitting` algorithm, `MLP` can solve for non-local reaction diffusion equations of the type
+`MLP` can solve for non-local reaction diffusion equations of the type
 ```math
 \partial_t u = \mu(t, x) \nabla_x u(t, x) + \frac{1}{2} \sigma^2(t, x) \Delta u(t, x) + \int_{\Omega}f(x, y, u(t,x), u(t,y))dy
 ```
 
-The non-localness is again handled by a Monte Carlo integration.
+The non-localness is handled by a Monte Carlo integration.
 
 ```math
 \begin{aligned}
