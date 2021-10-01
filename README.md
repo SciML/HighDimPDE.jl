@@ -4,7 +4,7 @@
 
 # HighDimPDE.jl
 
-**HighDimPDE.jl** is a Julia package that implements solver algorithms that break down the curse of dimensionality to **solve Highly Dimensional non-linear, non-local PDEs** of the form
+**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional non-local, non-linear PDEs** of the form
 
 <div style="overflow-x: scroll;" align=center>                          
 <img src="docs/src/img/equation.png" height="80"/>
