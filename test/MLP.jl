@@ -234,7 +234,7 @@ end
 
     @test error_l2 < 0.1
 
-    println("Deep splitting CPU, d = $d, error_l2 = $(error_l2)")
+    println("d = $d, error_l2 = $(error_l2)")
 
 end
 
