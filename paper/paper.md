@@ -28,7 +28,7 @@ aas-journal: Astrophysical Journal <- The name of the AAS journal.
 ---
 
 # Summary
-`HighDimPDE.jl` is a Julia [@Bezanson2017] package for numerically approximating highly dimensional non-local non-linear Partial Differential Equations (PDEs). It is an open-source project hosted on GitHub and distributed under the MIT license. The package includes algorithms to solve PDEs which complexity grows polynomially in the number of dimension of the PDE. The package is designed with a user-friendly interface, provides both CPUs and GPUs support, and is integrated within the Sci-ML[@SciML] ecosystem.
+`HighDimPDE.jl` is a Julia [@Bezanson2017] package that implements solver algorithms to solve highly dimensional non-local non-linear Partial Differential Equations (PDEs). The solver algorithms provided break down the curse of dimensionality, with a computational complexity that only grows polynomially in the number of dimension of the PDE.  It is an open-source project hosted on GitHub and distributed under the MIT license. The package is designed with a user-friendly interface, provides both CPUs and GPUs support, and is integrated within the Sci-ML[@SciML] ecosystem.
 
 # Statement of need
 Non-local nonlinear Partial Differential Equations arise in a variety of scientific domains including physics, engineering, finance and biology. In biology, they are for instance used for modelling the evolution of biological populations that are phenotypically and physically structured. The dimension of the PDEs can be large, corresponding to the number of phenotypic traits and physical dimensions considered. Highly dimensional PDE's cannot be solved with standard numerical methods as their computational cost increases exponentially in the number of dimensions, a problem commonly refered as the curse of dimensionality. 
@@ -42,9 +42,10 @@ $$
     & \quad + \big\langle \mu(t,x), ( \nabla_x u )( t,x ) \big\rangle + \tfrac{1}{2} \text{Trace} \big(\sigma(t,x) [ \sigma(t,x) ]^* ( \text{Hess}_x u)(t, x ) \big). \tag{1}
 \end{aligned}
 $$
-where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subset \R^d$ is a function subject to initial conditions $u(0,x) = g(x)$ and with Neumann Boudary conditions.
+where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subset \R^d$ is a function subject to initial conditions $u(0,x) = g(x)$ and Neumann Boudary conditions.
 
-`HighDimPDE.jl` currently proposes ? algorithms to solve Eq. (1).
+`HighDimPDE.jl` currently proposes ? solver algorithms.
+
 ## Algorithm overview
 
 ----------------------------------------------
@@ -63,109 +64,92 @@ Gradient non-linearities    | ✔️|       ❌ |
 
 The `DeepSplitting`[@Beck2019] algorithm reformulates the PDE as a stochastic learning problem.
 
-The algorithm relies on two main ideas:
+`DeepSplitting` relies on two main ideas:
 
-- the approximation of the solution $u$ by a parametric function $\bf u^\theta$.
+- the approximation of the solution $u$ by a parametric function $\bf u^\theta$,
 
-- the training of $\bf u^\theta$ by simulated stochastic trajectories of particles, with [@Flux].
+- the training of $\bf u^\theta$ by simulated stochastic trajectories of particles, with the help of the Machine-Learning library [@Flux].
 
 ## `MLP`
 The `MLP`[@Becker2020], for Multi-Level Picard iterations, reformulates the PDE problem as a fixed point equation through the Feynman Kac formula. 
 
-- It relies on [Picard iterations](https://en.wikipedia.org/wiki/Picard–Lindelöf_theorem) to find the fixed point, 
+`MLP` relies on two main principles to solve the fixed point equation:
 
-- reducing the complexity of the numerical approximation of the time integral through a [multilvel Monte Carlo](https://en.wikipedia.org/wiki/Multilevel_Monte_Carlo_method) approach.
+- [Picard iterations](https://en.wikipedia.org/wiki/Picard–Lindelöf_theorem), and
 
-`HighDimPDE.jl` allows to use solver algorithms both on GPUs and CPUs with minimal coding effort.
-`HighDimPDE.jl` also relies heavily on [@Flux] and
-interfaces well with the [@SciML] ecoystem.
+- a [Multilvel Monte Carlo](https://en.wikipedia.org/wiki/Multilevel_Monte_Carlo_method) approach to reduce the complexity of the numerical approximation of the time integral in the fixed point equation.
 
 # Examples
-Consider the equation
-$$
-$$
 
-Subject to initial conditions
+## The `DeepSplitting` algorithm
+Consider the 5-dimensional replicator mutator equation [@Hamel:2019]
 $$
-
+\partial_t u = u (m - \int_{\R^5} m(y)u(y,t)dy) + \frac{1}{2}\sigma^2\Delta_xu \tag{2}
 $$
-
-## `DeepSplitting`
+where
+$$
+m(x) = -\frac{1}{2}||x||
+$$
+and 
+$$
+u(x,0) = \mathcal{N}_{0,0.05}(x)
+$$
+where $\mathcal{N}_{\mu,\sigma}$ is the normal distribution with mean $\mu$ and standard distribution $\sigma$.
 
 ```julia
 tspan = (0f0,15f-2)
-    dt = 5f-2 # time step
-    μ(x, p, t) = 0f0 # advection coefficients
-    σ(x, p, t) = 1f-1 #1f-1 # diffusion coefficients
-    ss0 = 5f-2#std g0
+dt = 5f-2 # time step
+μ(x, p, t) = 0f0 # advection coefficients
+σ(x, p, t) = 1f-1 #1f-1 # diffusion coefficients
+ss0 = 5f-2#std g0
 
-    # Analytic sol
-    function _SS(x, t, p)
-        d = length(x)
-        MM = σ(x, p, t) * ones(d)
-        SSt = MM .* ((MM .* sinh.(MM *t) .+ ss0 .* cosh.( MM * t)) ./ (MM .* cosh.(MM * t ) .+ ss0 .* sinh.(MM * t)))
-        return SSt
-    end
+d = 5
+U = 25f-2
+u_domain = (fill(-U, d), fill(U, d))
 
-    function uanal(x, t, p)
-            d = length(x)
-            return (2*π)^(-d/2) * prod(_SS(x, t, p) .^(-1/2)) * exp(-0.5 *sum(x .^2 ./ _SS(x, t, p)) )
-    end
+batch_size = 10000
+train_steps = 2000
+K = 1
 
-    sols = []
-    xs = []
-    for d in [5]
-        U = 25f-2
-        u_domain = (fill(-U, d), fill(U, d))
+hls = d + 50 #hidden layer size
 
-        batch_size = 10000
-        train_steps = 2000
-        K = 1
+nn_batch = Flux.Chain(
+                    Dense(d, hls, tanh),
+                    Dense(hls, hls, tanh),
+                    Dense(hls, 1, x->x^2)) # positive function
 
-        hls = d + 50 #hidden layer size
+opt = ADAM(1e-2)#optimiser
+alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1], u_domain[2]) )
 
-        nn_batch = Flux.Chain(
-                            # BatchNorm(d, affine = true, dim = 1),
-                            Dense(d, hls, tanh),
-                            # BatchNorm(hls, affine = true, dim = 1),
-                            Dense(hls, hls, tanh),
-                            # BatchNorm(hls, affine = true, dim = 1),
-                            Dense(hls, 1, x->x^2)) # positive function
+g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
+m(x) = - 5f-1 * sum(x.^2, dims=1)
+vol = prod(u_domain[2] - u_domain[1])
+f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
 
-        opt = ADAM(1e-2)#optimiser
-        alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1], u_domain[2]) )
-
-        g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
-        m(x) = - 5f-1 * sum(x.^2, dims=1)
-        vol = prod(u_domain[2] - u_domain[1])
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
-
-        # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, 
-                            u_domain = u_domain
-                            )
-        # solving
-        xgrid,ts,sol = solve(prob, 
-                        alg, 
-                        dt, 
-                        verbose = false, 
-                        abstol = 1f-3,
-                        maxiters = train_steps,
-                        batch_size = batch_size,
-                        use_cuda = use_cuda
-                        )
-        u1 = [sol[end](x)[] for x in xgrid]
-        u1_anal = uanal.(xgrid, tspan[end], nothing)
-        e_l2 = mean(rel_error_l2.(u1, u1_anal))
-        println("rel_error_l2 = ", e_l2, "\n")
-        @test e_l2 < 0.1
-        push!(sols, sol[end])
-    end
+# defining the problem
+prob = PIDEProblem(g, f, μ, σ, tspan, 
+                    u_domain = u_domain
+                    )
+# solving
+xgrid,ts,sol = solve(prob, 
+                alg, 
+                dt, 
+                verbose = false, 
+                abstol = 1f-3,
+                maxiters = train_steps,
+                batch_size = batch_size,
+                use_cuda = true
+                )
+u1 = [sol[end](x)[] for x in xgrid]
 ```
-![Caption for example figure.\label{fig:hamel}](hamel_5d.pdf)
-## `MLP`
-Non local PDE with Neumann boundary conditions
-Let's include in the previous equation non local competition and let's assume Neumann Boundary conditions, so that the domain consists in the hyper cube [-1/2, 1/2]^d.
+![Solution to Eq. (2) obtained with `DeepSplitting`](./hamel_5d.png){ width=20% }
+
+## The `MLP` algorithm
+Consider the 5-dimensional non-local Fisher KPP PDE
+```math
+\partial_t u = u (1 - \int_\Omega u(t,y)dy) + \frac{1}{2}\sigma^2\Delta_xu \tag{2}
+```
+where $\Omega = [-1/2, 1/2]^5$, and assume Neumann Boundary condition on $\Omega$.
 ```julia
 using HighDimPDE
 
