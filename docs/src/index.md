@@ -11,23 +11,21 @@
 \end{aligned}
 ```
 
-where $u \colon \Omega \to \R$, $\Omega \subset \R^d$
+where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subset \R^d$, $d$ large,
 subject to initial and boundary conditions.
 
 
 **HighDimPDE.jl** implements schemes that break down the curse of dimensionality, including
 
-* the [Deep BSDE scheme]()
+* the [Deep Splitting scheme](@ref deepsplitting)
 
-* the [Deep Splitting scheme]()
-
-* the [Multi-Level Picard iterations scheme]().
+* the [Multi-Level Picard iterations scheme](@ref MLP).
 
 To make the most out of **HighDimPDE.jl**, we advise to first have a look at the 
 
-* [documentation on the Feynman Kac formula](),
+* [documentation on the Feynman Kac formula](@ref feynmankac),
 
-as both schemes heavily rely on it.
+as all schemes heavily rely on it.
 
 ## Algorithm overview
 

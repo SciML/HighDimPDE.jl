@@ -1,3 +1,7 @@
+################################
+# Solving non local Allen Cahn
+################################
+
 using HighDimPDE
 using Random
 using Test

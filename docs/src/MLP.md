@@ -1,4 +1,4 @@
-# The `MLP` algorithm
+# [The `MLP` algorithm](@id MLP)
 
 ```@autodocs
 Modules = [HighDimPDE]
@@ -23,28 +23,15 @@ Consider the PDE
 ```
 with initial conditions $u(0, x) = g(x)$, where $u \colon \R^d \to \R$. 
 
-Recall that the nonlinear Feynman-Kac formula provides a solution in terms of the mean trajectory of the stochastic trajectory of particles  $X^x_t$ 
-```math
-u(t, x) = \int_0^t \mathbb{E} \left[ f(X^x_{t - s}, u(T-s, X^x_{t - s}))ds \right] + \mathbb{E} \left[ u(0, X^x_t) \right] \tag{2}
-```
-where 
-```math
-X_t^x = \int_0^t \mu(X_s^x)ds + \int_0^t\sigma(X_s^x)dB_s + x,
-```
-
-> The Feynman Kac formula is often expressed for terminal condition problems where $u(T,x) = g(x)$. See Ref. for the equivalence between initial condition problems $u(0,x) = g(x)$.
-
 ### Picard Iterations
-The `MLP` algorithm observes that Eq. (2) can be viewed as a fixed point equation, i.e. $u = \phi(u)$. Introducing a sequence $(u_k)$ defined as $u_0 = g$ and 
+The `MLP` algorithm observes that the [Feynman Kac formula](@id feynmankac) can be viewed as a fixed point equation, i.e. $u = \phi(u)$. Introducing a sequence $(u_k)$ defined as $u_0 = g$ and 
 ```math
 u_{l+1} = \phi(u_l),
 ```
-the [Banach fixed-point theorem](https://en.wikipedia.org/wiki/Banach_fixed-point_theorem) ensures that the sequence converges to the true solution $u$.
-
-Such a technique is known as [Picard iterations](https://en.wikipedia.org/wiki/Picard–Lindelöf_theorem)
+the [Banach fixed-point theorem](https://en.wikipedia.org/wiki/Banach_fixed-point_theorem) ensures that the sequence converges to the true solution $u$. Such a technique is known as [Picard iterations](https://en.wikipedia.org/wiki/Picard–Lindelöf_theorem).
 
 
-The integral term can be evaluated by a plain vanilla [Monte-Carlo integration]()
+The time integral term is evaluated by a [Monte-Carlo integration]()
 
 ```math
 u_L  = \frac{1}{M}\sum_i^M \mathbb{E} \left[ f(X^x_{t - s_i}, u_{L-1}(T-s_i, X^x_{t - s_i})) \right] + \mathbb{E} \left[ u(0, X^x_t) \right].
@@ -70,21 +57,23 @@ As $l$ grows, the term $[\phi(u_{l-1}) - \phi(u_{l-2})]$ becomes smaller - and d
     - `L` corresponds to the level of the approximation, i.e. $u \approx u_L$
     - `M` characterises the number of samples for the monte carlo approximation of the time integral
 
+Overall, `MLP` can be summarised by the following formula
 ```math
 \begin{aligned}
-u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_i^{M^{L-l}} \left[ f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}})) + \mathbf{q}_\N(l) f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}}))\right]
+u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_i^{M^{L-l}} \left[ f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}})) + \mathbf{1}_\N(l) f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}}))\right]
 \\
 &\qquad + \frac{1}{M^{L}}\sum_i^{M^{L}} u(0, X^{x,(l, i)}_t)\\
 \end{aligned}
 ```
+Note that the superscripts $(l, i)$ indicate the independence of the random variables $l$.
 
-## Accounting for non-localness
-Similar to the `DeepSplitting` algorithm, `MLP` offers to solve for non-local reaction diffusion equations of the type
+## Nonlocal PDEs
+Similar to the `DeepSplitting` algorithm, `MLP` can solve for non-local reaction diffusion equations of the type
 ```math
 \partial_t u = \mu(t, x) \nabla_x u(t, x) + \frac{1}{2} \sigma^2(t, x) \Delta u(t, x) + \int_{\Omega}f(x, y, u(t,x), u(t,y))dy
 ```
 
-The non-localness is again handled by a plain vanilla Monte Carlo integration.
+The non-localness is again handled by a Monte Carlo integration.
 
 ```math
 \begin{aligned}
@@ -97,5 +86,3 @@ u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_{i=1}^{M^{L-l}} \frac{1}{K}\sum_{j
 !!! tip
     - `K` characterises the number of samples for the Monte Carlo approximation of the last term.
     - `mc_sample` characterises the distribution of the `Z` variables
-
-### References

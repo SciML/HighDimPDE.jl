@@ -1,3 +1,9 @@
+################################
+# Solving the Replicator Equator equation, 
+# appearing in Corrolary 2.2 of
+#  https://www.biorxiv.org/content/10.1101/623330v1
+################################
+
 cd(@__DIR__)
 using HighDimPDE
 using Random

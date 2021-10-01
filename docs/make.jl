@@ -6,6 +6,7 @@ makedocs(sitename="HighDimPDE.jl",
         authors = "Victor Boussange",
         pages = [
             "Home" => "index.md",
+            "Getting started" => "getting_started.md",
             "Algorithms" => ["MLP.md", 
                         "DeepSplitting.md", 
                         ],

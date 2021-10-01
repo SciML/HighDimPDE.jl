@@ -1,3 +1,11 @@
+################################
+# Solving the Replicator Equator equation, 
+# appearing in Corrolary 2.2 of
+# https://www.biorxiv.org/content/10.1101/623330v1
+# with a functor model
+################################
+
+
 cd(@__DIR__)
 using HighDimPDE
 using Random
@@ -6,45 +14,51 @@ using Flux
 using Revise
 using PyPlot
 using UnPack
+using Functors
 plotting = true
 
-tspan = (0f0,15f-2)
-dt = 5f-2 # time step
+tspan = (0f0,5f-1)
+dt = 1f-2 # time step
 μ(X,p,t) = 0f0 # advection coefficients
 σ(X,p,t) = 1f-1 # diffusion coefficients
 d = 5
-ss0 = 5f-2#std g0
-U = 25f-2
-u_domain = (fill(-U, d), fill(U, d))
+ss0 = 5f-2 #std g0
+U = 1f0
+u_domain = repeat([-U,U]', d, 1)
 
 ##############################
 ####### Neural Network #######
 ##############################
-batch_size = 10000
-train_steps = 2000
-K = 1
+batch_size = 1000
+train_steps = 10000
+K = 100
 
-hls = d + 50 #hidden layer size
+ 
+struct mymodel
+        sigma_pred
+        a_pred
+end
+@functor mymodel
+(m::mymodel)(x) = m.a_pred ./ prod(m.sigma_pred) .* exp.(-5f-1 * sum((x ./ m.sigma_pred).^2,dims=1) ) 
 
-nn_batch = Flux.Chain(
-        # BatchNorm(d,affine = true, dim = 1),
-        Dense(d, hls, tanh),
-        # BatchNorm(hls,affine = true, dim = 1),
-        Dense(hls,hls,tanh),
-        # BatchNorm(hls, affine = true, dim = 1),
-        # Dense(hls,hls,tanh),
-        Dense(hls, 1, x->x^2)) # Neural network used by the scheme, with batch normalisation
+sigma_pred = repeat([ss0],d)
+a_pred = [1f0]
+fn = mymodel(sigma_pred, a_pred)
 
-opt = ADAM(1e-2)#optimiser
-alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = NormalSampling(1f0) )
+opt = Flux.Optimiser(ExpDecay(0.1,
+                1,
+                1000,
+                1e-6),
+                ADAM() )#optimiser
+alg = DeepSplitting(fn, K=K, opt = opt, mc_sample = UniformSampling(u_domain[:,1], u_domain[:,2]) )
 
 ##########################
 ###### PDE Problem #######
 ##########################
 g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
 m(x) = - 5f-1 * sum(x.^2, dims=1)
-vol = prod(u_domain[2] - u_domain[1])
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) =  v_y .* (m(y) .- vol * v_z .* m(z) ) # nonlocal nonlinear part of the
+vol = prod(u_domain[:,2] - u_domain[:,1])
+f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max.(0f0, v_y) .* (m(y) .- vol * max.(0f0, v_z) .* m(z) ) # nonlocal nonlinear part of the
 
 # defining the problem
 prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -55,9 +69,9 @@ prob = PIDEProblem(g, f, μ, σ, tspan,
                 alg, 
                 dt, 
                 verbose = true, 
-                # abstol = 1f0,
+                abstol=1f-6,
                 maxiters = train_steps,
-                batch_size = batch_size,
+                batch_size=batch_size,
                 use_cuda = true
                 )
 
@@ -69,7 +83,7 @@ if plotting
         fig, ax = plt.subplots(1,2, sharey = true)
 
         xgrid1 = collect((-U:5f-3:U))
-        xgrid = [reshape(vcat(x, fill(0f0,d-1)),:,1) for x in xgrid1] 
+        xgrid = [vcat(x, fill(0f0,d-1)) for x in xgrid1] 
 
         # Analytic sol
         function _SS(x, t, p)
@@ -99,7 +113,7 @@ if plotting
 
         ax[1].set_title("DeepSplitting")
 
-        for _a in ax[1:1]
+        for _a in ax
                 _a.legend()
         end
         gcf()
@@ -114,11 +128,4 @@ if plotting
                 plt.contourf(x,x,g.(repeat(x,2)))
         end
 end
-ax[1].set_ylabel(L"u(t,(x_1,0,\dots,0))")
-ax[1].set_xlabel(L"x_1")
-ax[2].set_xlabel(L"x_1")
-
-fig.tight_layout()
 gcf()
-
-fig.savefig("hamel_5d.pdf", dpi=800)
