@@ -330,7 +330,7 @@ if false
                             dt, 
                             verbose = false, 
                             # abstol = 1e-5,
-                            use_cuda = false,
+                            use_cuda = use_cuda,
                             maxiters = train_steps,
                             batch_size=batch_size)
             u1 = sol[end]
@@ -380,7 +380,7 @@ if false
                         dt, 
                         verbose = false, 
                         # abstol = 1e-5,
-                        use_cuda = false,
+                        use_cuda = use_cuda,
                         maxiters = train_steps,
                         batch_size=batch_size)
 
@@ -444,7 +444,7 @@ end
                     dt, 
                     # verbose = true, 
                     # abstol = 1e-5,
-                    use_cuda = true,
+                    use_cuda = use_cuda,
                     maxiters = train_steps,
                     batch_size=batch_size)
 

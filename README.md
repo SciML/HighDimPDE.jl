@@ -4,15 +4,12 @@
 
 # HighDimPDE.jl
 
-**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional non-linear, non-local PDEs** of the form
+**HighDimPDE.jl** is a Julia package that implements solver algorithms that break down the curse of dimensionality to **solve Highly Dimensional non-linear, non-local PDEs** of the form
 
 <div style="overflow-x: scroll;" align=center>                          
 <img src="docs/src/img/equation.png" height="80"/>
 </div>
 <p>subject to initial and boundary conditions, where <img src="docs/src/img/function_u.png" height="20"/>.</p>
-
-**HighDimPDE.jl** implements schemes that break down the curse of dimensionality
-**HighDimPDE.jl** builds upon [DiffEqBase.jl](https://github.com/SciML/DiffEqBase.jl) and [SciMLBase.jl](https://github.com/SciML/SciMLBase.jl) for the interface, and uses [Flux.jl](https://github.com/FluxML/Flux.jl) for the machine learning part in the case of the `DeepSplitting` algorithm.
 
 ## Documentation
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/dev)
@@ -35,4 +32,4 @@ See documentation, `examples` and `test` folders.
 - [`DeepBSDE`: Solving high-dimensional partial differential equations using deep learning](https://www.pnas.org/content/115/34/8505)
 
 # Acknowledgements
-`HighDimPDE.jl` is inspired from Sebastian Becker's scripts in Python, TensorFlow and C++. Pr. Arnulf Jentzen largely contributed to the theoretical developments of the schemes implemented.
+`HighDimPDE.jl` is inspired from Sebastian Becker's scripts in Python, TensorFlow and C++. Pr. Arnulf Jentzen largely contributed to the theoretical developments of the solver algorithms implemented.

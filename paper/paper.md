@@ -76,7 +76,7 @@ The `MLP`[@Becker2020], for Multi-Level Picard iterations, reformulates the PDE 
 
 - reducing the complexity of the numerical approximation of the time integral through a [multilvel Monte Carlo](https://en.wikipedia.org/wiki/Multilevel_Monte_Carlo_method) approach.
 
-`HighDimPDE.jl` allows to use such schemes both on GPUs and CPUs with minimal coding effort.
+`HighDimPDE.jl` allows to use solver algorithms both on GPUs and CPUs with minimal coding effort.
 `HighDimPDE.jl` also relies heavily on [@Flux] and
 interfaces well with the [@SciML] ecoystem.
 
