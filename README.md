@@ -15,7 +15,7 @@
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/dev)
 
 ## Installation
-Open Julia REPL and type the following
+Open Julia and type the following
 
 ```julia
 using Pkg;

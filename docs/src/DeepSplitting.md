@@ -9,7 +9,7 @@ The `DeepSplitting` algorithm reformulates the PDE as a stochastic learning prob
 
 The algorithm relies on two main ideas:
 
-- the approximation of the solution $u$ by a parametric function $\bf u^\theta$. This function is generally chosen as a (Feedforward) Neural Network, as it is [universal approximators](https://en.wikipedia.org/wiki/Universal_approximation_theorem).
+- the approximation of the solution $u$ by a parametric function $\bf u^\theta$. This function is generally chosen as a (Feedforward) Neural Network, as it is a [universal approximator](https://en.wikipedia.org/wiki/Universal_approximation_theorem).
 
 - the training of $\bf u^\theta$ by simulated stochastic trajectories of particles, through the link between linear PDEs and the expected trajectory of associated Stochastic Differential Equations (SDEs), explicitly stated by the [Feynman Kac formula](https://en.wikipedia.org/wiki/Feynman–Kac_formula).
 
@@ -94,4 +94,7 @@ u(t_{n+1}, X_{T - t_{n+1}}) \approx \sum_{j=1}^{\text{batch\_size}} \left[ u(t_{
     ```julia
     alg = DeepSplitting(nn, opt = opt, mc_sample = mc_sample, K = 1)
     ```
-    `mc_sample` can be whether `UniformSampling(u_domain[1], u_domain[2]))` or ` NormalSampling(σ_sampling, shifted)`.
+    `mc_sample` can be whether `UniformSampling(a, b)` or ` NormalSampling(σ_sampling, shifted)`.
+
+## References
+- [`DeepSplitting`: Deep Splitting method for parabolic PDEs](https://arxiv.org/abs/1907.03452)

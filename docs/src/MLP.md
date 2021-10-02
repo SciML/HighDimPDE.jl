@@ -24,7 +24,7 @@ Consider the PDE
 with initial conditions $u(0, x) = g(x)$, where $u \colon \R^d \to \R$. 
 
 ### Picard Iterations
-The `MLP` algorithm observes that the [Feynman Kac formula](@id feynmankac) can be viewed as a fixed point equation, i.e. $u = \phi(u)$. Introducing a sequence $(u_k)$ defined as $u_0 = g$ and 
+The `MLP` algorithm observes that the [Feynman Kac formula](@ref feynmankac) can be viewed as a fixed point equation, i.e. $u = \phi(u)$. Introducing a sequence $(u_k)$ defined as $u_0 = g$ and 
 ```math
 u_{l+1} = \phi(u_l),
 ```
@@ -34,7 +34,7 @@ the [Banach fixed-point theorem](https://en.wikipedia.org/wiki/Banach_fixed-poin
 The time integral term is evaluated by a [Monte-Carlo integration](https:/en.wikipedia.org/wiki/Monte_Carlo_integration)
 
 ```math
-u_L  = \frac{1}{M}\sum_i^M \mathbb{E} \left[ f(X^x_{t - s_i}, u_{L-1}(T-s_i, X^x_{t - s_i})) \right] + \mathbb{E} \left[ u(0, X^x_t) \right].
+u_L  = \frac{1}{M}\sum_i^M \left[ f(X^{x,(i)}_{t - s_{(l, i)}}, u_{L-1}(T-s_i, X^{x,( i)}_{t - s_{(l, i)}})) + u(0, X^{x,(i)}_{t - s_{(l, i)}}) \right].
 ```
 
 But the MLP uses an extra trick to lower the computational cost of the iteration. 
@@ -50,7 +50,7 @@ u_L = \phi(u_{L-1}) &= [\phi(u_{L-1}) - \phi(u_{L-2})] + [\phi(u_{L-2}) - \phi(u
 \end{aligned}
 ```
 
-As $l$ grows, the term $[\phi(u_{l-1}) - \phi(u_{l-2})]$ becomes smaller - and demands more calculations. The `MLP` algorithm usses this fact by evaluating the integral term at level $l$ with $M^{L-l}$ samples.
+As $l$ grows, the term $[\phi(u_{l-1}) - \phi(u_{l-2})]$ becomes smaller - and demands more calculations. The `MLP` algorithm uses this fact by evaluating the integral term at level $l$ with $M^{L-l}$ samples.
 
 
 !!! tip
@@ -65,7 +65,7 @@ u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_i^{M^{L-l}} \left[ f(X^{x,(l, i)}_
 &\qquad + \frac{1}{M^{L}}\sum_i^{M^{L}} u(0, X^{x,(l, i)}_t)\\
 \end{aligned}
 ```
-Note that the superscripts $(l, i)$ indicate the independence of the random variables $l$.
+Note that the superscripts $(l, i)$ indicate the independence of the random variables $X$ across levels.
 
 ## Nonlocal PDEs
 `MLP` can solve for non-local reaction diffusion equations of the type
@@ -79,10 +79,14 @@ The non-localness is handled by a Monte Carlo integration.
 \begin{aligned}
 u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_{i=1}^{M^{L-l}} \frac{1}{K}\sum_{j=1}^{K}  \bigg[ f(X^{x,(l, i)}_{t - s_{(l, i)}}, Z^{(l,j)}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}}), u(T-s_{l,i}, Z^{(l,j)})) + \\
 &\qquad 
-\mathbf{q}_\N(l) f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}}))\bigg] + \frac{1}{M^{L}}\sum_i^{M^{L}} u(0, X^{x,(l, i)}_t)\\
+\mathbf{1}_\N(l) f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}}))\bigg] + \frac{1}{M^{L}}\sum_i^{M^{L}} u(0, X^{x,(l, i)}_t)\\
 \end{aligned}
 ```
 
 !!! tip
+    In practice, if you have a non-local model you need to provide the sampling method and the number $K$ of MC integration through the keywords `mc_sample` and `K`. 
     - `K` characterises the number of samples for the Monte Carlo approximation of the last term.
     - `mc_sample` characterises the distribution of the `Z` variables
+
+## References
+- [`MLP`: Numerical simulations for full history recursive multilevel Picard approximations for systems of high-dimensional partial differential equations](https://arxiv.org/abs/2005.10206)
