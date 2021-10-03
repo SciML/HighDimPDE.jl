@@ -27,8 +27,8 @@ This will download latest version from git repo and download all dependencies.
 See documentation, `examples` and `test` folders.
 
 ## References
-- Becker, S., Boussange, V., Jentzen, Pellissier, L., Deep learning approximations for non-local nonlinear PDEs with Neumann boundary conditions. (_in prep._)
-- Becker, S., Boussange, V., Jentzen, Pellissier, L., Multilevel Picard Approximations for non-local nonlinear PDEs. (_in prep._)
+- Becker, S., Boussange, V., Jentzen, A., Pellissier, L., Deep learning approximations for non-local nonlinear PDEs with Neumann boundary conditions. (_in prep._)
+- Becker, S., Boussange, V., Jentzen, A., Pellissier, L., Multilevel Picard Approximations for non-local nonlinear PDEs. (_in prep._)
 - Becker, S., Braunwarth, R., Hutzenthaler, M., Jentzen, A., von Wurstemberger, P., Numerical simulations for full history recursive multilevel Picard approximations for systems of high-dimensional partial differential equations. [arXiv](https://arxiv.org/abs/2005.10206) (2020)
 - Becker, S., Braunwarth, R., Hutzenthaler, M., Jentzen, A., von Wurstemberger, P., Numerical simulations for full history recursive multilevel Picard approximations for systems of high-dimensional partial differential equations. [arXiv](https://arxiv.org/abs/2005.10206) (2020)
 - Beck, C., Becker, S., Cheridito, P., Jentzen, A., Neufeld, A., Deep splitting method for parabolic PDEs. [arXiv](https://arxiv.org/abs/1907.03452) (2019)
