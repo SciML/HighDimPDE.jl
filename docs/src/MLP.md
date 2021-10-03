@@ -89,4 +89,5 @@ u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_{i=1}^{M^{L-l}} \frac{1}{K}\sum_{j
     - `mc_sample` characterises the distribution of the `Z` variables
 
 ## References
-- [`MLP`: Numerical simulations for full history recursive multilevel Picard approximations for systems of high-dimensional partial differential equations](https://arxiv.org/abs/2005.10206)
+- Becker, S., Boussange, V., Jentzen, A., Pellissier, L., Multilevel Picard Approximations for non-local nonlinear PDEs. (_in prep._)
+- Becker, S., Braunwarth, R., Hutzenthaler, M., Jentzen, A., von Wurstemberger, P., Numerical simulations for full history recursive multilevel Picard approximations for systems of high-dimensional partial differential equations. [arXiv](https://arxiv.org/abs/2005.10206) (2020)

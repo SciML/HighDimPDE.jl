@@ -97,4 +97,6 @@ u(t_{n+1}, X_{T - t_{n+1}}) \approx \sum_{j=1}^{\text{batch\_size}} \left[ u(t_{
     `mc_sample` can be whether `UniformSampling(a, b)` or ` NormalSampling(σ_sampling, shifted)`.
 
 ## References
-- [`DeepSplitting`: Deep Splitting method for parabolic PDEs](https://arxiv.org/abs/1907.03452)
+- Becker, S., Boussange, V., Jentzen, A., Pellissier, L., Deep learning approximations for non-local nonlinear PDEs with Neumann boundary conditions. (_in prep._)
+- Beck, C., Becker, S., Cheridito, P., Jentzen, A., Neufeld, A., Deep splitting method for parabolic PDEs. [arXiv](https://arxiv.org/abs/1907.03452) (2019)
+- Han, J., Jentzen, A., E, W., Solving high-dimensional partial differential equations using deep learning. [arXiv](https://arxiv.org/abs/1707.02568) (2018)
