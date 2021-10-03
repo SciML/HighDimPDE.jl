@@ -1,6 +1,6 @@
 The HighDimPDE.jl package is licensed under the MIT "Expat" License:
 
-> Copyright (c) 2016-​2021 ETH Zurich, Victor Boussange; D-USYS; Insitute of Terrestrial Ecosysems; Landscape Ecology
+> Copyright (c) 2016-​2021 ETH Zurich, Victor Boussange; D-USYS; Institute of Terrestrial Ecosysems; Landscape Ecology
 > 
 > Permission is hereby granted, free of charge, to any person obtaining a copy
 > of this software and associated documentation files (the "Software"), to deal

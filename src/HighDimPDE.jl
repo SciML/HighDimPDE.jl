@@ -11,12 +11,6 @@ module HighDimPDE
 
     abstract type HighDimPDEAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
 
-
-    struct NLFunction{F} <: DiffEqBase.AbstractODEFunction{false}
-        f::F
-    end
-    (f::NLFunction)(args...) = f.f(args...)
-
     """
         PIDEProblem(g, f, μ, σ, x, tspan, p = nothing, x=nothing, u_domain=nothing, neumann_bc=nothing)
 
@@ -66,8 +60,8 @@ module HighDimPDE
     @assert eltype(f(x, x, g(x), g(x), 0f0, 0f0, p, tspan[1])) == eltype(x) "Type of non linear function `f(x)` must type of x"
 
     PIDEProblem{typeof(g(x)),
-                NLFunction,
-                NLFunction,
+                typeof(g),
+                typeof(f),
                 typeof(μ),
                 typeof(σ),
                 typeof(x),
@@ -76,7 +70,7 @@ module HighDimPDE
                 typeof(u_domain),
                 typeof(neumann_bc),
                 typeof(kwargs)}(
-                g(x), NLFunction(g), NLFunction(f), μ, σ, x, tspan, p, u_domain, neumann_bc, kwargs)
+                g(x), g, f, μ, σ, x, tspan, p, u_domain, neumann_bc, kwargs)
     end
 
     Base.summary(prob::PIDEProblem) = string(nameof(typeof(prob)))
