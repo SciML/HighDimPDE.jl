@@ -58,7 +58,11 @@ function solve(
     # neural network model
     nn = alg.nn |> _device
     vi = g
-    vj = deepcopy(nn)
+    # fix for deepcopy
+    vj = Flux.fmap(nn) do x
+        x isa AbstractArray && return copy(x)
+        x
+      end   
     ps = Flux.params(vj)
 
     # output solution
@@ -151,7 +155,11 @@ function solve(
         end
 
         # saving
-        vi = deepcopy(vj)
+        # fix for deepcopy
+        vi = Flux.fmap(vj) do x
+            x isa AbstractArray && return copy(x)
+            x
+          end   
         # vj = deepcopy(nn)
         # ps = Flux.params(vj)
         if isnothing(u_domain)
