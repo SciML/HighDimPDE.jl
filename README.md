@@ -11,10 +11,11 @@
 </div>
 <p>subject to initial and boundary conditions, where <img src="docs/src/img/function_u.png" height="20"/>.</p>
 
+### 🚧 **Work in Progress** 🚧 
+- for now, `HighDimPDE.jl` can only solve local PDEs.
+
 ## Documentation
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/dev)
-
-🚧 **Work in Progress** 🚧 for now, `HighDimPDE.jl` can only solve local PDEs.
 
 ## Installation
 Open Julia and type the following
