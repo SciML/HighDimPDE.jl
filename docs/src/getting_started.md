@@ -10,11 +10,8 @@ Pages   = ["HighDimPDE.jl"]
 - Select a solver algorithm
 - Solve the problem
 
-Let's illustrate that with some examples.
-
-## `MLP`
-### Local PDE
-Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) PDE in dimension 10 with [`MLP`](@ref mlp).
+Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) PDE in dimension 10.
+## `MLP` (@ref mlp)
 ```math
 \partial_t u = u (1 - u) + \frac{1}{2}\sigma^2\Delta_xu \tag{1}
 ```
@@ -29,7 +26,7 @@ x0 = fill(0.,d)  # initial point
 g(x) = exp(- sum(x.^2) ) # initial condition
 μ(x, p, t) = 0.0 # advection coefficients
 σ(x, p, t) = 0.1 # diffusion coefficients
-f(x, y, v_x, v_y, ∇v_x, ∇v_y, p, t) = max(0.0, v_x) * (1 -  max(0.0, v_x)) # nonlocal nonlinear part of the
+f(x, y, v_x, v_y, ∇v_x, ∇v_y, p, t) = max(0.0, v_x) * (1 -  max(0.0, v_x)) # nonlinear part of the PDE
 prob = PIDEProblem(g, f, μ, σ, x0, tspan) # defining the problem
 
 ## Definition of the algorithm
@@ -39,36 +36,7 @@ alg = MLP() # defining the algorithm. We use the Multi Level Picard algorithm
 sol = solve(prob, alg, multithreading=true)
 ```
 
-### Non local PDE with Neumann boundary conditions
-Let's include in the previous equation non local competition, i.e.
-```math
-\partial_t u = u (1 - \int_\Omega u(t,y)dy) + \frac{1}{2}\sigma^2\Delta_xu \tag{2}
-```
-where $\Omega = [-1/2, 1/2]^d$, and let's assume Neumann Boundary condition on $\Omega$.
-```julia
-using HighDimPDE
-
-## Definition of the problem
-d = 10 # dimension of the problem
-tspan = (0.0,0.5) # time horizon
-x0 = fill(0.,d)  # initial point
-g(x) = exp( -sum(x.^2) ) # initial condition
-μ(x, p, t) = 0.0 # advection coefficients
-σ(x, p, t) = 0.1 # diffusion coefficients
-u_domain = [-1/2, 1/2]
-f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max(0.0, v_x) * (1 -  max(0.0, v_y)) 
-prob = PIDEProblem(g, f, μ, 
-                    σ, x0, tspan, 
-                    u_domain = u_domain) # defining u_domain is sufficient to implement Neumann boundary conditions
-
-## Definition of the algorithm
-alg = MLP(mc_sample = UniformSampling(u_domain[1], u_domain[2]) ) 
-
-sol = solve(prob, alg, multithreading=true)
-```
-
-## `DeepSplitting`
-Let's solve the previous equation with [`DeepSplitting`](@ref deepsplitting).
+## `DeepSplitting`(@ref deepsplitting)
 ```julia
 using HighDimPDE
 
@@ -80,7 +48,7 @@ g(x) = exp.(- sum(x.^2, dims=1) ) # initial condition
 μ(x, p, t) = 0.0 # advection coefficients
 σ(x, p, t) = 0.1 # diffusion coefficients
 u_domain = [-1/2, 1/2]
-f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max.(0f0, v_x) .* (1f0 .-  max.(0f0, v_y)) 
+f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max.(0f0, v_x) .* (1f0 .-  max.(0f0, v_x)) 
 prob = PIDEProblem(g, f, μ, 
                     σ, x0, tspan, 
                     u_domain = u_domain)
@@ -101,9 +69,7 @@ opt = Flux.Optimiser(ExpDecay(0.1,
                 ADAM() )#optimiser
 
 ## Definition of the algorithm
-alg = DeepSplitting(nn,
-                    opt = opt,
-                    mc_sample = UniformSampling(u_domain[1], u_domain[2]))
+alg = DeepSplitting(nn, opt = opt)
 
 sol = solve(prob, 
             alg, 

@@ -6,14 +6,15 @@
 
 ```math
 \begin{aligned}
-    (\partial_t u)(t,x) &= \int_{\Omega} f\big(t,x,{\bf x}, u(t,x),u(t,{\bf x}), ( \nabla_x u )(t,x ),( \nabla_x u )(t,{\bf x} ) \big) \, \nu_x(d{\bf x}) \\
-    & \quad + \big\langle \mu(t,x), ( \nabla_x u )( t,x ) \big\rangle + \tfrac{1}{2} \text{Trace} \big(\sigma(t,x) [ \sigma(t,x) ]^* ( \text{Hess}_x u)(t, x ) \big).
+   (\partial_t u)(t,x) = & f\big(t,x, u(t,x), ( \nabla_x u )(t,x ) ) \big)  + \big\langle \mu(t,x), ( \nabla_x u )( t,x ) \big\rangle \\
+    & \quad  + \tfrac{1}{2} \text{Trace} \big(\sigma(t,x) [ \sigma(t,x) ]^* ( \text{Hess}_x u)(t, x ) \big),
 \end{aligned}
 ```
 
 where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subset \R^d$, $d$ large,
 subject to initial and boundary conditions.
 
+🚧 Work in Progress: for now, `HighDimPDE.jl` can only solve for local PDEs.
 
 **HighDimPDE.jl** implements solver algorithms that break down the curse of dimensionality, including
 

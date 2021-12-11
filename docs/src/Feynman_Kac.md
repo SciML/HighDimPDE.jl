@@ -73,13 +73,3 @@ This leads to the
     ```math
     X_t^x = \int_0^t \mu(X_s^x)ds + \int_0^t\sigma(X_s^x)dB_s + x.
     ```
-
-## [Neumann Boundary conditions](@id neuman_bc)
-
-Eq. (3) also applies to PDE problems with zero-flux boundary conditions (Neumann boundary conditions) on the domain $\Omega \in \R^d$, that is 
-```math
-\langle \nabla_x u(t,x) \cdot \vec{n} \rangle = 0
-```
-where $\vec{n}$ denotes the outer normal vector associated to $\Omega$, **if the stochastic particles $X_t^x$ are reflected at the boundary of the domains.**
-
-![](img/animRBM_southamerica.gif)

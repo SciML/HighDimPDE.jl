@@ -4,7 +4,7 @@
 
 # HighDimPDE.jl
 
-**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional non-local, non-linear PDEs** of the form
+**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional PDEs** of the form
 
 <div style="overflow-x: scroll;" align=center>                          
 <img src="docs/src/img/equation.png" height="80"/>
@@ -13,6 +13,8 @@
 
 ## Documentation
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/dev)
+
+🚧 **Work in Progress** 🚧 for now, `HighDimPDE.jl` can only solve local PDEs.
 
 ## Installation
 Open Julia and type the following
@@ -27,7 +29,6 @@ This will download latest version from git repo and download all dependencies.
 See documentation, `examples` and `test` folders.
 
 ## References
-- Becker, S., Boussange, V., Jentzen, A., Pellissier, L., Deep learning approximations for non-local nonlinear PDEs with Neumann boundary conditions. (_in prep._)
 - Becker, S., Braunwarth, R., Hutzenthaler, M., Jentzen, A., von Wurstemberger, P., Numerical simulations for full history recursive multilevel Picard approximations for systems of high-dimensional partial differential equations. [arXiv](https://arxiv.org/abs/2005.10206) (2020)
 - Beck, C., Becker, S., Cheridito, P., Jentzen, A., Neufeld, A., Deep splitting method for parabolic PDEs. [arXiv](https://arxiv.org/abs/1907.03452) (2019)
 - Han, J., Jentzen, A., E, W., Solving high-dimensional partial differential equations using deep learning. [arXiv](https://arxiv.org/abs/1707.02568) (2018)
