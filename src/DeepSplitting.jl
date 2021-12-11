@@ -58,7 +58,11 @@ function solve(
     # neural network model
     nn = alg.nn |> _device
     vi = g
-    vj = deepcopy(nn)
+    # fix for deepcopy
+    vj = Flux.fmap(nn) do x
+        x isa AbstractArray && return copy(x)
+        x
+      end   
     ps = Flux.params(vj)
 
     # output solution
@@ -85,7 +89,8 @@ function solve(
 
     function splitting_model(y0, y1, z, t)
         # TODO: for now hardcoded because of a bug in Zygote differentiation rules for adjoints
-        # ∇vi(x) = vcat(first.(Flux.jacobian.(vi, eachcol(x)))...)'
+        # vi_y1, ∇vi = Zygote.pullback(vi, y1)
+        # _int = reshape(sum(f(y1, z, vi_y1, vi(z), ∇vi(y1)[1], ∇vi(z)[1], p, t), dims = 3), 1, :)
         ∇vi(x) = [0f0]
         # Monte Carlo integration
         _int = reshape(sum(f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(z), p, t), dims = 3), 1, :)
@@ -151,7 +156,11 @@ function solve(
         end
 
         # saving
-        vi = deepcopy(vj)
+        # fix for deepcopy
+        vi = Flux.fmap(vj) do x
+            x isa AbstractArray && return copy(x)
+            x
+          end   
         # vj = deepcopy(nn)
         # ps = Flux.params(vj)
         if isnothing(u_domain)
