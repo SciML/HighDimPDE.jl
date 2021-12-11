@@ -14,8 +14,6 @@
 where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subset \R^d$, $d$ large,
 subject to initial and boundary conditions.
 
-🚧 Work in Progress 🚧 for now, `HighDimPDE.jl` can only solve for local PDEs.
-
 **HighDimPDE.jl** implements solver algorithms that break down the curse of dimensionality, including
 
 * the [Deep Splitting scheme](@ref deepsplitting)
