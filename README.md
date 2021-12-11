@@ -21,7 +21,7 @@ Open Julia and type the following
 using Pkg;
 Pkg.add("https://github.com/vboussange/HighDimPDE.jl.git")
 ```
-This will download latest version from git repo and download all dependencies.
+This will download the latest version from the git repo and download all dependencies.
 
 ## Getting started
 See documentation, `examples` and `test` folders.
