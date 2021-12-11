@@ -2,11 +2,11 @@
 # HighDimPDE.jl
 
 
-**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional non-linear, non-local PDEs** of the form
+**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional PDEs** of the form
 
 ```math
 \begin{aligned}
-   (\partial_t u)(t,x) = & f\big(t,x, u(t,x), ( \nabla_x u )(t,x ) ) \big)  + \big\langle \mu(t,x), ( \nabla_x u )( t,x ) \big\rangle \\
+   (\partial_t u)(t,x) = & f\big(t,x, u(t,x), ( \nabla_x u )(t,x ) \big)  + \big\langle \mu(t,x), ( \nabla_x u )( t,x ) \big\rangle \\
     & \quad  + \tfrac{1}{2} \text{Trace} \big(\sigma(t,x) [ \sigma(t,x) ]^* ( \text{Hess}_x u)(t, x ) \big),
 \end{aligned}
 ```
@@ -39,5 +39,6 @@ Single point $x \in \R^d$ approximation| ✅   |  ✅ |
 $d$-dimensional cube $[a,b]^d$ approximation| ✅   |          ❌ |
 GPU             | ✅ |                   ❌ |
 Gradient non-linearities    | ✔️|       ❌ |
+Non-local PDEs  | ✔️  | ✔️  |
 
 ✔️ : will be supported in the future

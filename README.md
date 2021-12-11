@@ -1,18 +1,29 @@
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/stable)
+<!-- [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/stable) -->
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/dev)
 [![Build Status](https://github.com/vboussange/HighDimPDE.jl/workflows/CI/badge.svg)](https://github.com/vboussange/HighDimPDE.jl/actions?query=workflow%3ACI)
 
 # HighDimPDE.jl
 
-**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional PDEs** of the form
+**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional PDEs**. The package implements solver algorithms that break down the curse of dimensionality, including
 
-<div style="overflow-x: scroll;" align=center>                          
-<img src="docs/src/img/equation.png" height="80"/>
-</div>
-<p>subject to initial and boundary conditions, where <img src="docs/src/img/function_u.png" height="20"/>.</p>
+* the Deep Splitting scheme
 
-### 🚧 **Work in Progress** 🚧 
-- for now, `HighDimPDE.jl` can only solve local PDEs.
+* the Multi-Level Picard iterations scheme.
+
+## Algorithm overview
+
+----------------------------------------------
+Features  |    `DeepSplitting`   | `MLP`     |
+----------|:----------------------:|:------------:
+Time discretization free|   ❌ |         ✅ |
+Mesh-free       | ✅ |                   ✅ |
+Single point $x \in \R^d$ approximation| ✅   |  ✅ |
+$d$-dimensional cube $[a,b]^d$ approximation| ✅   |          ❌ |
+GPU             | ✅ |                   ❌ |
+Gradient non-linearities    | ✔️|       ❌ |
+Non-local PDEs  | ✔️  | ✔️  |
+
+✔️ : will be supported in the future
 
 ## Documentation
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/dev)
@@ -35,4 +46,4 @@ See documentation, `examples` and `test` folders.
 - Han, J., Jentzen, A., E, W., Solving high-dimensional partial differential equations using deep learning. [arXiv](https://arxiv.org/abs/1707.02568) (2018)
 
 ## Acknowledgements
-`HighDimPDE.jl` is inspired from Sebastian Becker's scripts in Python, TensorFlow and C++. Pr. Arnulf Jentzen largely contributed to the theoretical developments of the solver algorithms implemented.
+The author thanks Sebastian Becker for fruitful discussion on the implementation of `HighDimPDE.jl`.

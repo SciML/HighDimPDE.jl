@@ -26,8 +26,8 @@ x0 = fill(0.,d)  # initial point
 g(x) = exp(- sum(x.^2) ) # initial condition
 μ(x, p, t) = 0.0 # advection coefficients
 σ(x, p, t) = 0.1 # diffusion coefficients
-f(x, y, v_x, v_y, ∇v_x, ∇v_y, p, t) = max(0.0, v_x) * (1 -  max(0.0, v_x)) # nonlinear part of the PDE
-prob = PIDEProblem(g, f, μ, σ, x0, tspan) # defining the problem
+f(x, v_x, ∇v_x, p, t) = max(0.0, v_x) * (1 -  max(0.0, v_x)) # nonlinear part of the PDE
+prob = PDEProblem(g, f, μ, σ, x0, tspan) # defining the problem
 
 ## Definition of the algorithm
 alg = MLP() # defining the algorithm. We use the Multi Level Picard algorithm
@@ -48,7 +48,7 @@ g(x) = exp.(- sum(x.^2, dims=1) ) # initial condition
 μ(x, p, t) = 0.0 # advection coefficients
 σ(x, p, t) = 0.1 # diffusion coefficients
 u_domain = [-1/2, 1/2]
-f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max.(0f0, v_x) .* (1f0 .-  max.(0f0, v_x)) 
+f(x, v_x, ∇v_x, t) = max.(0f0, v_x) .* (1f0 .-  max.(0f0, v_x)) 
 prob = PIDEProblem(g, f, μ, 
                     σ, x0, tspan, 
                     u_domain = u_domain)
