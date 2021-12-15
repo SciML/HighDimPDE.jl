@@ -11,8 +11,7 @@
 \end{aligned}
 ```
 
-where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subset \R^d$, $d$ large,
-subject to initial and boundary conditions.
+where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subset \R^d$ is subjected to initial and boundary conditions and $d$ is large.
 
 **HighDimPDE.jl** implements solver algorithms that break down the curse of dimensionality, including
 

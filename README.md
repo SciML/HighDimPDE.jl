@@ -13,7 +13,7 @@
 ## Algorithm overview
 
 ----------------------------------------------
-Features  |    `DeepSplitting`   | `MLP`     |
+Features  |    `DeepSplitting` [1,3]   | `MLP` [1,2]     |
 ----------|:----------------------:|:------------:
 Time discretization free|   ❌ |         ✅ |
 Mesh-free       | ✅ |                   ✅ |
@@ -41,9 +41,9 @@ This will download latest version from git repo and download all dependencies.
 See documentation, `examples` and `test` folders.
 
 ## References
-- Becker, S., Braunwarth, R., Hutzenthaler, M., Jentzen, A., von Wurstemberger, P., Numerical simulations for full history recursive multilevel Picard approximations for systems of high-dimensional partial differential equations. [arXiv](https://arxiv.org/abs/2005.10206) (2020)
-- Beck, C., Becker, S., Cheridito, P., Jentzen, A., Neufeld, A., Deep splitting method for parabolic PDEs. [arXiv](https://arxiv.org/abs/1907.03452) (2019)
-- Han, J., Jentzen, A., E, W., Solving high-dimensional partial differential equations using deep learning. [arXiv](https://arxiv.org/abs/1707.02568) (2018)
+- [1] Boussange, V., Becker, S., Jentzen, A., Pellissier, L., Deep learning approximations for non-local nonli- near PDEs with Neumann boundary conditions. _Manuscript in preparation_ (2021)
+- [2] Becker, S., Braunwarth, R., Hutzenthaler, M., Jentzen, A., von Wurstemberger, P., Numerical simulations for full history recursive multilevel Picard approximations for systems of high-dimensional partial differential equations. [arXiv](https://arxiv.org/abs/2005.10206) (2020)
+- [3] Beck, C., Becker, S., Cheridito, P., Jentzen, A., Neufeld, A., Deep splitting method for parabolic PDEs. [arXiv](https://arxiv.org/abs/1907.03452) (2019)
 
 ## Acknowledgements
-The author thanks Sebastian Becker for fruitful discussion on the implementation of `HighDimPDE.jl`.
+The author thanks Sebastian Becker for fruitful discussions on the implementation of `HighDimPDE.jl`.
