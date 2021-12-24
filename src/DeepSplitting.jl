@@ -4,10 +4,12 @@
 Deep splitting algorithm.
 
 # Arguments
-* `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl)
+* `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), 
+or more generally a [functor](https://github.com/FluxML/Functors.jl)
 * `K`: the number of Monte Carlo integrations
 * `opt`: optimiser to be use. By default, `Flux.ADAM(0.1)`.
-* `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
+* `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. 
+Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
 """
 struct DeepSplitting{NN,F,O,MCS} <: HighDimPDEAlgorithm
     nn::NN
@@ -43,8 +45,9 @@ function solve(
         _device = Flux.cpu
     end
 
-    # unbin stuff
-    u_domain = prob.u_domain |> _device # domain on which we want to approximate u, nothing if only one point wanted
+    ## unbin stuff
+    # domain on which we want to approximate u, nothing if only one point wanted
+    u_domain = prob.u_domain |> _device 
     neumann_bc = prob.neumann_bc |> _device
     x0 = prob.x |> _device
     mc_sample! =  alg.mc_sample! |> _device
@@ -85,7 +88,8 @@ function solve(
     z = similar(x0, d, batch_size, K) # for MC non local integration
 
     # checking element types
-    eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing : error("Element type of `mc_sample` not the same as element type of `x`")
+    eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing : error(
+        "Element type of `mc_sample` not the same as element type of `x`")
 
     function splitting_model(y0, y1, z, t)
         # TODO: for now hardcoded because of a bug in Zygote differentiation rules for adjoints

@@ -7,7 +7,8 @@ Multi level Picard algorithm.
 * `L`: number of Picard iterations (Level),
 * `M`: number of Monte Carlo integrations (at each level `l`, `M^(L-l)`integrations),
 * `K`: number of Monte Carlo integrations for the non local term    
-* `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling)`, or `NoSampling` (by default).
+* `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. 
+Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling)`, or `NoSampling` (by default).
 """
 struct MLP{T, MCS} <: HighDimPDEAlgorithm where {T <: Int, MCS <: MCSampling}
     M::T # nb of MC integrations
@@ -16,7 +17,8 @@ struct MLP{T, MCS} <: HighDimPDEAlgorithm where {T <: Int, MCS <: MCSampling}
     mc_sample!::MCS
 end
 
-MLP(; M=4, L=4, K=10, mc_sample = NoSampling()) = MLP(M ,L, K, mc_sample) #Note: mc_sample mutates its first argument but for the user interface we hide this technicality
+#Note: mc_sample mutates its first argument but for the user interface we hide this technicality
+MLP(; M=4, L=4, K=10, mc_sample = NoSampling()) = MLP(M ,L, K, mc_sample)
     
     
 # function DiffEqBase.__solve(
@@ -37,7 +39,8 @@ function solve(
     g, f = prob.g, prob.f
 
     # errors
-    !isnothing(prob.u_domain) ? error("`MLP` algorithm cannot be solved on a domain, i.e with argument `u_domain`.") : nothing
+    !isnothing(prob.u_domain) ? error(
+        "`MLP` algorithm cannot be solved on a domain, i.e with argument `u_domain`.") : nothing
     isnothing(x) ? error("`MLP` algorithm needs a grid 'x'") : nothing
     # if !isnothing(neumann_bc) 
     #     if !(typeof(mc_sample!) <: UniformSampling || typeof(mc_sample!) <: NoSampling)
@@ -93,7 +96,9 @@ function _ml_picard(M, # monte carlo integration
             for h in 1:K
                 verbose && println("loop h")
                 mc_sample!(x3, x2)
-                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) #TODO:hardcode, not sure about t
+                #TODO:hardcode, not sure about t
+                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, 
+                    prob, neumann_bc), nothing, nothing, p, t)
             end
             b += b3 / K
         end
@@ -112,7 +117,11 @@ function _ml_picard(M, # monte carlo integration
                 # non local integration
             for h in 1:K
                 mc_sample!(x3, x2)
-                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) - f(x2, x3, b4, _ml_picard(M, l - 1, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) #TODO:hardcode, not sure about t
+                #TODO:hardcode, not sure about t
+                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, 
+                    prob, neumann_bc), nothing, nothing, p, t) - 
+                    f(x2, x3, b4, _ml_picard(M, l - 1, K, x3, r, 
+                        t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t)
             end
             b += b3 / K
         end
@@ -131,7 +140,8 @@ function _ml_picard(M, # monte carlo integration
     return a + a2
 end
 
-_ml_picard(M::Int, L::Int, K::Int, x::Nothing, s::Real, t::Real, mc_sample!, g, f, verbose::Bool, prob, neumann_bc) = nothing
+_ml_picard(M::Int, L::Int, K::Int, x::Nothing, s::Real, t::Real, mc_sample!, g, f, verbose::Bool, 
+    prob, neumann_bc) = nothing
 
 function _ml_picard_mlt(M, # monte carlo integration
                         L, # level
@@ -150,7 +160,8 @@ function _ml_picard_mlt(M, # monte carlo integration
 
     # distributing tasks
     NUM_THREADS = Threads.nthreads()
-    tasks = [Threads.@spawn(_ml_picard_call(M, L, K, x, s, t, mc_sample!, g, f, verbose, NUM_THREADS, thread_id, prob, neumann_bc)) for thread_id in 1:NUM_THREADS]
+    tasks = [Threads.@spawn(_ml_picard_call(M, L, K, x, s, t, mc_sample!, g, f, verbose, 
+        NUM_THREADS, thread_id, prob, neumann_bc)) for thread_id in 1:NUM_THREADS]
   
     # first level
     num = M^(L)
@@ -205,7 +216,9 @@ function _ml_picard_call(M, # monte carlo integration
             for h in 1:K # non local integration
                 verbose && println("loop h")
                 mc_sample!(x3, x2)
-                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) #TODO:hardcode, not sure about t
+                #TODO:hardcode, not sure about t
+                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, 
+                    prob, neumann_bc), nothing, nothing, p, t)
             end
         b += b3 / K
         end
