@@ -4,12 +4,18 @@
 Deep splitting algorithm.
 
 # Arguments
-* `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), 
-or more generally a [functor](https://github.com/FluxML/Functors.jl)
-* `K`: the number of Monte Carlo integrations
+* `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl).
+* `K`: the number of Monte Carlo integrations.
 * `opt`: optimiser to be use. By default, `Flux.ADAM(0.1)`.
 * `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. 
 Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
+
+# Returns
+`x0, ts, usol, lossmax`
+* `x0`: the array of point(s) of the domain on which solution has been evaluated.
+* `ts`: the time span.
+* `usol`: the scalar value of the solution, or the neural network approxmation if `u_domain` provided.
+* `lossmax`: the maximum loss value across all time steps.
 """
 struct DeepSplitting{NN,F,O,MCS} <: HighDimPDEAlgorithm
     nn::NN
