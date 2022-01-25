@@ -20,7 +20,17 @@ end
 #Note: mc_sample mutates its first argument but for the user interface we hide this technicality
 MLP(; M=4, L=4, K=10, mc_sample = NoSampling()) = MLP(M ,L, K, mc_sample)
     
-    
+"""
+solve(prob::PIDEProblem,
+    alg::MLP;
+    multithreading=true,
+    verbose=false)
+
+Returns a tuple `x0, ts, usol` where
+* `x0` is the array of point(s) of the domain on which solution has been evaluated.
+* `ts` is the time span.
+* `usol` is the scalar value of the solution, or the neural network approxmation if `u_domain` provided.
+"""
 # function DiffEqBase.__solve(
 function solve(
         prob::PIDEProblem,

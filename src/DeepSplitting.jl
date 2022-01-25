@@ -9,13 +9,6 @@ Deep splitting algorithm.
 * `opt`: optimiser to be use. By default, `Flux.ADAM(0.1)`.
 * `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. 
 Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
-
-# Returns
-`x0, ts, usol, lossmax`
-* `x0`: the array of point(s) of the domain on which solution has been evaluated.
-* `ts`: the time span.
-* `usol`: the scalar value of the solution, or the neural network approxmation if `u_domain` provided.
-* `lossmax`: the maximum loss value across all time steps.
 """
 struct DeepSplitting{NN,F,O,MCS} <: HighDimPDEAlgorithm
     nn::NN
@@ -28,6 +21,22 @@ function DeepSplitting(nn; K=1, opt=Flux.ADAM(0.1), mc_sample::MCSampling = NoSa
     DeepSplitting(nn, K, opt, mc_sample)
 end
 
+"""
+solve(prob::PIDEProblem,
+    alg::DeepSplitting,
+    dt;
+    batch_size = 1,
+    abstol = 1f-6,
+    verbose = false,
+    maxiters = 300,
+    use_cuda = false)
+
+Returns a tuple `x0, ts, usol, lossmax` where
+* `x0` is the array of point(s) of the domain on which solution has been evaluated.
+* `ts` is the time span.
+* `usol` is the scalar value of the solution, or the neural network approxmation if `u_domain` provided.
+* `lossmax` is the maximum loss value across all time steps.
+"""
 function solve(
     prob::PIDEProblem,
     alg::DeepSplitting,
