@@ -101,6 +101,7 @@ function solve(
     y1 = similar(x0_batch)
     y0 = similar(y1)
     z = similar(x0, d, batch_size, K) # for MC non local integration
+    lossmax = zero(T)
 
     # checking element types
     eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing : error(
@@ -166,10 +167,14 @@ function solve(
             if epoch % 100 == 1
                 l = loss(y0, y1, z, t)
                 verbose && println("Current loss is: $l")
-                l < abstol && break
+                if l < abstol
+                    lossmax = max(l,lossmax)
+                    break
+                end
             end
             if epoch == maxiters
                 l = loss(y0, y1, z, t)
+                lossmax = max(l,lossmax)
                 verbose && println("Current loss is: $l")
             end
         end
@@ -194,11 +199,11 @@ function solve(
     if isnothing(u_domain)
         # sol = DiffEqBase.build_solution(prob, alg, ts, usol)
         x0 = x0 |> cpu
-        sol = x0, ts, usol
+        sol = x0, ts, usol, lossmax
     else
         sample_initial_points!(y1)
         xgrid = [reshape(y1[:,i], d, 1) for i in 1:size(y1,2)] .|> cpu #reshape needed for batch size
-        sol = xgrid, ts, usol
+        sol = xgrid, ts, usol, lossmax
     end
     return sol
 end
