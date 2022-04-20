@@ -64,7 +64,7 @@ module HighDimPDE
         "type of `neumann_bc` can be whether `Nothing` or Tuple{AbstractVector, AbstractVector}")
     isnothing(neumann_bc) ? nothing : @assert eltype(eltype(neumann_bc)) <: eltype(x)
     @assert eltype(g(x)) == eltype(x) "Type of `g(x)` must match type of x"
-    @assert(eltype(f(x, x, g(x), g(x), 0f0, 0f0, p, tspan[1])) == eltype(x),
+    @assert(eltype(f(x, x, g(x), g(x), x, x, p, tspan[1])) == eltype(x),
         "Type of non linear function `f(x)` must type of x")
 
     PIDEProblem{typeof(g(x)),

@@ -79,7 +79,7 @@ end
                         Dense(hls,1)) # Neural network used by the scheme
 
         opt = ADAM(0.01) #optimiser
-        alg = DeepSplitting(nn, opts = opt)
+        alg = DeepSplitting(nn, opt = opt)
 
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
 
@@ -122,7 +122,7 @@ end
                         Dense(hls,1)) # Neural network used by the scheme
 
         opt = ADAM(0.01) #optimiser
-        alg = DeepSplitting(nn, opts = opt)
+        alg = DeepSplitting(nn, opt = opt)
 
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
 
@@ -261,8 +261,8 @@ end
 
         hls = d + 50 #hidden layer size
 
-        nn = Flux.Chain(Dense(d,hls,tanh),
-                Dense(hls,hls,tanh),
+        nn = Flux.Chain(Dense(d,hls,relu),
+                Dense(hls,hls,relu),
                 Dense(hls,1)) # Neural network used by the scheme
 
         opt = ADAM(1e-2) #optimiser
@@ -304,7 +304,7 @@ if false
         sigma = 4f-1
 
         μ(x, p, t) = 0f0 # advection coefficients
-        σ(x, p, t) =  sigma * X.^2 # diffusion coefficients
+        σ(x, p, t) =  sigma * x.^2 # diffusion coefficients
 
         for d in [30]
 
@@ -328,7 +328,7 @@ if false
             @time xs,ts,sol = solve(prob, 
                             alg, 
                             dt, 
-                            verbose = false, 
+                            verbose = true, 
                             # abstol = 1e-5,
                             use_cuda = use_cuda,
                             maxiters = train_steps,
@@ -341,7 +341,7 @@ if false
 
     @testset "DeepSplitting - Hamilton Jacobi Bellman Equation" begin
 
-        batch_size = 20
+        batch_size = 30
         train_steps = 500
 
         tspan = (0f0, 1f0)
@@ -378,9 +378,9 @@ if false
         @time xs,ts,sol = solve(prob, 
                         alg, 
                         dt, 
-                        verbose = false, 
+                        verbose = true, 
                         # abstol = 1e-5,
-                        use_cuda = use_cuda,
+                        use_cuda = false,
                         maxiters = train_steps,
                         batch_size=batch_size)
 

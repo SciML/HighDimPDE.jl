@@ -131,7 +131,7 @@ function solve(
         ∇vi(x) = [0f0]
         # Monte Carlo integration
         _int = reshape(sum(f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(z), p, t), dims = 3), 1, :)
-        vj(y0) - (vi(y1) + dt * _int / K)
+        return vj(y0) - (vi(y1) + dt * _int / K)
     end
 
     function loss(y0, y1, z, t)
@@ -144,8 +144,6 @@ function solve(
         randn!(dWall) # points normally distributed for brownian motion
         sample_initial_points!(y1) # points uniformly distributed for initial conditions
         for i in 1:size(dWall,3)
-            # @show i
-            # not sure about this one
             t = ts[N + 1 - i]
             dW = @view dWall[:,:,i]
             y0 .= y1
