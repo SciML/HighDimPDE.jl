@@ -79,7 +79,7 @@ end
                         Dense(hls,1)) # Neural network used by the scheme
 
         opt = ADAM(0.01) #optimiser
-        alg = DeepSplitting(nn, opt = opt)
+        alg = DeepSplitting(nn, opts = opt)
 
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
 
@@ -122,7 +122,7 @@ end
                         Dense(hls,1)) # Neural network used by the scheme
 
         opt = ADAM(0.01) #optimiser
-        alg = DeepSplitting(nn, opt = opt)
+        alg = DeepSplitting(nn, opts = opt)
 
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
 
@@ -399,7 +399,7 @@ end
 @testset "DeepSplitting - Black-Scholes Equation with Default Risk" begin
 
     batch_size = 1000
-    train_steps = 5000
+    train_steps = (1000, 200)
 
     tspan = (0f0, 1f0)
     dt = 1.25f-1  # time step
@@ -415,8 +415,8 @@ end
                     Dense(hls,hls,tanh),
                     Dense(hls,1)) # Neural network used by the scheme
 
-    opt = ADAM(1e-3) #optimiser
-    alg = DeepSplitting(nn, opt = opt )
+    opt = ADAM()
+    alg = DeepSplitting(nn, opt = opt, λs = [1e-2,1e-3] )
 
     X0 = fill(100f0,d)  # initial point
     g(X) =  minimum(X, dims=1) # initial condition
@@ -442,7 +442,7 @@ end
     @time xs,ts,sol = solve(prob, 
                     alg, 
                     dt, 
-                    # verbose = true, 
+                    verbose = true, 
                     # abstol = 1e-5,
                     use_cuda = use_cuda,
                     maxiters = train_steps,

@@ -1,3 +1,8 @@
+Base.copy(t::Tuple) = t # required for below
+function Base.copy(opt::O) where  O<:Flux.Optimise.AbstractOptimiser
+    return O([copy(getfield(opt,f)) for f in fieldnames(typeof(opt))]...)
+end
+
 """
     DeepSplitting(nn, K, opt, mc_sample)
 
@@ -6,19 +11,25 @@ Deep splitting algorithm.
 # Arguments
 * `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl).
 * `K`: the number of Monte Carlo integrations.
-* `opt`: optimiser to be use. By default, `Flux.ADAM(0.1)`.
+* `opt`: optimiser to be use. By default, `Flux.ADAM(0.1)`. Can be a vector of optimisers, that are used sequentially.
 * `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. 
 Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
 """
-struct DeepSplitting{NN,F,O,MCS} <: HighDimPDEAlgorithm
+struct DeepSplitting{NN,F,O,L,MCS} <: HighDimPDEAlgorithm
     nn::NN
     K::F
     opt::O
+    λs::L
     mc_sample!::MCS # Monte Carlo sample
 end
 
-function DeepSplitting(nn; K=1, opt=Flux.ADAM(0.1), mc_sample::MCSampling = NoSampling()) 
-    DeepSplitting(nn, K, opt, mc_sample)
+function DeepSplitting(nn; 
+                        K=1, 
+                        opt::O = ADAM(0.01), 
+                        λs::L = nothing, 
+                        mc_sample::MCSampling = NoSampling()) where {O <: Flux.Optimise.AbstractOptimiser, L <: Union{Nothing,Vector{N}} where N <: Number}
+    isnothing(λs) ? λs = [opt.eta] : nothing
+    DeepSplitting(nn, K, opt, λs, mc_sample)
 end
 
 """
@@ -36,6 +47,11 @@ Returns a tuple `x0, ts, usol, lossmax` where
 * `ts` is the time span.
 * `usol` is the scalar value of the solution, or the neural network approxmation if `u_domain` provided.
 * `lossmax` is the maximum loss value across all time steps.
+
+# Arguments
+- maxiters: number of iterations per time step. Can be a tuple, 
+where `maxiters[1]` is used for the training of the neural network used in 
+the first time step (which can be long) and `maxiters[2]` is used for the rest of the time steps.
 """
 function solve(
     prob::PIDEProblem,
@@ -70,6 +86,7 @@ function solve(
     d  = size(x0,1)
     K = alg.K
     opt = alg.opt
+    λs = alg.λs
     g,f,μ,σ,p = prob.g,prob.f,prob.μ,prob.σ,prob.p
     T = eltype(x0)
 
@@ -145,40 +162,45 @@ function solve(
 
         verbose && println("Step $(net) / $(N) ")
         t = ts[net]
+        _maxiters = length(maxiters) > 1 ? maxiters[min(net,2)] : maxiters[] # first of maxiters used for first nn, second used for the rest
+        
+        for λ in λs
+            opt_net = copy(opt) # starting with a new optimiser state at each time step
+            opt_net.eta = λ
+            verbose && println("Training started with λ :", opt_net.eta)
+            @show opt_net # for debug
+            for epoch in 1:_maxiters
+                y1 .= x0_batch
+                # generating sdes
+                sde_loop!(y0, y1, dWall)
 
-        # @showprogress
-        for epoch in 1:maxiters
-            y1 .= x0_batch
-            # generating sdes
-            sde_loop!(y0, y1, dWall)
+                if _integrate(mc_sample!)
+                    # generating z for MC non local integration
+                    mc_sample!(z, y1)
+                end
 
-            if _integrate(mc_sample!)
-                # generating z for MC non local integration
-                mc_sample!(z, y1)
-            end
-
-            # training
-            gs = Flux.gradient(ps) do
-                loss(y0, y1, z, t)
-            end
-            Flux.Optimise.update!(opt, ps, gs) # update parameters
-            
-            # report on training
-            if epoch % 100 == 1
-                l = loss(y0, y1, z, t)
-                verbose && println("Current loss is: $l")
-                if l < abstol
+                # training
+                gs = Flux.gradient(ps) do
+                    loss(y0, y1, z, t)
+                end
+                Flux.Optimise.update!(opt_net, ps, gs) # update parameters
+                
+                # report on training
+                if epoch % 100 == 1
+                    l = loss(y0, y1, z, t)
+                    verbose && println("Current loss is: $l")
+                    if l < abstol
+                        lossmax = max(l,lossmax)
+                        break
+                    end
+                end
+                if epoch == maxiters
+                    l = loss(y0, y1, z, t)
                     lossmax = max(l,lossmax)
-                    break
+                    verbose && println("Current loss is: $l")
                 end
             end
-            if epoch == maxiters
-                l = loss(y0, y1, z, t)
-                lossmax = max(l,lossmax)
-                verbose && println("Current loss is: $l")
-            end
         end
-
         # saving
         # fix for deepcopy
         vi = Flux.fmap(vj) do x
