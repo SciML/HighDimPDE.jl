@@ -167,8 +167,7 @@ function solve(
         for λ in λs
             opt_net = copy(opt) # starting with a new optimiser state at each time step
             opt_net.eta = λ
-            verbose && println("Training started with λ :", opt_net.eta)
-            @show opt_net # for debug
+            verbose && println("Training started with ", typeof(opt_net), " and λ :", opt_net.eta)
             for epoch in 1:_maxiters
                 y1 .= x0_batch
                 # generating sdes
