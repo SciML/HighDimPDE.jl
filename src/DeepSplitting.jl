@@ -15,21 +15,20 @@ Deep splitting algorithm.
 * `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. 
 Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
 """
-struct DeepSplitting{NN,F,O,L,MCS} <: HighDimPDEAlgorithm
+struct DeepSplitting{NN,F,O,MCS} <: HighDimPDEAlgorithm
     nn::NN
     K::F
     opt::O
-    λs::L
     mc_sample!::MCS # Monte Carlo sample
 end
 
 function DeepSplitting(nn; 
                         K=1, 
                         opt::O = ADAM(0.01), 
-                        λs::L = nothing, 
-                        mc_sample::MCSampling = NoSampling()) where {O <: Flux.Optimise.AbstractOptimiser, L <: Union{Nothing,Vector{N}} where N <: Number}
-    isnothing(λs) ? λs = [opt.eta] : nothing
-    DeepSplitting(nn, K, opt, λs, mc_sample)
+                        mc_sample::MCSampling = NoSampling()) where O
+    O <: Vector ? nothing : opt = [opt]
+    @assert (eltype(opt) <: Flux.Optimise.AbstractOptimiser) "`opt` should contain Flux optimizers"
+    DeepSplitting(nn, K, opt, mc_sample)
 end
 
 """
@@ -86,7 +85,6 @@ function solve(
     d  = size(x0,1)
     K = alg.K
     opt = alg.opt
-    λs = alg.λs
     g,f,μ,σ,p = prob.g,prob.f,prob.μ,prob.σ,prob.p
     T = eltype(x0)
 
@@ -164,11 +162,9 @@ function solve(
         t = ts[net]
         _maxiters = length(maxiters) > 1 ? maxiters[min(net,2)] : maxiters[] # first of maxiters used for first nn, second used for the rest
         
-        for λ in λs
-            opt_net = copy(opt) # starting with a new optimiser state at each time step
-            opt_net.eta = λ
-            verbose && println("Training started with λ :", opt_net.eta)
-            @show opt_net # for debug
+        for _opt in opt
+            opt_net = copy(_opt) # starting with a new optimiser state at each time step
+            verbose && println("Training started with ", typeof(opt_net), " and λ :", opt_net.eta)
             for epoch in 1:_maxiters
                 y1 .= x0_batch
                 # generating sdes

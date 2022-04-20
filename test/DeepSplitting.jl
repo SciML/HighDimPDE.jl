@@ -415,8 +415,8 @@ end
                     Dense(hls,hls,tanh),
                     Dense(hls,1)) # Neural network used by the scheme
 
-    opt = ADAM()
-    alg = DeepSplitting(nn, opt = opt, λs = [1e-2,1e-3] )
+    opt = [ADAM(1e-2), ADAM(1e-3)]
+    alg = DeepSplitting(nn, opt = opt )
 
     X0 = fill(100f0,d)  # initial point
     g(X) =  minimum(X, dims=1) # initial condition
@@ -447,6 +447,8 @@ end
                     use_cuda = use_cuda,
                     maxiters = train_steps,
                     batch_size=batch_size)
+
+    # 143.506100 seconds (478.88 M allocations: 51.950 GiB, 2.51% gc time, 3.16% compilation time)
 
     u1 = sol[end]
     analytical_ans = 60.781
