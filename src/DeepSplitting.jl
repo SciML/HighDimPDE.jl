@@ -62,11 +62,13 @@ function solve(
     verbose = false,
     maxiters = 300,
     use_cuda = false,
+    cuda_device = nothing
     )
     if use_cuda
         if CUDA.functional()
             @info "Training on CUDA GPU"
             CUDA.allowscalar(false)
+            !isnothing(cuda_device) ? CUDA.device!(cuda_device) : nothing
             _device = Flux.gpu
         else
             error("CUDA not functional, deactivate `use_cuda` and retry")
