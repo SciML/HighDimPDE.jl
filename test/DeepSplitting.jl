@@ -4,7 +4,13 @@ using Test
 using Flux
 using Statistics
 using CUDA
-CUDA.functional() ? use_cuda = true : use_cuda = false
+if CUDA.functional() 
+    use_cuda = true 
+    cuda_device = 7
+else
+    use_cuda = false
+    cuda_device = nothing
+end
 # import DiffEqFlux: FastChain, FastDense
 
 #relative error l2
@@ -39,7 +45,7 @@ end
         opt = ADAM(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0f0 .* v_y
+        f(y, z, v_y, v_z, p, t) = 0f0 .* v_y
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -50,7 +56,8 @@ end
                         verbose = false, 
                         use_cuda = use_cuda,
                         maxiters = 1000,
-                        batch_size = 10000)
+                        batch_size = 10000,
+                        cuda_device = cuda_device)
         u1 = sol[end]
         u1_anal = u_anal(x0, tspan[end])
         e_l2 = rel_error_l2(u1, u1_anal)
@@ -81,7 +88,7 @@ end
         opt = ADAM(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
+        f(y, z, v_y, v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, u_domain = u_domain)
@@ -90,7 +97,8 @@ end
                         verbose = false, 
                         use_cuda = use_cuda,
                         maxiters = 1000,
-                        batch_size = 20000)
+                        batch_size = 20000,
+                        cuda_device = cuda_device)
         u1 = [sol[end](x)[] for x in xs]
         u1_anal = u_anal.(xs, tspan[end])
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
@@ -124,7 +132,7 @@ end
         opt = ADAM(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
+        f(y, z, v_y, v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -137,6 +145,7 @@ end
                         use_cuda = use_cuda,
                         maxiters = 1000,
                         batch_size = 20000,
+                        cuda_device = cuda_device
                         )
         push!(sols, sol[end])
     end
@@ -179,7 +188,7 @@ end
         opt = ADAM(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = r * v_y #TODO: this fix is not nice
+        f(y, z, v_y, v_z, p, t) = r * v_y #TODO: this fix is not nice
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -190,7 +199,8 @@ end
                         verbose = false, 
                         use_cuda = use_cuda,
                         maxiters = 1000,
-                        batch_size = 100)
+                        batch_size = 100,
+                        cuda_device = cuda_device)
         u1 = [sol[end](x)[] for x in xs]
         u1_anal = u_anal.(xs, tspan[end])
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
@@ -225,7 +235,7 @@ end
         X0 = fill(0f0,d)  # initial point
         g(X) =  1f0 ./ (2f0 .+ 4f-1 * sum(X.^2, dims=1))   # initial condition
         a(u) = u - u^3
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = - a.(v_y) # nonlocal nonlinear part of the
+        f(y, z, v_y, v_z, p, t) = - a.(v_y) # nonlocal nonlinear part of the
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
@@ -237,7 +247,8 @@ end
                         # abstol = 1e-5,
                         use_cuda = use_cuda,
                         maxiters = train_steps,
-                        batch_size=batch_size)
+                        batch_size=batch_size,
+                        cuda_device = cuda_device)
         u1 = sol[end]
         # value coming from \cite{Beck2017a}
         e_l2 = rel_error_l2(u1, 0.30879)
@@ -272,7 +283,7 @@ end
         X0 = fill(0f0,d)  # initial point
         g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
         a(u) = u - u^3
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = a.(v_y) # nonlocal nonlinear part of the
+        f(y, z, v_y, v_z, p, t) = a.(v_y) # nonlocal nonlinear part of the
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x = X0, neumann = u_domain )
@@ -284,7 +295,8 @@ end
                         abstol = 1e-5,
                         use_cuda = use_cuda,
                         maxiters = train_steps,
-                        batch_size=batch_size)
+                        batch_size=batch_size,
+                        cuda_device = cuda_device)
         u1 = sol[end]
         @test !isnan(u1)
         println("d = $d, u1 = $(u1)")
@@ -332,7 +344,8 @@ if false
                             # abstol = 1e-5,
                             use_cuda = use_cuda,
                             maxiters = train_steps,
-                            batch_size=batch_size)
+                            batch_size=batch_size,
+                            cuda_device = cuda_device)
             u1 = sol[end]
             @test !isnan(u1)
             println("d = $d, u1 = $(u1)")
@@ -382,7 +395,8 @@ if false
                         # abstol = 1e-5,
                         use_cuda = false,
                         maxiters = train_steps,
-                        batch_size=batch_size)
+                        batch_size=batch_size,
+                        cuda_device = cuda_device)
 
         u1 = sol[end]
 
@@ -434,7 +448,7 @@ end
     µc = 0.02f0
     σc = 0.2f0
 
-    f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = -(1f0 - δ) * Q.(v_y) .* v_y .- R * v_y
+    f(y, z, v_y, v_z, p, t) = -(1f0 - δ) * Q.(v_y) .* v_y .- R * v_y
 
     # defining the problem
     prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
@@ -446,7 +460,8 @@ end
                     # abstol = 1e-5,
                     use_cuda = use_cuda,
                     maxiters = train_steps,
-                    batch_size=batch_size)
+                    batch_size=batch_size,
+                    cuda_device = cuda_device)
 
     u1 = sol[end]
     analytical_ans = 60.781
@@ -505,7 +520,7 @@ end
         g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
         m(x) = - 5f-1 * sum(x.^2, dims=1)
         vol = prod(u_domain[2] - u_domain[1])
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
+        f(y, z, v_y, v_z, p, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, 
@@ -519,7 +534,8 @@ end
                         abstol = 1f-3,
                         maxiters = train_steps,
                         batch_size = batch_size,
-                        use_cuda = use_cuda
+                        use_cuda = use_cuda,
+                        cuda_device = cuda_device
                         )
         u1 = [sol[end](x)[] for x in xgrid]
         u1_anal = uanal.(xgrid, tspan[end], nothing)
@@ -558,7 +574,7 @@ end
             x = fill(0f0,d)  # initial point
             g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
             a(u) = u - u^3
-            f(y,z,v_y,v_z,∇v_y,∇v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
+            f(y,z,v_y,v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
 
             # defining the problem
             prob = PIDEProblem(g, f, μ, σ, tspan, x = x, neumann = u_domain)
@@ -569,6 +585,7 @@ end
                             # verbose = true, 
                             # abstol=1e-5,
                             use_cuda = use_cuda,
+                            cuda_device = cuda_device,
                             maxiters = train_steps,
                             batch_size=batch_size)
             push!(u1s, sol[end])

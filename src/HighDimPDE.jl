@@ -15,12 +15,12 @@ module HighDimPDE
         PIDEProblem(g, f, μ, σ, x, tspan, p = nothing, x=nothing, u_domain=nothing, neumann_bc=nothing)
 
     Defines a Partial Integro Differential Problem, of the form 
-    `du/dt = 1/2 Tr(\\sigma \\sigma^T) Δu(t,x) + μ ∇u(t,x) + \\int f(u,x) dx`,
+    `du/dt = 1/2 Tr(\\sigma \\sigma^T) Δu(t,x) + μ ∇u(t,x) + \\int f(x, y, u(x, t), u(y, t), p, t) dy`,
     where f is a nonlinear Lipschitz function
     
     # Arguments
     * `g` : The initial condition g(x, p, t).
-    * `f` : The function f(x, y, u(x, t), u(y, t), ∇u(x, t), ∇u(y, t), p, t)
+    * `f` : The function f(x, y, u(x, t), u(y, t), p, t)
     * `μ` : The drift function of X from Ito's Lemma μ(x, p, t)
     * `σ` : The noise function of X from Ito's Lemma σ(x, p, t)
     * `tspan`: The timespan of the problem.
@@ -64,7 +64,7 @@ module HighDimPDE
         "type of `neumann_bc` can be whether `Nothing` or Tuple{AbstractVector, AbstractVector}")
     isnothing(neumann_bc) ? nothing : @assert eltype(eltype(neumann_bc)) <: eltype(x)
     @assert eltype(g(x)) == eltype(x) "Type of `g(x)` must match type of x"
-    @assert(eltype(f(x, x, g(x), g(x), x, x, p, tspan[1])) == eltype(x),
+    @assert(eltype(f(x, x, g(x), g(x), p, tspan[1])) == eltype(x),
         "Type of non linear function `f(x)` must type of x")
 
     PIDEProblem{typeof(g(x)),

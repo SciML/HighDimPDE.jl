@@ -31,7 +31,6 @@ Returns a tuple `x0, ts, usol` where
 * `ts` is the time span.
 * `usol` is the scalar value of the solution, or the neural network approxmation if `u_domain` provided.
 """
-# function DiffEqBase.__solve(
 function solve(
         prob::PIDEProblem,
         alg::MLP;
@@ -52,19 +51,13 @@ function solve(
     !isnothing(prob.u_domain) ? error(
         "`MLP` algorithm cannot be solved on a domain, i.e with argument `u_domain`.") : nothing
     isnothing(x) ? error("`MLP` algorithm needs a grid 'x'") : nothing
-    # if !isnothing(neumann_bc) 
-    #     if !(typeof(mc_sample!) <: UniformSampling || typeof(mc_sample!) <: NoSampling)
-    #         error("Only `UniformSampling` or  is covered with Neumann BC")
-    #     end
-    # end
+
     if multithreading
         usol = _ml_picard_mlt(M, L, K, x, prob.tspan[1], prob.tspan[2], mc_sample!, g, f, verbose, prob, neumann_bc)
     else
         usol = _ml_picard(M, L, K, x, prob.tspan[1], prob.tspan[2], mc_sample!, g, f, verbose, prob, neumann_bc)
     end 
     return x, prob.tspan, [g(x),usol]
-    # sol = DiffEqBase.build_solution(prob,alg,ts,usol)
-    # save_everystep ? iters : u0(X0)[1]
 
 end
 
@@ -95,7 +88,7 @@ function _ml_picard(M, # monte carlo integration
     for l in 0:(min(L- 1, 1))
         verbose && println("loop l")
         b = zero(elxType)
-        num = M^(L - l) # ? why 0.5 in sebastian code?
+        num = M^(L - l)
         for k in 1:num
             verbose && println("loop k")
             r = s + (t - s) * rand(tType)
@@ -106,9 +99,8 @@ function _ml_picard(M, # monte carlo integration
             for h in 1:K
                 verbose && println("loop h")
                 mc_sample!(x3, x2)
-                #TODO:hardcode, not sure about t
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, 
-                    prob, neumann_bc), nothing, nothing, p, t)
+                    prob, neumann_bc), p, t)
             end
             b += b3 / K
         end
@@ -127,11 +119,10 @@ function _ml_picard(M, # monte carlo integration
                 # non local integration
             for h in 1:K
                 mc_sample!(x3, x2)
-                #TODO:hardcode, not sure about t
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, 
-                    prob, neumann_bc), nothing, nothing, p, t) - 
+                    prob, neumann_bc), p, t) - 
                     f(x2, x3, b4, _ml_picard(M, l - 1, K, x3, r, 
-                        t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t)
+                        t, mc_sample!, g, f, verbose, prob, neumann_bc), p, t)
             end
             b += b3 / K
         end
@@ -226,9 +217,8 @@ function _ml_picard_call(M, # monte carlo integration
             for h in 1:K # non local integration
                 verbose && println("loop h")
                 mc_sample!(x3, x2)
-                #TODO:hardcode, not sure about t
                 b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, 
-                    prob, neumann_bc), nothing, nothing, p, t)
+                    prob, neumann_bc), p, t)
             end
         b += b3 / K
         end
@@ -248,7 +238,7 @@ function _ml_picard_call(M, # monte carlo integration
                 # non local integration
             for h in 1:K
                 mc_sample!(x3, x2)
-                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) - f(x2, x3, b4, _ml_picard(M, l - 1, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), nothing, nothing, p, t) #TODO:hardcode, not sure about t
+                b3 += f(x2, x3, b2, _ml_picard(M, l, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), p, t) - f(x2, x3, b4, _ml_picard(M, l - 1, K, x3, r, t, mc_sample!, g, f, verbose, prob, neumann_bc), p, t) #TODO:hardcode, not sure about t
             end
         b += b3 / K
         end

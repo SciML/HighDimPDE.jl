@@ -28,8 +28,6 @@ function _reflect(a::T, b::T, s::T, e::T) where T <: Vector
     end
     while r < 1
         c = a + r * ( b - a )
-        # dat = hcat(a,c)
-        # Plots.plot3d!(dat[1,:],dat[2,:],dat[3,:],label = "",color="blue")
         a = c
         b = b - 2 * n * ( dot(b-c,n))
         r = 2;
@@ -51,8 +49,6 @@ function _reflect(a::T, b::T, s::T, e::T) where T <: Vector
             end
         end
     end
-    # dat = hcat(a,b)
-    # Plots.plot3d!(dat[1,:],dat[2,:],dat[3,:],label = "",color="blue")
     return b
 end
 

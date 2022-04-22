@@ -31,7 +31,7 @@ end
        
         alg = MLP()
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
+        f(y, z, v_y, v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x = x0)
@@ -63,7 +63,7 @@ end
        
         alg = MLP()
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
+        f(y, z, v_y, v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x = x0)
@@ -90,7 +90,7 @@ end
             # d = 10
             x0 = fill(3e-1,d)
             alg = MLP()
-            f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
+            f(y, z, v_y, v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
 
             # defining the problem
             prob = PIDEProblem(g, f, μ, σ, tspan, x = x0, neumann_bc = neumann_bc)
@@ -121,7 +121,7 @@ end
 
         alg = MLP()
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = r * v_y #TODO: this fix is not nice
+        f(y, z, v_y, v_z, p, t) = r * v_y #TODO: this fix is not nice
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x=x)
@@ -151,7 +151,7 @@ end
         X0 = fill(0f0,d)  # initial point
         g(X) =  1f0 ./ (2f0 .+ 4f-1 * sum(X.^2))   # initial condition
         a(u) = u - u^3
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = - a.(v_y)
+        f(y, z, v_y, v_z, p, t) = - a.(v_y)
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
@@ -181,7 +181,7 @@ end
         X0 = fill(0f0,d)  # initial point
         g(X) = exp.(-0.25f0 * sum(X.^2))   # initial condition
         a(u) = u - u^3
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = a.(v_y) # nonlocal nonlinear part of the
+        f(y, z, v_y, v_z, p, t) = a.(v_y) # nonlocal nonlinear part of the
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan, x = X0, neumann = neumann )
@@ -220,7 +220,7 @@ end
     µc = 0.02f0
     σc = 0.2f0
 
-    f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = -(1f0 - δ) * Q.(v_y) .* v_y .- R * v_y
+    f(y, z, v_y, v_z, p, t) = -(1f0 - δ) * Q.(v_y) .* v_y .- R * v_y
 
     # defining the problem
     prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
@@ -273,7 +273,7 @@ end
         g(x) = (2*π)^(-d/2) * ss0^(- d * 5e-1) * exp.(-5e-1 *sum(x .^2e0 / ss0)) # initial condition
         m(x) = - 5e-1 * sum(x.^2)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = max(0.0, v_y) * (m(y) - max(0.0, v_z) * m(z) * (2.0 * π)^(d/2) * σ_sampling^d * exp(0.5 * sum(z.^2) / σ_sampling^2)) # nonlocal nonlinear part of the
+        f(y, z, v_y, v_z, p, t) = max(0.0, v_y) * (m(y) - max(0.0, v_z) * m(z) * (2.0 * π)^(d/2) * σ_sampling^d * exp(0.5 * sum(z.^2) / σ_sampling^2)) # nonlocal nonlinear part of the
 
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, tspan,x=x)
@@ -306,7 +306,7 @@ end
             x = fill(0f0,d)  # initial point
             g(X) = exp.(-0.25f0 * sum(X.^2))   # initial condition
             a(u) = u - u^3
-            f(y,z,v_y,v_z,∇v_y,∇v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
+            f(y,z,v_y,v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
 
             # defining the problem
             prob = PIDEProblem(g, f, μ, σ, tspan, x = x, neumann = neumann)

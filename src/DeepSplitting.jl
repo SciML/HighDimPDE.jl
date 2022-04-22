@@ -127,12 +127,7 @@ function solve(
         "Element type of `mc_sample` not the same as element type of `x`")
 
     function splitting_model(y0, y1, z, t)
-        # TODO: for now hardcoded because of a bug in Zygote differentiation rules for adjoints
-        # vi_y1, ∇vi = Zygote.pullback(vi, y1)
-        # _int = reshape(sum(f(y1, z, vi_y1, vi(z), ∇vi(y1)[1], ∇vi(z)[1], p, t), dims = 3), 1, :)
-        ∇vi(x) = [0f0]
-        # Monte Carlo integration
-        _int = reshape(sum(f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(z), p, t), dims = 3), 1, :)
+        _int = reshape(sum(f(y1, z, vi(y1), vi(z), p, t), dims = 3), 1, :)
         return vj(y0) - (vi(y1) + dt * _int / K)
     end
 
