@@ -24,6 +24,7 @@ end
 
 # https://en.wikipedia.org/wiki/Heat_equation#Fundamental_solutions
 @testset "DeepSplitting - heat equation - single point" begin # solving at one unique point
+    batch_size = 10000
     for d in [1, 10, 50]
         println("test for d = ", d)
         tspan = (0f0, 5f-1)
@@ -36,6 +37,7 @@ end
 
         # d = 10
         x0 = fill(2f0,d)
+
         hls = d + 10 #hidden layer size
 
         nn = Flux.Chain(Dense(d,hls,relu),
@@ -48,17 +50,15 @@ end
         f(y, z, v_y, v_z, p, t) = 0f0 .* v_y
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, 
-                            x = x0
-                            )
+        prob = PIDEProblem(g, f, μ, σ, x0, tspan)
         # solving
-        xs,ts,sol = solve(prob, alg, dt, 
-                        verbose = false, 
-                        use_cuda = use_cuda,
-                        maxiters = 1000,
-                        batch_size = 10000,
-                        cuda_device = cuda_device)
-        u1 = sol[end]
+        sol = solve(prob, alg, dt, 
+                    verbose = true, 
+                    use_cuda = use_cuda,
+                    maxiters = 1000,
+                    batch_size = batch_size,
+                    cuda_device = cuda_device)
+        u1 = sol.us[end]
         u1_anal = u_anal(x0, tspan[end])
         e_l2 = rel_error_l2(u1, u1_anal)
         println("rel_error_l2 = ", e_l2, "\n")
@@ -67,6 +67,7 @@ end
 end
 
 @testset "DeepSplitting - heat equation - interval" begin # solving on interval [-5f-1, 5f-1]^d
+    batch_size = 20000
     for d in [1, 10, 50]
         println("test for d = ", d)
         tspan = (0f0, 5f-1)
@@ -78,7 +79,9 @@ end
         g(x) = sum(x.^2, dims=1)
 
         # d = 10
-        u_domain = (fill(-5f-1, d), fill(5f-1, d))
+        x0_sample = UniformSampling(fill(-5f-1, d), fill(5f-1, d))
+        x0 = fill(2f0,d)
+
         hls = d + 10 #hidden layer size
 
         nn = Flux.Chain(Dense(d,hls,relu),
@@ -91,16 +94,17 @@ end
         f(y, z, v_y, v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, u_domain = u_domain)
+        prob = PIDEProblem(g, f, μ, σ, x0, tspan, x0_sample = x0_sample)
         # solving
-        xs,ts,sol = solve(prob, alg, dt, 
-                        verbose = false, 
-                        use_cuda = use_cuda,
-                        maxiters = 1000,
-                        batch_size = 20000,
-                        cuda_device = cuda_device)
-        u1 = [sol[end](x)[] for x in xs]
-        u1_anal = u_anal.(xs, tspan[end])
+        sol = solve(prob, alg, dt, 
+                    verbose = false, 
+                    use_cuda = use_cuda,
+                    maxiters = 1000,
+                    batch_size = batch_size,
+                    cuda_device = cuda_device)
+        xs = x0_sample(repeat(x0,1,batch_size))
+        u1 = [sol.ufuns[end](x)[] for x in eachcol(xs)]
+        u1_anal = [u_anal(x, tspan[end]) for x in eachcol(xs) ]
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
         println("rel_error_l2 = ", e_l2, "\n")
         @test e_l2 < 0.1
@@ -110,8 +114,10 @@ end
 @testset "DeepSplitting - heat equation - interval - Neumann BC" begin
     # no known analytical solutions, so we compare 2 runs
     sols = []
-    xs = []
     d = 5
+    x0_sample = UniformSampling(fill(-5f-1, d), fill(5f-1, d))
+    x0 = fill(2f0,d)
+    batch_size = 20000
     for _ in 1:2
         tspan = (0f0, 5f-1)
         dt = 5f-1  # time step
@@ -121,8 +127,6 @@ end
         u_anal(x, t) = sum(x.^2) + d * σ(0., 0., 0.)^2 * t
         g(x) = sum(x.^2, dims=1)
 
-        # d = 10
-        u_domain = (fill(-5f-1, d), fill(5f-1, d))
         hls = d + 10 #hidden layer size
 
         nn = Flux.Chain(Dense(d,hls,relu),
@@ -135,23 +139,24 @@ end
         f(y, z, v_y, v_z, p, t) = 0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, 
-                            u_domain = u_domain,
-                            neumann = u_domain
+        prob = PIDEProblem(g, f, μ, σ, x0, tspan, 
+                            x0_sample = x0_sample,
+                            neumann = x0_sample
                             )
         # solving
-        xs,ts,sol = solve(prob, alg, dt, 
-                        verbose = false, 
-                        use_cuda = use_cuda,
-                        maxiters = 1000,
-                        batch_size = 20000,
-                        cuda_device = cuda_device
-                        )
-        push!(sols, sol[end])
+        sol = solve(prob, alg, dt, 
+                    verbose = false, 
+                    use_cuda = use_cuda,
+                    maxiters = 1000,
+                    batch_size = batch_size,
+                    cuda_device = cuda_device
+                    )
+        push!(sols, sol)
     end
-    u1 = [sols[1](x)[] for x in xs]
-    u1_anal = [sols[2](x)[] for x in xs]
-    e_l2 = mean(rel_error_l2.(u1, u1_anal))
+    xs = x0_sample(repeat(x0,1,batch_size))
+    u1 = [sols[1].ufuns[end](x)[] for x in eachcol(xs)]
+    u2 = [sols[2].ufuns[end](x)[] for x in eachcol(xs)]
+    e_l2 = mean(rel_error_l2.(u1, u2))
     println("rel_error_l2 = ", e_l2, "\n")
     @test e_l2 < 0.1
 
@@ -166,6 +171,7 @@ end
 end
 
 @testset "DeepSplitting - exponential - interval" begin
+    batch_size = 100
     for d in [1, 3, 10]
         println("test for d = ", d)
         tspan = (0f0, 5f-1)
@@ -178,7 +184,9 @@ end
         g(x) = sum(x.^2, dims=1) .+ 2f0
 
         # d = 10
-        u_domain = (fill(-5f-1, d), fill(5f-1, d))
+        x0_sample = UniformSampling(fill(-5f-1, d), fill(5f-1, d))
+        x0 = fill(2f0,d)
+
         hls = d + 50 #hidden layer size
 
         nn = Flux.Chain(Dense(d,hls,relu),
@@ -191,18 +199,20 @@ end
         f(y, z, v_y, v_z, p, t) = r * v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, 
-                            u_domain = u_domain,
+        prob = PIDEProblem(g, f, μ, σ, x0, tspan, 
+                            x0_sample = x0_sample,
                             )
         # solving
-        xs,ts,sol = solve(prob, alg, dt, 
-                        verbose = false, 
-                        use_cuda = use_cuda,
-                        maxiters = 1000,
-                        batch_size = 100,
-                        cuda_device = cuda_device)
-        u1 = [sol[end](x)[] for x in xs]
-        u1_anal = u_anal.(xs, tspan[end])
+        sol = solve(prob, alg, dt, 
+                    verbose = false, 
+                    use_cuda = use_cuda,
+                    maxiters = 1000,
+                    batch_size = batch_size,
+                    cuda_device = cuda_device)
+        
+        xs = x0_sample(repeat(x0,1,batch_size))
+        u1 = [sol.ufuns[end](x)[] for x in eachcol(xs)]
+        u1_anal = [u_anal(x, tspan[end]) for x in eachcol(xs) ]
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
         println("rel_error_l2 = ", e_l2, "\n")
         @test e_l2 < 0.1
@@ -238,9 +248,9 @@ end
         f(y, z, v_y, v_z, p, t) = - a.(v_y) # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
+        prob = PIDEProblem(g, f, μ, σ, X0, tspan,)
         # solving
-        @time xs,ts,sol = solve(prob, 
+        @time sol = solve(prob, 
                         alg, 
                         dt, 
                         verbose = false, 
@@ -249,7 +259,7 @@ end
                         maxiters = train_steps,
                         batch_size=batch_size,
                         cuda_device = cuda_device)
-        u1 = sol[end]
+        u1 = sol.us[end]
         # value coming from \cite{Beck2017a}
         e_l2 = rel_error_l2(u1, 0.30879)
         @test e_l2 < 0.5 # this is quite high as a relative error. 
@@ -268,7 +278,7 @@ end
     σ(x, p, t) = 1f0 # diffusion coefficients
 
     for d in [1,2,5]
-        u_domain = (fill(-5f-1, d), fill(5f-1, d))
+        x0_sample = (fill(-5f-1, d), fill(5f-1, d))
 
         hls = d + 50 #hidden layer size
 
@@ -286,9 +296,9 @@ end
         f(y, z, v_y, v_z, p, t) = a.(v_y) # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x = X0, neumann = u_domain )
+        prob = PIDEProblem(g, f, μ, σ, X0, tspan, neumann = x0_sample )
         # solving
-        @time xs,ts,sol = solve(prob, 
+        @time sol = solve(prob, 
                         alg, 
                         dt, 
                         verbose = false, 
@@ -297,7 +307,7 @@ end
                         maxiters = train_steps,
                         batch_size=batch_size,
                         cuda_device = cuda_device)
-        u1 = sol[end]
+        u1 = sol.us[end]
         @test !isnan(u1)
         println("d = $d, u1 = $(u1)")
     end
@@ -335,7 +345,7 @@ if false
             f(y,z,v_y,v_z,∇v_y,∇v_z, p, t) = r * (v_y .- sum(y .* ∇v_y, dims=1))
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
+            prob = PIDEProblem(g, f, μ, σ, X0, tspan)
             # solving
             @time xs,ts,sol = solve(prob, 
                             alg, 
@@ -386,9 +396,9 @@ if false
         f(y,z,v_y,v_z,∇v_y,∇v_z, p, t) = λ * sum(∇v_y.^2, dims=1)
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
+        prob = PIDEProblem(g, f, μ, σ, X0, tspan)
         # solving
-        @time xs,ts,sol = solve(prob, 
+        @time sol = solve(prob, 
                         alg, 
                         dt, 
                         verbose = true, 
@@ -398,7 +408,7 @@ if false
                         batch_size=batch_size,
                         cuda_device = cuda_device)
 
-        u1 = sol[end]
+        u1 = sol.us[end]
 
         analytical_ans = u_analytical(x0, tspan[1])
         error_l2 = rel_error_l2(u1, analytical_ans)
@@ -451,9 +461,9 @@ end
     f(y, z, v_y, v_z, p, t) = -(1f0 - δ) * Q.(v_y) .* v_y .- R * v_y
 
     # defining the problem
-    prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
+    prob = PIDEProblem(g, f, μ, σ, X0, tspan, )
     # solving
-    @time xs,ts,sol = solve(prob, 
+    @time sol = solve(prob, 
                     alg, 
                     dt, 
                     verbose = true, 
@@ -463,7 +473,7 @@ end
                     batch_size=batch_size,
                     cuda_device = cuda_device)
 
-    u1 = sol[end]
+    u1 = sol.us[end]
     analytical_ans = 60.781
     error_l2 = rel_error_l2(u1, analytical_ans)
     @test error_l2 < 0.1
@@ -474,7 +484,7 @@ end
 ########### NON LOCAL #############################
 ###################################################
 
-@testset "DeepSplitting - Hamel example - udomain" begin
+@testset "DeepSplitting - Hamel example - x0_sample" begin
     tspan = (0f0,15f-2)
     dt = 5f-2 # time step
     μ(x, p, t) = 0f0 # advection coefficients
@@ -494,11 +504,12 @@ end
             return (2*π)^(-d/2) * prod(_SS(x, t, p) .^(-1/2)) * exp(-0.5 *sum(x .^2 ./ _SS(x, t, p)) )
     end
 
-    sols = []
-    xs = []
     for d in [5]
         U = 25f-2
-        u_domain = (fill(-U, d), fill(U, d))
+
+        ∂ = fill(U, d)
+        x0_sample = UniformSampling(-∂, ∂)
+        x0 = fill(0f0, d)
 
         batch_size = 10000
         train_steps = 2000
@@ -515,34 +526,35 @@ end
                             Dense(hls, 1, x->x^2)) # positive function
 
         opt = ADAM(1e-2)#optimiser
-        alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1], u_domain[2]) )
+        alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = x0_sample)
 
         g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
         m(x) = - 5f-1 * sum(x.^2, dims=1)
-        vol = prod(u_domain[2] - u_domain[1])
+        vol = prod(2*∂)
         f(y, z, v_y, v_z, p, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, 
-                            u_domain = u_domain
+        prob = PIDEProblem(g, f, μ, σ, x0, tspan, 
+                            x0_sample = x0_sample
                             )
         # solving
-        xgrid,ts,sol = solve(prob, 
-                        alg, 
-                        dt, 
-                        verbose = false, 
-                        abstol = 1f-3,
-                        maxiters = train_steps,
-                        batch_size = batch_size,
-                        use_cuda = use_cuda,
-                        cuda_device = cuda_device
-                        )
-        u1 = [sol[end](x)[] for x in xgrid]
-        u1_anal = uanal.(xgrid, tspan[end], nothing)
+        sol = solve(prob, 
+                    alg, 
+                    dt, 
+                    verbose = false, 
+                    abstol = 1f-3,
+                    maxiters = train_steps,
+                    batch_size = batch_size,
+                    use_cuda = use_cuda,
+                    cuda_device = cuda_device
+                    )
+        xs = x0_sample(repeat(x0,1,batch_size))
+        u1 = [sol.ufuns[end](x)[] for x in eachcol(xs)]
+        u1_anal = [u_anal(x, tspan[end]) for x in eachcol(xs) ]
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
+        println("analytical sol: $(uanal(x0, tspan[end], nothing)) \napproximation: $(sol.ufuns[end](x0)[])")
         println("rel_error_l2 = ", e_l2, "\n")
         @test e_l2 < 0.1
-        push!(sols, sol[end])
     end
 end
 
@@ -560,7 +572,7 @@ end
     for d in [1,2,5]
         u1s = []
         for _ in 1:2
-            u_domain = (fill(-5f-1, d), fill(5f-1, d))
+            x0_sample = (fill(-5f-1, d), fill(5f-1, d))
 
             hls = d + 50 #hidden layer size
 
@@ -569,17 +581,17 @@ end
                             Dense(hls,1)) # Neural network used by the scheme
 
             opt = ADAM(1e-2) #optimiser
-            alg = DeepSplitting(nn, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1],u_domain[2]) )
+            alg = DeepSplitting(nn, K=K, opt = opt, mc_sample = UniformSampling(x0_sample[1],x0_sample[2]) )
 
-            x = fill(0f0,d)  # initial point
+            x0 = fill(0f0,d)  # initial point
             g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
             a(u) = u - u^3
             f(y,z,v_y,v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, tspan, x = x, neumann = u_domain)
+            prob = PIDEProblem(g, f, μ, σ, x0, tspan, neumann = x0_sample)
             # solving
-            @time xs,ts,sol = solve(prob, 
+            @time sol = solve(prob, 
                             alg, 
                             dt, 
                             # verbose = true, 
@@ -588,8 +600,8 @@ end
                             cuda_device = cuda_device,
                             maxiters = train_steps,
                             batch_size=batch_size)
-            push!(u1s, sol[end])
-            println("d = $d, u1 = $(sol[end])")
+            push!(u1s, sol.us[end])
+            println("d = $d, u1 = $(sol.us[end])")
 
         end
         e_l2 = mean(rel_error_l2.(u1s[1], u1s[2]))

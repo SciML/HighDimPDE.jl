@@ -40,18 +40,22 @@ solve(prob::PIDEProblem,
     abstol = 1f-6,
     verbose = false,
     maxiters = 300,
-    use_cuda = false)
+    use_cuda = false,
+    cuda_device = nothing,
+    verbose_rate = 100)
 
-Returns a tuple `x0, ts, usol, lossmax` where
-* `x0` is the array of point(s) of the domain on which solution has been evaluated.
-* `ts` is the time span.
-* `usol` is the scalar value of the solution, or the neural network approxmation if `u_domain` provided.
-* `lossmax` is the maximum loss value across all time steps.
+Returns a `PIDESolution` object.
 
 # Arguments
 - maxiters: number of iterations per time step. Can be a tuple, 
 where `maxiters[1]` is used for the training of the neural network used in 
 the first time step (which can be long) and `maxiters[2]` is used for the rest of the time steps.
+- `batch_size` : the batch size
+- `abstol` : threshold for the objective function under which the training is stopped.
+- `verbose` : print training information
+- `use_cuda` : use cuda
+-  `cuda_device` : integer, to set the cuda device used in the training, if `use_cuda`
+- `verbose_rate` : print training information every `verbose_rate` iterations
 """
 function solve(
     prob::PIDEProblem,
@@ -62,7 +66,8 @@ function solve(
     verbose = false,
     maxiters = 300,
     use_cuda = false,
-    cuda_device = nothing
+    cuda_device = nothing,
+    verbose_rate = 100
     )
     if use_cuda
         if CUDA.functional()
@@ -79,11 +84,10 @@ function solve(
     end
 
     ## unbin stuff
-    # domain on which we want to approximate u, nothing if only one point wanted
-    u_domain = prob.u_domain |> _device 
     neumann_bc = prob.neumann_bc |> _device
     x0 = prob.x |> _device
     mc_sample! =  alg.mc_sample! |> _device
+    x0_sample! = prob.x0_sample |> _device 
 
     d  = size(x0,1)
     K = alg.K
@@ -102,25 +106,19 @@ function solve(
       end   
     ps = Flux.params(vj)
 
-    # output solution
-    if isnothing(u_domain)
-        sample_initial_points! = NoSampling()
-        usol = [g(x0 |>cpu)[]]
-    else
-        usol = Any[g]
-        sample_initial_points! = UniformSampling(u_domain[1], u_domain[2])
-    end
-
     dt = convert(T,dt)
     ts = prob.tspan[1]:dt-eps(T):prob.tspan[2]
     N = length(ts) - 1
+
+    usol = [g(x0 |>cpu)[]]
+    nns = Any[g]
+    losses = [Vector{eltype(prob.x)}() for net in 1:N+1]
 
     # allocating
     x0_batch = repeat(x0, 1, batch_size)
     y1 = similar(x0_batch)
     y0 = similar(y1)
     z = similar(x0, d, batch_size, K) # for MC non local integration
-    lossmax = zero(T)
 
     # checking element types
     eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing : error(
@@ -139,7 +137,7 @@ function solve(
     # calculating SDE trajectories
     function sde_loop!(y0, y1, dWall)
         randn!(dWall) # points normally distributed for brownian motion
-        sample_initial_points!(y1) # points uniformly distributed for initial conditions
+        x0_sample!(y1) # points uniformly distributed for initial conditions
         for i in 1:size(dWall,3)
             t = ts[N + 1 - i]
             dW = @view dWall[:,:,i]
@@ -180,18 +178,18 @@ function solve(
                 Flux.Optimise.update!(opt_net, ps, gs) # update parameters
                 
                 # report on training
-                if epoch % 100 == 1
-                    l = loss(y0, y1, z, t)
+                if epoch % verbose_rate == 1
+                    l = loss(y0, y1, z, t) # explictly computing loss every verbose_rate
                     verbose && println("Current loss is: $l")
+                    push!(losses[net], l)
                     if l < abstol
-                        lossmax = max(l,lossmax)
                         break
                     end
                 end
                 if epoch == maxiters
                     l = loss(y0, y1, z, t)
-                    lossmax = max(l,lossmax)
-                    verbose && println("Current loss is: $l")
+                    push!(losses[net], l)
+                    verbose && println("Final loss for step $(net) / $(N) is: $l")
                 end
             end
         end
@@ -203,24 +201,12 @@ function solve(
           end   
         # vj = deepcopy(nn)
         # ps = Flux.params(vj)
-        if isnothing(u_domain)
-            # reshape used in the case where there are some normalisation in layers
-            push!(usol, cpu(vi(reshape(x0, d, 1)))[] )
-        else
-            push!(usol, vi |> cpu)
-        end
+        push!(usol, cpu(vi(reshape(x0, d, 1)))[])
+        push!(nns, vi |> cpu)
     end
 
     # return
-    if isnothing(u_domain)
-        # sol = DiffEqBase.build_solution(prob, alg, ts, usol)
-        x0 = x0 |> cpu
-        sol = x0, ts, usol, lossmax
-    else
-        sample_initial_points!(y1)
-        xgrid = [reshape(y1[:,i], d, 1) for i in 1:size(y1,2)] .|> cpu #reshape needed for batch size
-        sol = xgrid, ts, usol, lossmax
-    end
+    sol = PIDESolution(x0, ts, losses, usol, nns)
     return sol
 end
 

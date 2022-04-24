@@ -66,10 +66,10 @@ prob = PIDEProblem(g, f, μ, σ, tspan, x = x)
 ```
 
 ### Hypercube
-Yet more generally, one wants to solve Eq. (1) on a $d$-dimensional cube $[a,b]^d$. This is offered by `HighDimPDE.jl` with the keyworkd `u_domain`.
+Yet more generally, one wants to solve Eq. (1) on a $d$-dimensional cube $[a,b]^d$. This is offered by `HighDimPDE.jl` with the keyworkd `x0_sample`.
 
 ```julia
-prob = PIDEProblem(g, f, μ, σ, tspan, u_domain = u_domain)
+prob = PIDEProblem(g, f, μ, σ, tspan, x0_sample = x0_sample)
 ```
 Internally, this is handled by assigning a random variable as the initial point of the particles, i.e.
 ```math

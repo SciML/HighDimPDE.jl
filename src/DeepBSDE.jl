@@ -31,7 +31,7 @@ function DiffEqBase.solve(
     g,f,μ,σ = prob.g,prob.f,prob.μ,prob.σ
     p = prob.p isa AbstractArray ? prob.p : Float32[]
     A = prob.A
-    u_domain = prob.u_domain
+    x0_sample = prob.x0_sample
     data = Iterators.repeated((), maxiters)
 
 
@@ -180,10 +180,10 @@ function DiffEqBase.solve(
                     dW = sqrt(dt)*randn(d)
                     u = u - f(X, u, _σᵀ∇u, p, t)*dt + _σᵀ∇u'*dW
                     X  = X .+ μ(X,p,t)*dt .+ σ(X,p,t)*dW
-                    f_matrix = give_f_matrix(X , u_domain, _σᵀ∇u, p, ts[i])
-                    a_ = A[findmax(collect(A).*u .- collect(legendre_transform(f_matrix, a, u_domain) for a in A))[2]]
+                    f_matrix = give_f_matrix(X , x0_sample, _σᵀ∇u, p, ts[i])
+                    a_ = A[findmax(collect(A).*u .- collect(legendre_transform(f_matrix, a, x0_sample) for a in A))[2]]
                     I = I + a_*dt
-                    Q = Q + exp(I)*legendre_transform(f_matrix, a_, u_domain)
+                    Q = Q + exp(I)*legendre_transform(f_matrix, a_, x0_sample)
                 end
                 I , Q , X
             end

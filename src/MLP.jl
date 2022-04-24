@@ -26,10 +26,7 @@ solve(prob::PIDEProblem,
     multithreading=true,
     verbose=false)
 
-Returns a tuple `x0, ts, usol` where
-* `x0` is the array of point(s) of the domain on which solution has been evaluated.
-* `ts` is the time span.
-* `usol` is the scalar value of the solution, or the neural network approxmation if `u_domain` provided.
+Returns a tuple `PIDESolution`.
 """
 function solve(
         prob::PIDEProblem,
@@ -48,17 +45,15 @@ function solve(
     g, f = prob.g, prob.f
 
     # errors
-    !isnothing(prob.u_domain) ? error(
-        "`MLP` algorithm cannot be solved on a domain, i.e with argument `u_domain`.") : nothing
-    isnothing(x) ? error("`MLP` algorithm needs a grid 'x'") : nothing
+    typeof(prob.x0_sample) <: NoSampling ? nothing : error(
+        "`MLP` algorithm can only be used with `x0_sample=NoSampling()`.")
 
     if multithreading
         usol = _ml_picard_mlt(M, L, K, x, prob.tspan[1], prob.tspan[2], mc_sample!, g, f, verbose, prob, neumann_bc)
     else
         usol = _ml_picard(M, L, K, x, prob.tspan[1], prob.tspan[2], mc_sample!, g, f, verbose, prob, neumann_bc)
     end 
-    return x, prob.tspan, [g(x),usol]
-
+    return PIDESolution(x, [prob.tspan...], nothing,[g(x),usol], nothing)
 end
 
 function _ml_picard(M, # monte carlo integration

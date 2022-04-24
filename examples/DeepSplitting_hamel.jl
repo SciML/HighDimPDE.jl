@@ -21,7 +21,7 @@ dt = 5f-2 # time step
 d = 5
 ss0 = 5f-2#std g0
 U = 25f-2
-u_domain = (fill(-U, d), fill(U, d))
+x0_sample = (fill(-U, d), fill(U, d))
 
 ##############################
 ####### Neural Network #######
@@ -49,12 +49,12 @@ alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = NormalSampling(1f0) )
 ##########################
 g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
 m(x) = - 5f-1 * sum(x.^2, dims=1)
-vol = prod(u_domain[2] - u_domain[1])
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) =  v_y .* (m(y) .- vol * v_z .* m(z) ) # nonlocal nonlinear part of the
+vol = prod(x0_sample[2] - x0_sample[1])
+f(y, z, v_y, v_z, p, t) =  v_y .* (m(y) .- vol * v_z .* m(z) ) # nonlocal nonlinear part of the
 
 # defining the problem
 prob = PIDEProblem(g, f, μ, σ, tspan, 
-                    u_domain = u_domain
+                    x0_sample = x0_sample
                     )
 # solving
 @time xgrid,ts,sol = solve(prob, 
@@ -116,7 +116,7 @@ if plotting
         #####
         if false
                 dx = 0.05
-                x = u_domain[1,1]:dx:u_domain[1,2]
+                x = x0_sample[1,1]:dx:x0_sample[1,2]
                 plt.contourf(x,x,g.(repeat(x,2)))
         end
 end

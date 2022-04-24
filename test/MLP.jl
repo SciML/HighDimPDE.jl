@@ -34,10 +34,10 @@ end
         f(y, z, v_y, v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x = x0)
+        prob = PIDEProblem(g, f, μ, σ, x0, tspan)
         # solving
-        xs,ts,sol = solve(prob, alg, multithreading = false)
-        u1 = sol[end]
+        sol = solve(prob, alg, multithreading = false)
+        u1 = sol.us[end]
         u1_anal = u_anal(x0, tspan[end])
         e_l2 = rel_error_l2(u1, u1_anal)
         println("rel_error_l2 = ", e_l2, "\n")
@@ -66,10 +66,10 @@ end
         f(y, z, v_y, v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x = x0)
+        prob = PIDEProblem(g, f, μ, σ, x0, tspan)
         # solving
-        xs,ts,sol = solve(prob, alg, multithreading = true)
-        u1 = sol[end]
+        sol = solve(prob, alg, multithreading = true)
+        u1 = sol.us[end]
         u1_anal = u_anal(x0, tspan[end])
         e_l2 = rel_error_l2(u1, u1_anal)
         println("rel_error_l2 = ", e_l2, "\n")
@@ -93,11 +93,11 @@ end
             f(y, z, v_y, v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, tspan, x = x0, neumann_bc = neumann_bc)
+            prob = PIDEProblem(g, f, μ, σ, x0, tspan, neumann_bc = neumann_bc)
             # solving
-            xs,ts,sol = solve(prob, alg)
-            push!(u1s, sol[end])
-            println("d = $d, u1 = $(sol[end])")
+            sol = solve(prob, alg)
+            push!(u1s, sol.us[end])
+            println("d = $d, u1 = $(sol.us[end])")
 
         end
         e_l2 = mean(rel_error_l2.(u1s[1], u1s[2]))
@@ -124,11 +124,11 @@ end
         f(y, z, v_y, v_z, p, t) = r * v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x=x)
+        prob = PIDEProblem(g, f, μ, σ, x, tspan)
         # solving
-        xs,ts,sol = solve(prob, alg)
-        u1 = sol[end]
-        u1_anal = u_anal.(xs, tspan[end])
+        sol = solve(prob, alg)
+        u1 = sol.us[end]
+        u1_anal = u_anal(x, tspan[end])
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
         println("rel_error_l2 = ", e_l2, "\n")
         @test e_l2 < 0.1
@@ -154,10 +154,10 @@ end
         f(y, z, v_y, v_z, p, t) = - a.(v_y)
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
+        prob = PIDEProblem(g, f, μ, σ, X0, tspan )
         # solving
-        xs,ts,sol = solve(prob, alg,)
-        u1 = sol[end]
+        sol = solve(prob, alg,)
+        u1 = sol.us[end]
         # value coming from \cite{Beck2017a}
         e_l2 = rel_error_l2(u1, 0.30879)
         @test e_l2 < 0.5 # this is quite high as a relative error. 
@@ -184,10 +184,10 @@ end
         f(y, z, v_y, v_z, p, t) = a.(v_y) # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan, x = X0, neumann = neumann )
+        prob = PIDEProblem(g, f, μ, σ, X0, tspan, neumann = neumann )
         # solving
-        xs,ts,sol = solve(prob, alg, )
-        u1 = sol[end]
+        sol = solve(prob, alg, )
+        u1 = sol.us[end]
         @test !isnan(u1)
         println("d = $d, u1 = $(u1)")
     end
@@ -223,11 +223,11 @@ end
     f(y, z, v_y, v_z, p, t) = -(1f0 - δ) * Q.(v_y) .* v_y .- R * v_y
 
     # defining the problem
-    prob = PIDEProblem(g, f, μ, σ, tspan, x = X0 )
+    prob = PIDEProblem(g, f, μ, σ, X0, tspan)
     # solving
-    xs,ts,sol = solve(prob, alg, )
+    sol = solve(prob, alg, )
 
-    u1 = sol[end]
+    u1 = sol.us[end]
 
     analytical_ans = 60.781
     error_l2 = rel_error_l2(u1, analytical_ans)
@@ -262,8 +262,6 @@ end
             return (2*π)^(-d/2) * prod(_SS(x, t, p) .^(-1/2)) * exp(-0.5 *sum(x .^2 ./ _SS(x, t, p)) )
     end
 
-    sols = []
-    xs = []
     for d in [1, 2, 5]
 
         x = fill(0e0, d)
@@ -276,15 +274,14 @@ end
         f(y, z, v_y, v_z, p, t) = max(0.0, v_y) * (m(y) - max(0.0, v_z) * m(z) * (2.0 * π)^(d/2) * σ_sampling^d * exp(0.5 * sum(z.^2) / σ_sampling^2)) # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, tspan,x=x)
+        prob = PIDEProblem(g, f, μ, σ, x, tspan)
         # solving
-        xgrid,ts,sol = solve(prob, alg,)
-        u1 = sol[end]
+        sol = solve(prob, alg,)
+        u1 = sol.us[end]
         u1_anal = uanal(x,tspan[2],Dict())
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
         println("rel_error_l2 = ", e_l2, "\n")
         @test e_l2 < 0.1
-        push!(sols, sol[end])
     end
 end
 
@@ -309,11 +306,11 @@ end
             f(y,z,v_y,v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, tspan, x = x, neumann = neumann)
+            prob = PIDEProblem(g, f, μ, σ, x, tspan, neumann = neumann)
             # solving
-            xs,ts,sol = solve(prob, alg)
-            push!(u1s, sol[end])
-            println("d = $d, u1 = $(sol[end])")
+            sol = solve(prob, alg)
+            push!(u1s, sol.us[end])
+            println("d = $d, u1 = $(u1s[end])")
 
         end
         e_l2 = mean(rel_error_l2.(u1s[1], u1s[2]))

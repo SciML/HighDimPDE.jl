@@ -12,7 +12,7 @@ module HighDimPDE
     abstract type HighDimPDEAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
 
     """
-        PIDEProblem(g, f, μ, σ, x, tspan, p = nothing, x=nothing, u_domain=nothing, neumann_bc=nothing)
+        PIDEProblem(g, f, μ, σ, x, tspan, p = nothing, x0_sample=nothing, neumann_bc=nothing)
 
     Defines a Partial Integro Differential Problem, of the form 
     `du/dt = 1/2 Tr(\\sigma \\sigma^T) Δu(t,x) + μ ∇u(t,x) + \\int f(x, y, u(x, t), u(y, t), p, t) dy`,
@@ -23,11 +23,11 @@ module HighDimPDE
     * `f` : The function f(x, y, u(x, t), u(y, t), p, t)
     * `μ` : The drift function of X from Ito's Lemma μ(x, p, t)
     * `σ` : The noise function of X from Ito's Lemma σ(x, p, t)
+    * `x`: the point of the solution required
     * `tspan`: The timespan of the problem.
     * `p`: the parameter 
-    * `x`: the point of the solution required
-    * `u_domain` : if provided, approximating the solution on the hypercube 
-    `u_domain[1] × u_domain[2]`. 
+    * `x0_sample` : if provided, approximating the solution on the hypercube 
+    `x0_sample[1] × x0_sample[2]`. 
     * `neumann_bc`: if provided, neumann boundary conditions on the hypercube 
     `neumann_bc[1] × neumann_bc[2]`. 
     """
@@ -40,26 +40,18 @@ module HighDimPDE
         x::xType
         tspan::Tuple{tType,tType}
         p::P
-        u_domain::UD # for DeepSplitting only
+        x0_sample::UD # for DeepSplitting only
         neumann_bc::NBC # neumann boundary conditions
         kwargs::K
     end 
 
-    function PIDEProblem(g, f, μ, σ, tspan;
+    function PIDEProblem(g, f, μ, σ, x::Vector{X}, tspan;
                                     p=nothing,
-                                    x=nothing,
-                                    u_domain=nothing,
+                                    x0_sample=NoSampling(),
                                     neumann_bc=nothing,
-                                    kwargs...)
+                                    kwargs...) where {X <: AbstractFloat}
 
-    @assert !isnothing(x) ⊻ !isnothing(u_domain) "Need to provide whether `x` or `u_domain`"
-    !isnothing(u_domain) ? x = first(u_domain) : nothing # x is required for even when solving on u_domain
-    @assert eltype(x) <: AbstractFloat "`x` should be a Float"
     @assert eltype(tspan) <: AbstractFloat "`tspan` should be a tuple of Float"
-    @assert(typeof(u_domain) <: Union{Nothing,Tuple},
-        "type of `u_domain` can be whether `Nothing` or Tuple{AbstractVector, AbstractVector}")
-    isnothing(u_domain) ? nothing : @assert(eltype(eltype(u_domain)) <: AbstractFloat,
-        "`tspan` should be a tuple of Float")
     @assert(typeof(neumann_bc) <: Union{Nothing,Tuple},
         "type of `neumann_bc` can be whether `Nothing` or Tuple{AbstractVector, AbstractVector}")
     isnothing(neumann_bc) ? nothing : @assert eltype(eltype(neumann_bc)) <: eltype(x)
@@ -75,18 +67,26 @@ module HighDimPDE
                 typeof(x),
                 eltype(tspan),
                 typeof(p),
-                typeof(u_domain),
+                typeof(x0_sample),
                 typeof(neumann_bc),
                 typeof(kwargs)}(
-                g(x), g, f, μ, σ, x, tspan, p, u_domain, neumann_bc, kwargs)
+                g(x), g, f, μ, σ, x, tspan, p, x0_sample, neumann_bc, kwargs)
     end
 
     Base.summary(prob::PIDEProblem) = string(nameof(typeof(prob)))
 
     function Base.show(io::IO, A::PIDEProblem)
-    println(io, summary(A))
-    print(io, "timespan: ")
-    show(io, A.tspan)
+        println(io, summary(A))
+        print(io, "timespan: ")
+        show(io, A.tspan)
+    end
+
+    struct PIDESolution{X0,Ts,L,Us,NNs}
+        x0::X0
+        ts::Ts
+        losses::L 
+        us::Us # array of solution evaluated at x0, ts[i]
+        ufuns::NNs # array of parametric functions
     end
 
     include("MCSample.jl")
@@ -94,7 +94,7 @@ module HighDimPDE
     include("DeepSplitting.jl")
     include("MLP.jl")
 
-    export PIDEProblem, DeepSplitting, MLP
+    export PIDEProblem, PIDESolution, DeepSplitting, MLP
 
     export NormalSampling, UniformSampling, NoSampling, solve
 end
