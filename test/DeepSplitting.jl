@@ -115,9 +115,10 @@ end
     # no known analytical solutions, so we compare 2 runs
     sols = []
     d = 5
-    x0_sample = UniformSampling(fill(-5f-1, d), fill(5f-1, d))
-    x0 = fill(2f0,d)
-    batch_size = 20000
+    ∂ = fill(5f-1, d)
+    x0_sample = UniformSampling(-∂, ∂)
+    x0 = fill(25f-2,d)
+    batch_size = 1000
     for _ in 1:2
         tspan = (0f0, 5f-1)
         dt = 5f-1  # time step
@@ -141,7 +142,7 @@ end
         # defining the problem
         prob = PIDEProblem(g, f, μ, σ, x0, tspan, 
                             x0_sample = x0_sample,
-                            neumann = x0_sample
+                            neumann_bc = [-∂, ∂]
                             )
         # solving
         sol = solve(prob, alg, dt, 
@@ -171,7 +172,7 @@ end
 end
 
 @testset "DeepSplitting - exponential - interval" begin
-    batch_size = 100
+    batch_size = 1000
     for d in [1, 3, 10]
         println("test for d = ", d)
         tspan = (0f0, 5f-1)
@@ -278,7 +279,7 @@ end
     σ(x, p, t) = 1f0 # diffusion coefficients
 
     for d in [1,2,5]
-        x0_sample = (fill(-5f-1, d), fill(5f-1, d))
+        ∂ = fill(5f-1, d)
 
         hls = d + 50 #hidden layer size
 
@@ -296,7 +297,7 @@ end
         f(y, z, v_y, v_z, p, t) = a.(v_y) # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, X0, tspan, neumann = x0_sample )
+        prob = PIDEProblem(g, f, μ, σ, X0, tspan, neumann_bc = [-∂, ∂] )
         # solving
         @time sol = solve(prob, 
                         alg, 
@@ -305,7 +306,7 @@ end
                         abstol = 1e-5,
                         use_cuda = use_cuda,
                         maxiters = train_steps,
-                        batch_size=batch_size,
+                        batch_size = batch_size,
                         cuda_device = cuda_device)
         u1 = sol.us[end]
         @test !isnan(u1)
@@ -338,7 +339,6 @@ if false
 
             opt = ADAM(1e-3) #optimiser
             alg = DeepSplitting(nn, opt = opt )
-
 
             X0 = repeat([1.0f0, 0.5f0], div(d,2))  # initial point
             g(X) =  sum(X.^2, dims=1) # initial condition
@@ -484,7 +484,7 @@ end
 ########### NON LOCAL #############################
 ###################################################
 
-@testset "DeepSplitting - Hamel example - x0_sample" begin
+@testset "DeepSplitting - replicator mutator" begin
     tspan = (0f0,15f-2)
     dt = 5f-2 # time step
     μ(x, p, t) = 0f0 # advection coefficients
@@ -572,8 +572,7 @@ end
     for d in [1,2,5]
         u1s = []
         for _ in 1:2
-            x0_sample = (fill(-5f-1, d), fill(5f-1, d))
-
+            ∂ = fill(5f-1, d)
             hls = d + 50 #hidden layer size
 
             nn = Flux.Chain(Dense(d,hls,tanh),
@@ -581,7 +580,7 @@ end
                             Dense(hls,1)) # Neural network used by the scheme
 
             opt = ADAM(1e-2) #optimiser
-            alg = DeepSplitting(nn, K=K, opt = opt, mc_sample = UniformSampling(x0_sample[1],x0_sample[2]) )
+            alg = DeepSplitting(nn, K=K, opt = opt, mc_sample = UniformSampling(-∂, ∂) )
 
             x0 = fill(0f0,d)  # initial point
             g(X) = exp.(-0.25f0 * sum(X.^2,dims=1))   # initial condition
@@ -589,7 +588,7 @@ end
             f(y,z,v_y,v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, x0, tspan, neumann = x0_sample)
+            prob = PIDEProblem(g, f, μ, σ, x0, tspan, neumann_bc = [-∂, ∂])
             # solving
             @time sol = solve(prob, 
                             alg, 

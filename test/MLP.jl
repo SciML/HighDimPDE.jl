@@ -85,7 +85,7 @@ end
     for d in [1,2,5]
         u1s = []
         for _ in 1:2
-            neumann_bc = (fill(-5e-1, d), fill(5e-1, d))
+            neumann_bc = [fill(-5e-1, d), fill(5e-1, d)]
             g(x) = sum(x.^2)
             # d = 10
             x0 = fill(3e-1,d)
@@ -174,7 +174,7 @@ end
     σ(x, p, t) = 1f0 # diffusion coefficients
 
     for d in [1,2,5]
-        neumann = (fill(-5f-1, d), fill(5f-1, d))
+        neumann_bc = [fill(-5f-1, d), fill(5f-1, d)]
 
         alg = MLP()
 
@@ -184,7 +184,7 @@ end
         f(y, z, v_y, v_z, p, t) = a.(v_y) # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, X0, tspan, neumann = neumann )
+        prob = PIDEProblem(g, f, μ, σ, X0, tspan, neumann_bc = neumann_bc )
         # solving
         sol = solve(prob, alg, )
         u1 = sol.us[end]
@@ -296,9 +296,9 @@ end
     for d in [1,2,5]
         u1s = []
         for _ in 1:2
-            neumann = (fill(-5f-1, d), fill(5f-1, d))
+            neumann_bc = [fill(-5f-1, d), fill(5f-1, d)]
 
-            alg = MLP(M=4, K=10, L = 4, mc_sample = UniformSampling(neumann...) )
+            alg = MLP(M=4, K=10, L = 4, mc_sample = UniformSampling(neumann_bc...) )
 
             x = fill(0f0,d)  # initial point
             g(X) = exp.(-0.25f0 * sum(X.^2))   # initial condition
@@ -306,7 +306,7 @@ end
             f(y,z,v_y,v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, x, tspan, neumann = neumann)
+            prob = PIDEProblem(g, f, μ, σ, x, tspan, neumann_bc = neumann_bc)
             # solving
             sol = solve(prob, alg)
             push!(u1s, sol.us[end])

@@ -26,7 +26,7 @@ solve(prob::PIDEProblem,
     multithreading=true,
     verbose=false)
 
-Returns a tuple `PIDESolution`.
+Returns a `PIDESolution` object.
 """
 function solve(
         prob::PIDEProblem,

@@ -23,11 +23,12 @@ module HighDimPDE
     * `f` : The function f(x, y, u(x, t), u(y, t), p, t)
     * `μ` : The drift function of X from Ito's Lemma μ(x, p, t)
     * `σ` : The noise function of X from Ito's Lemma σ(x, p, t)
-    * `x`: the point of the solution required
+    * `x`: the point where `u(x,t)` is approximated. Is required even in the case where `x0_sample` is provided.
     * `tspan`: The timespan of the problem.
     * `p`: the parameter 
-    * `x0_sample` : if provided, approximating the solution on the hypercube 
-    `x0_sample[1] × x0_sample[2]`. 
+    * `x0_sample` : sampling method for x0. 
+    Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
+    If `NoSampling`, `x` is used.
     * `neumann_bc`: if provided, neumann boundary conditions on the hypercube 
     `neumann_bc[1] × neumann_bc[2]`. 
     """
@@ -48,12 +49,11 @@ module HighDimPDE
     function PIDEProblem(g, f, μ, σ, x::Vector{X}, tspan;
                                     p=nothing,
                                     x0_sample=NoSampling(),
-                                    neumann_bc=nothing,
-                                    kwargs...) where {X <: AbstractFloat}
+                                    neumann_bc::NBC=nothing,
+                                    kwargs...) where {X <: AbstractFloat, NBC <: Union{Nothing, AbstractVector}}
 
     @assert eltype(tspan) <: AbstractFloat "`tspan` should be a tuple of Float"
-    @assert(typeof(neumann_bc) <: Union{Nothing,Tuple},
-        "type of `neumann_bc` can be whether `Nothing` or Tuple{AbstractVector, AbstractVector}")
+
     isnothing(neumann_bc) ? nothing : @assert eltype(eltype(neumann_bc)) <: eltype(x)
     @assert eltype(g(x)) == eltype(x) "Type of `g(x)` must match type of x"
     @assert(eltype(f(x, x, g(x), g(x), p, tspan[1])) == eltype(x),
@@ -87,6 +87,16 @@ module HighDimPDE
         losses::L 
         us::Us # array of solution evaluated at x0, ts[i]
         ufuns::NNs # array of parametric functions
+    end
+
+    Base.summary(prob::PIDESolution) = string(nameof(typeof(prob)))
+
+    function Base.show(io::IO, A::PIDESolution)
+        println(io, summary(A))
+        print(io, "timespan: ")
+        show(io, A.tspan)
+        print(io, "u(x,t): ")
+        show(io, A.us)
     end
 
     include("MCSample.jl")

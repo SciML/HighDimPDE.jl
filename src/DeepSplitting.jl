@@ -54,7 +54,7 @@ the first time step (which can be long) and `maxiters[2]` is used for the rest o
 - `abstol` : threshold for the objective function under which the training is stopped.
 - `verbose` : print training information
 - `use_cuda` : use cuda
--  `cuda_device` : integer, to set the cuda device used in the training, if `use_cuda`
+- `cuda_device` : integer, to set the cuda device used in the training, if `use_cuda`
 - `verbose_rate` : print training information every `verbose_rate` iterations
 """
 function solve(
@@ -188,7 +188,7 @@ function solve(
                 end
                 if epoch == maxiters
                     l = loss(y0, y1, z, t)
-                    push!(losses[net], l)
+                    push!(losses[net+1], l)
                     verbose && println("Final loss for step $(net) / $(N) is: $l")
                 end
             end
