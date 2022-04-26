@@ -27,6 +27,11 @@ solve(prob::PIDEProblem,
     verbose=false)
 
 Returns a `PIDESolution` object.
+
+# Arguments
+* multithreading : if `true`, distributes the job over all the threads 
+available.
+* verbose: print information over the iterations.
 """
 function solve(
         prob::PIDEProblem,
@@ -244,7 +249,8 @@ function _ml_picard_call(M, # monte carlo integration
 
 end
 
-function _get_loop_num(M, num, thread_id, NUM_THREADS) #decides how many iteration given thread id and num
+#decides how many iteration given thread id and num
+function _get_loop_num(M, num, thread_id, NUM_THREADS) 
     if num < NUM_THREADS
         # each thread only goes once through the loop
         loop_num = thread_id > num ? 0 : 1

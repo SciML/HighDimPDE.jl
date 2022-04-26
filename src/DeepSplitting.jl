@@ -4,16 +4,32 @@ function Base.copy(opt::O) where  O<:Flux.Optimise.AbstractOptimiser
 end
 
 """
-    DeepSplitting(nn, K, opt, mc_sample)
+    DeepSplitting(nn, K=1, opt = ADAM(0.01), λs = nothing, mc_sample =  NoSampling())
 
 Deep splitting algorithm.
 
 # Arguments
-* `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl).
+* `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), 
+or more generally a [functor](https://github.com/FluxML/Functors.jl).
 * `K`: the number of Monte Carlo integrations.
-* `opt`: optimiser to be use. By default, `Flux.ADAM(0.1)`. Can be a vector of optimisers, that are used sequentially.
+* `opt`: optimiser to be use. By default, `Flux.ADAM(0.01)`.
+* `λs`: the learning rates, used sequentially. Defaults to a single value taken from `opt`.
 * `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. 
 Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
+
+# Example
+```julia
+hls = d + 50 # hidden layer size
+d = 10 # size of the sample
+
+# Neural network used by the scheme
+nn = Flux.Chain(Dense(d, hls, tanh),
+                Dense(hls,hls,tanh),
+                Dense(hls, 1, x->x^2))
+
+alg = DeepSplitting(nn, K=10, opt = ADAM(), λs = [5e-3,1e-3],
+                    mc_sample = UniformSampling(zeros(d), ones(d)) )
+```
 """
 struct DeepSplitting{NN,F,O,L,MCS} <: HighDimPDEAlgorithm
     nn::NN
@@ -50,12 +66,12 @@ Returns a `PIDESolution` object.
 - maxiters: number of iterations per time step. Can be a tuple, 
 where `maxiters[1]` is used for the training of the neural network used in 
 the first time step (which can be long) and `maxiters[2]` is used for the rest of the time steps.
-- `batch_size` : the batch size
+- `batch_size` : the batch size.
 - `abstol` : threshold for the objective function under which the training is stopped.
-- `verbose` : print training information
-- `use_cuda` : use cuda
-- `cuda_device` : integer, to set the cuda device used in the training, if `use_cuda`
-- `verbose_rate` : print training information every `verbose_rate` iterations
+- `verbose` : print training information.
+- `verbose_rate` : rate for printing training information (every `verbose_rate` iterations).
+- `use_cuda` : set to "true" to use CUDA.
+- `cuda_device` : integer, to set the CUDA device used in the training, if `use_cuda == true`.
 """
 function solve(
     prob::PIDEProblem,
@@ -137,7 +153,7 @@ function solve(
     # calculating SDE trajectories
     function sde_loop!(y0, y1, dWall)
         randn!(dWall) # points normally distributed for brownian motion
-        x0_sample!(y1) # points uniformly distributed for initial conditions
+        x0_sample!(y1) # points for initial conditions
         for i in 1:size(dWall,3)
             t = ts[N + 1 - i]
             dW = @view dWall[:,:,i]
@@ -155,7 +171,8 @@ function solve(
 
         verbose && println("Step $(net) / $(N) ")
         t = ts[net]
-        _maxiters = length(maxiters) > 1 ? maxiters[min(net,2)] : maxiters[] # first of maxiters used for first nn, second used for the rest
+        # first of maxiters used for first nn, second used for the other nn
+        _maxiters = length(maxiters) > 1 ? maxiters[min(net,2)] : maxiters[] 
         
         for λ in λs
             opt_net = copy(opt) # starting with a new optimiser state at each time step
