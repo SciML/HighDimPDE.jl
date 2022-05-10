@@ -62,14 +62,14 @@ In `HighDimPDE.jl` the right parameter combination $\theta$ is found by iterativ
 `DeepSplitting` allows to obtain $u(t,x)$ on a single point  $x \in \Omega$ with the keyword $x$.
 
 ```julia
-prob = PIDEProblem(g, f, μ, σ, tspan, x = x)
+prob = PIDEProblem(g, f, μ, σ, x, tspan)
 ```
 
 ### Hypercube
 Yet more generally, one wants to solve Eq. (1) on a $d$-dimensional cube $[a,b]^d$. This is offered by `HighDimPDE.jl` with the keyworkd `x0_sample`.
 
 ```julia
-prob = PIDEProblem(g, f, μ, σ, tspan, x0_sample = x0_sample)
+prob = PIDEProblem(g, f, μ, σ, x, tspan, x0_sample = x0_sample)
 ```
 Internally, this is handled by assigning a random variable as the initial point of the particles, i.e.
 ```math
@@ -77,6 +77,26 @@ X_t^\xi = \int_0^t \mu(X_s^x)ds + \int_0^t\sigma(X_s^x)dB_s + \xi,
 ```
 where $\xi$ a random variable uniformly distributed over $[a,b]^d$. This way, the neural network is trained on the whole interval $[a,b]^d$ instead of a single point.
 
+## Nonlocal PDEs
+`DeepSplitting` can solve for non-local reaction diffusion equations of the type
+```math
+\partial_t u = \mu(x) \nabla_x u + \frac{1}{2} \sigma^2(x) \Delta u + \int_{\Omega}f(x,y, u(t,x), u(t,y))dy
+```
+
+The non-localness is handled by a Monte Carlo integration.
+
+```math
+u(t_{n+1}, X_{T - t_{n+1}}) \approx \sum_{j=1}^{\text{batch\_size}} \left[ u(t_{n}, X_{T - t_{n}}^{(j)}) + \frac{(t_{n+1} - t_n)}{K}\sum_{k=1}^{K} \big[ f(t, X_{T - t_{n}}^{(j)}, Y_{X_{T - t_{n}}^{(j)}}^{(k)}, u(t_{n},X_{T - t_{n}}^{(j)}), u(t_{n},Y_{X_{T - t_{n}}^{(j)}}^{(k)})) \big] \right]
+```
+
+!!! tip 
+    In practice, if you have a non-local model you need to provide the sampling method and the number $K$ of MC integration through the keywords `mc_sample` and `K`. 
+    ```julia
+    alg = DeepSplitting(nn, opt = opt, mc_sample = mc_sample, K = 1)
+    ```
+    `mc_sample` can be whether `UniformSampling(a, b)` or ` NormalSampling(σ_sampling, shifted)`.
+
 ## References
+- Boussange, V., Becker, S., Jentzen, A., Kuckuck, B., Pellissier, L., Deep learning approximations for non-local nonlinear PDEs with Neumann boundary conditions. [arXiv](https://arxiv.org/abs/2205.03672) (2022)
 - Beck, C., Becker, S., Cheridito, P., Jentzen, A., Neufeld, A., Deep splitting method for parabolic PDEs. [arXiv](https://arxiv.org/abs/1907.03452) (2019)
 - Han, J., Jentzen, A., E, W., Solving high-dimensional partial differential equations using deep learning. [arXiv](https://arxiv.org/abs/1707.02568) (2018)

@@ -9,13 +9,11 @@ end
 Deep splitting algorithm.
 
 # Arguments
-* `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), 
-or more generally a [functor](https://github.com/FluxML/Functors.jl).
+* `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl).
 * `K`: the number of Monte Carlo integrations.
 * `opt`: optimiser to be use. By default, `Flux.ADAM(0.01)`.
 * `λs`: the learning rates, used sequentially. Defaults to a single value taken from `opt`.
-* `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. 
-Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
+* `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
 
 # Example
 ```julia
@@ -63,14 +61,12 @@ end
 Returns a `PIDESolution` object.
 
 # Arguments
-- maxiters: number of iterations per time step. Can be a tuple, 
-where `maxiters[1]` is used for the training of the neural network used in 
-the first time step (which can be long) and `maxiters[2]` is used for the rest of the time steps.
+- `maxiters`: number of iterations per time step. Can be a tuple, where `maxiters[1]` is used for the training of the neural network used in the first time step (which can be long) and `maxiters[2]` is used for the rest of the time steps.
 - `batch_size` : the batch size.
 - `abstol` : threshold for the objective function under which the training is stopped.
 - `verbose` : print training information.
 - `verbose_rate` : rate for printing training information (every `verbose_rate` iterations).
-- `use_cuda` : set to "true" to use CUDA.
+- `use_cuda` : set to `true` to use CUDA.
 - `cuda_device` : integer, to set the CUDA device used in the training, if `use_cuda == true`.
 """
 function solve(

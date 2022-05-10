@@ -29,8 +29,8 @@ MLP(; M=4, L=4, K=10, mc_sample = NoSampling()) = MLP(M ,L, K, mc_sample)
 Returns a `PIDESolution` object.
 
 # Arguments
-* multithreading : if `true`, distributes the job over all the threads available.
-* verbose: print information over the iterations.
+* `multithreading` : if `true`, distributes the job over all the threads available.
+* `verbose`: print information over the iterations.
 """
 function solve(
         prob::PIDEProblem,

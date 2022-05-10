@@ -9,12 +9,12 @@ The `MLP`, for Multi-Level Picard iterations, reformulates the PDE problem as a 
 
 - It relies on [Picard iterations](https://en.wikipedia.org/wiki/Picard–Lindelöf_theorem) to find the fixed point, 
 
-- reducing the complexity of the numerical approximation of the time integral through a [multilevel Monte Carlo](https://en.wikipedia.org/wiki/Multilevel_Monte_Carlo_method) approach.
+- reducing the complexity of the numerical approximation of the time integral through a [multilvel Monte Carlo](https://en.wikipedia.org/wiki/Multilevel_Monte_Carlo_method) approach.
 
 The `MLP` algorithm overcomes the curse of dimensionality, with a computational complexity that grows polynomially in the number of dimension (see [M. Hutzenthaler et al. 2020](https://arxiv.org/abs/1807.01212v3)).
 
-!!! warning "`MLP` can only solve for one point at a time"
-    `MLP` works only with `PIDEProblem` defined with `x = x` option. If you want to solve over an entire domain, you definitely want to check the `DeepSplitting` algorithm.
+!!! warning "`MLP` can only approximate the solution on a single point"
+    `MLP` only works for `PIDEProblem` with `x0_sample = NoSampling()`. If you want to solve over an entire domain, you definitely want to check the `DeepSplitting` algorithm.
 
 ## The general idea 💡
 Consider the PDE
@@ -67,10 +67,27 @@ u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_i^{M^{L-l}} \left[ f(X^{x,(l, i)}_
 ```
 Note that the superscripts $(l, i)$ indicate the independence of the random variables $X$ across levels.
 
+## Nonlocal PDEs
+`MLP` can solve for non-local reaction diffusion equations of the type
+```math
+\partial_t u = \mu(t, x) \nabla_x u(t, x) + \frac{1}{2} \sigma^2(t, x) \Delta u(t, x) + \int_{\Omega}f(x, y, u(t,x), u(t,y))dy
+```
+
+The non-localness is handled by a Monte Carlo integration.
+
+```math
+\begin{aligned}
+u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_{i=1}^{M^{L-l}} \frac{1}{K}\sum_{j=1}^{K}  \bigg[ f(X^{x,(l, i)}_{t - s_{(l, i)}}, Z^{(l,j)}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}}), u(T-s_{l,i}, Z^{(l,j)})) + \\
+&\qquad 
+\mathbf{1}_\N(l) f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}}))\bigg] + \frac{1}{M^{L}}\sum_i^{M^{L}} u(0, X^{x,(l, i)}_t)\\
+\end{aligned}
+```
+
 !!! tip
     In practice, if you have a non-local model you need to provide the sampling method and the number $K$ of MC integration through the keywords `mc_sample` and `K`. 
     - `K` characterises the number of samples for the Monte Carlo approximation of the last term.
     - `mc_sample` characterises the distribution of the `Z` variables
 
 ## References
+- Boussange, V., Becker, S., Jentzen, A., Kuckuck, B., Pellissier, L., Deep learning approximations for non-local nonlinear PDEs with Neumann boundary conditions. [arXiv](https://arxiv.org/abs/2205.03672) (2022)
 - Becker, S., Braunwarth, R., Hutzenthaler, M., Jentzen, A., von Wurstemberger, P., Numerical simulations for full history recursive multilevel Picard approximations for systems of high-dimensional partial differential equations. [arXiv](https://arxiv.org/abs/2005.10206) (2020)
