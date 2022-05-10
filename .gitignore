@@ -2,3 +2,4 @@ mlp_bio
 *.csv
 *.pdf
 docs/build
+.vscode
