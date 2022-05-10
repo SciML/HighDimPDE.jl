@@ -1,29 +1,15 @@
-<!-- [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/stable) -->
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/stable)
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/dev)
 [![Build Status](https://github.com/vboussange/HighDimPDE.jl/workflows/CI/badge.svg)](https://github.com/vboussange/HighDimPDE.jl/actions?query=workflow%3ACI)
 
 # HighDimPDE.jl
 
-**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional PDEs**. The package implements solver algorithms that break down the curse of dimensionality, including
+**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional non-local, non-linear PDEs** of the form
 
-* the Deep Splitting scheme
-
-* the Multi-Level Picard iterations scheme.
-
-## Algorithm overview
-
-----------------------------------------------
-Features  |    `DeepSplitting` [1,3]   | `MLP` [1,2]     |
-----------|:----------------------:|:------------:
-Time discretization free|   ❌ |         ✅ |
-Mesh-free       | ✅ |                   ✅ |
-Single point $x \in \R^d$ approximation| ✅   |  ✅ |
-$d$-dimensional cube $[a,b]^d$ approximation| ✅   |          ❌ |
-GPU             | ✅ |                   ❌ |
-Gradient non-linearities    | ✔️|       ❌ |
-Non-local PDEs  | ✔️  | ✔️  |
-
-✔️ : will be supported in the future
+<div style="overflow-x: scroll;" align=center>                          
+<img src="docs/src/img/equation.png" height="80"/>
+</div>
+<p>subject to initial and boundary conditions, where <img src="docs/src/img/function_u.png" height="20"/>.</p>
 
 ## Documentation
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/stable)
