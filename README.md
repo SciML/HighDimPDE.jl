@@ -32,7 +32,7 @@ Pkg.add("https://github.com/vboussange/HighDimPDE.jl.git")
 This will download the latest version from the git repo and download all dependencies.
 
 ## Getting started
-See documentation, `examples` and `test` folders.
+See documentation and `test` folders.
 
 ## Reference
 - Boussange, V., Becker, S., Jentzen, A., Kuckuck, B., Pellissier, L., Deep learning approximations for non-local nonlinear PDEs with Neumann boundary conditions. [arXiv](https://arxiv.org/abs/2205.03672) (2022)
