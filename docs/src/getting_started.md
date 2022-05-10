@@ -1,5 +1,7 @@
 
 # Getting started
+
+## General workflow
 The general workflow for using `HighDimPDE.jl` is as follows:
 
 - Define a Partial Integro Differential Equation problem
@@ -10,8 +12,12 @@ Pages   = ["HighDimPDE.jl"]
 - Select a solver algorithm
 - Solve the problem
 
-Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) PDE in dimension 10.
-## `MLP` (@ref mlp)
+## Examples
+Let's illustrate that with some examples.
+
+### `MLP`
+#### Local PDE
+Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) PDE in dimension 10 with [`MLP`](@ref mlp).
 ```math
 \partial_t u = u (1 - u) + \frac{1}{2}\sigma^2\Delta_xu \tag{1}
 ```
@@ -26,8 +32,8 @@ x0 = fill(0.,d)  # initial point
 g(x) = exp(- sum(x.^2) ) # initial condition
 μ(x, p, t) = 0.0 # advection coefficients
 σ(x, p, t) = 0.1 # diffusion coefficients
-f(x, v_x, ∇v_x, p, t) = max(0.0, v_x) * (1 -  max(0.0, v_x)) # nonlinear part of the PDE
-prob = PDEProblem(g, f, μ, σ, x0, tspan) # defining the problem
+f(x, y, v_x, v_y, ∇v_x, ∇v_y, p, t) = max(0.0, v_x) * (1 -  max(0.0, v_x)) # nonlocal nonlinear part of the
+prob = PIDEProblem(g, f, μ, σ, x0, tspan) # defining the problem
 
 ## Definition of the algorithm
 alg = MLP() # defining the algorithm. We use the Multi Level Picard algorithm
@@ -36,10 +42,7 @@ alg = MLP() # defining the algorithm. We use the Multi Level Picard algorithm
 sol = solve(prob, alg, multithreading=true)
 ```
 
-<<<<<<< HEAD
-## `DeepSplitting`(@ref deepsplitting)
-=======
-### Non local PDE with Neumann boundary conditions
+#### Non local PDE with Neumann boundary conditions
 Let's include in the previous equation non local competition, i.e.
 ```math
 \partial_t u = u (1 - \int_\Omega u(t,y)dy) + \frac{1}{2}\sigma^2\Delta_xu \tag{2}
@@ -58,8 +61,7 @@ g(x) = exp( -sum(x.^2) ) # initial condition
 x0_sample = [-1/2, 1/2]
 f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max(0.0, v_x) * (1 -  max(0.0, v_y)) 
 prob = PIDEProblem(g, f, μ, 
-                    σ, x0, tspan, 
-                    x0_sample = x0_sample) # defining x0_sample is sufficient to implement Neumann boundary conditions
+                    σ, x0, tspan) # defining x0_sample is sufficient to implement Neumann boundary conditions
 
 ## Definition of the algorithm
 alg = MLP(mc_sample = UniformSampling(x0_sample[1], x0_sample[2]) ) 
@@ -67,26 +69,20 @@ alg = MLP(mc_sample = UniformSampling(x0_sample[1], x0_sample[2]) )
 sol = solve(prob, alg, multithreading=true)
 ```
 
-## `DeepSplitting`
+### `DeepSplitting`
 Let's solve the previous equation with [`DeepSplitting`](@ref deepsplitting).
->>>>>>> f_without_grad
 ```julia
 using HighDimPDE
 
 ## Definition of the problem
 d = 10 # dimension of the problem
 tspan = (0.0, 0.5) # time horizon
-x0 = fill(0.,d)  # initial point
+x0 = fill(0f0,d)  # initial point
 g(x) = exp.(- sum(x.^2, dims=1) ) # initial condition
-μ(x, p, t) = 0.0 # advection coefficients
-σ(x, p, t) = 0.1 # diffusion coefficients
-<<<<<<< HEAD
-u_domain = [-1/2, 1/2]
-f(x, v_x, ∇v_x, t) = max.(0f0, v_x) .* (1f0 .-  max.(0f0, v_x)) 
-=======
-x0_sample = [-1/2, 1/2]
-f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max.(0f0, v_x) .* (1f0 .-  max.(0f0, v_y)) 
->>>>>>> f_without_grad
+μ(x, p, t) = 0.0f0 # advection coefficients
+σ(x, p, t) = 0.1f0 # diffusion coefficients
+x0_sample = UniformSampling(fill(-5f-1, d), fill(5f-1, d))
+f(x, y, v_x, v_y, ∇v_x, ∇v_y, p, t) = v_x .* (1f0 .- v_y)
 prob = PIDEProblem(g, f, μ, 
                     σ, x0, tspan, 
                     x0_sample = x0_sample)
@@ -100,32 +96,28 @@ nn = Flux.Chain(Dense(d, hls, tanh),
         Dense(hls, hls, tanh),
         Dense(hls, 1)) # neural network used by the scheme
 
-opt = Flux.Optimiser(ExpDecay(0.1,
-                0.1,
-                200,
-                1e-4),
-                ADAM() )#optimiser
+opt = ADAM(1e-2)
 
 ## Definition of the algorithm
 alg = DeepSplitting(nn,
                     opt = opt,
-                    mc_sample = UniformSampling(x0_sample[1], x0_sample[2]))
+                    mc_sample = x0_sample)
 
 sol = solve(prob, 
             alg, 
-            dt=0.1, 
+            0.1, 
             verbose = true, 
             abstol = 2e-3,
             maxiters = 1000,
             batch_size = 1000)
 ```
-## Solving on the GPU
+### Solving on the GPU
 `DeepSplitting` can run on the GPU for (much) improved performance. To do so, just set `use_cuda = true`.
 
 ```julia
 sol = solve(prob, 
             alg, 
-            dt=0.1, 
+            0.1, 
             verbose = true, 
             abstol = 2e-3,
             maxiters = 1000,

@@ -15,22 +15,25 @@ module HighDimPDE
         PIDEProblem(g, f, μ, σ, x, tspan, p = nothing, x0_sample=nothing, neumann_bc=nothing)
 
     Defines a Partial Integro Differential Problem, of the form 
-    `du/dt = 1/2 Tr(\\sigma \\sigma^T) Δu(t,x) + μ ∇u(t,x) + \\int f(x, y, u(x, t), u(y, t), p, t) dy`,
-    where f is a nonlinear Lipschitz function
+    ```math 
+    \\begin{aligned}
+        \\frac{du}{dt} &= \\tfrac{1}{2} \\text{Tr}(\\sigma \\sigma^T) \\Delta u(x, t) + \\mu \\nabla u(x, t) \\\\ 
+        &\\quad + \\int f(x, y, u(x, t), u(y, t), ( \\nabla_x u )(x, t), ( \\nabla_x u )(y, t), p, t) dy,
+    \\end{aligned}
+    ```
+    with `` u(x,0) = g(x)``.
     
-    # Arguments
-    * `g` : The initial condition g(x, p, t).
-    * `f` : The function f(x, y, u(x, t), u(y, t), p, t)
-    * `μ` : The drift function of X from Ito's Lemma μ(x, p, t)
-    * `σ` : The noise function of X from Ito's Lemma σ(x, p, t)
-    * `x`: the point where `u(x,t)` is approximated. Is required even in the case where `x0_sample` is provided.
-    * `tspan`: The timespan of the problem.
-    * `p`: the parameter 
-    * `x0_sample` : sampling method for x0. 
-    Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
-    If `NoSampling`, `x` is used.
-    * `neumann_bc`: if provided, neumann boundary conditions on the hypercube 
-    `neumann_bc[1] × neumann_bc[2]`. 
+    ## Arguments
+
+    * `g` : initial condition, of the form `g(x, p, t)`.
+    * `f` : nonlinear function, of the form `f(x, y, u(x, t), u(y, t), ∇u(x, t), ∇u(x, t), p, t)`.
+    * `μ` : drift function, of the form `μ(x, p, t)`.
+    * `σ` : diffusion function `σ(x, p, t)`.
+    * `x`: point where `u(x,t)` is approximated. Is required even in the case where `x0_sample` is provided.
+    * `tspan`: timespan of the problem.
+    * `p`: the parameter vector.
+    * `x0_sample` : sampling method for `x0`. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default). If `NoSampling`, `x` is used.
+    * `neumann_bc`: if provided, neumann boundary conditions on the hypercube `neumann_bc[1] × neumann_bc[2]`. 
     """
     struct PIDEProblem{uType,G,F,Mu,Sigma,xType,tType,P,UD,NBC,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false} 
         u0::uType
@@ -56,7 +59,7 @@ module HighDimPDE
 
     isnothing(neumann_bc) ? nothing : @assert eltype(eltype(neumann_bc)) <: eltype(x)
     @assert eltype(g(x)) == eltype(x) "Type of `g(x)` must match type of x"
-    @assert(eltype(f(x, x, g(x), g(x), p, tspan[1])) == eltype(x),
+    @assert(eltype(f(x, x, g(x), g(x), x, x, p, tspan[1])) == eltype(x),
         "Type of non linear function `f(x)` must type of x")
 
     PIDEProblem{typeof(g(x)),
@@ -94,8 +97,8 @@ module HighDimPDE
     function Base.show(io::IO, A::PIDESolution)
         println(io, summary(A))
         print(io, "timespan: ")
-        show(io, A.tspan)
-        print(io, "u(x,t): ")
+        show(io, A.ts)
+        print(io, "\nu(x,t): ")
         show(io, A.us)
     end
 
