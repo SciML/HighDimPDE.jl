@@ -1,5 +1,5 @@
 """
-    MLP(;M=4, L=4,)
+    MLP(; M=4, L=4, K=10, mc_sample = NoSampling())
 
 Multi level Picard algorithm.
     
@@ -21,16 +21,15 @@ end
 MLP(; M=4, L=4, K=10, mc_sample = NoSampling()) = MLP(M ,L, K, mc_sample)
     
 """
-solve(prob::PIDEProblem,
-    alg::MLP;
-    multithreading=true,
-    verbose=false)
+    solve(prob::PIDEProblem,
+        alg::MLP;
+        multithreading=true,
+        verbose=false)
 
 Returns a `PIDESolution` object.
 
 # Arguments
-* multithreading : if `true`, distributes the job over all the threads 
-available.
+* multithreading : if `true`, distributes the job over all the threads available.
 * verbose: print information over the iterations.
 """
 function solve(

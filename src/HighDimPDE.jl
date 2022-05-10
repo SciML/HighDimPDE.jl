@@ -32,7 +32,7 @@ module HighDimPDE
     * `x`: point where `u(x,t)` is approximated. Is required even in the case where `x0_sample` is provided.
     * `tspan`: timespan of the problem.
     * `p`: the parameter vector.
-    * `x0_sample` : sampling method for `x0`. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default). If `NoSampling`, `x` is used.
+    * `x0_sample` : sampling method for `x0`. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default). If `NoSampling`, only solution at the single point `x` is evaluated.
     * `neumann_bc`: if provided, neumann boundary conditions on the hypercube `neumann_bc[1] × neumann_bc[2]`. 
     """
     struct PIDEProblem{uType,G,F,Mu,Sigma,xType,tType,P,UD,NBC,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false} 

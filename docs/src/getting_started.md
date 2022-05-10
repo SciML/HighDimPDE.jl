@@ -58,13 +58,13 @@ x0 = fill(0.,d)  # initial point
 g(x) = exp( -sum(x.^2) ) # initial condition
 μ(x, p, t) = 0.0 # advection coefficients
 σ(x, p, t) = 0.1 # diffusion coefficients
-x0_sample = [-1/2, 1/2]
+mc_sample = UniformSampling(fill(-5f-1, d), fill(5f-1, d))
 f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max(0.0, v_x) * (1 -  max(0.0, v_y)) 
 prob = PIDEProblem(g, f, μ, 
                     σ, x0, tspan) # defining x0_sample is sufficient to implement Neumann boundary conditions
 
 ## Definition of the algorithm
-alg = MLP(mc_sample = UniformSampling(x0_sample[1], x0_sample[2]) ) 
+alg = MLP(mc_sample = mc_sample ) 
 
 sol = solve(prob, alg, multithreading=true)
 ```
