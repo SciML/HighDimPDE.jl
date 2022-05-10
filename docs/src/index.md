@@ -2,16 +2,17 @@
 # HighDimPDE.jl
 
 
-**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional PDEs** of the form
+**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional non-linear, non-local PDEs** of the form
 
 ```math
 \begin{aligned}
-   (\partial_t u)(t,x) = & f\big(t,x, u(t,x), ( \nabla_x u )(t,x ) \big)  + \big\langle \mu(t,x), ( \nabla_x u )( t,x ) \big\rangle \\
-    & \quad  + \tfrac{1}{2} \text{Trace} \big(\sigma(t,x) [ \sigma(t,x) ]^* ( \text{Hess}_x u)(t, x ) \big),
+    (\partial_t u)(t,x) &= \int_{\Omega} f\big(t,x,{\bf x}, u(t,x),u(t,{\bf x}), ( \nabla_x u )(t,x ),( \nabla_x u )(t,{\bf x} ) \big) \, d{\bf x} \\
+    & \quad + \big\langle \mu(t,x), ( \nabla_x u )( t,x ) \big\rangle + \tfrac{1}{2} \text{Trace} \big(\sigma(t,x) [ \sigma(t,x) ]^* ( \text{Hess}_x u)(t, x ) \big).
 \end{aligned}
 ```
 
-where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subset \R^d$ is subjected to initial and boundary conditions and $d$ is large.
+where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subseteq \R^d$ is subject to initial and boundary conditions, and where $d$ is large.
+
 
 **HighDimPDE.jl** implements solver algorithms that break down the curse of dimensionality, including
 
@@ -36,6 +37,5 @@ Single point $x \in \R^d$ approximation| ✅   |  ✅ |
 $d$-dimensional cube $[a,b]^d$ approximation| ✅   |          ❌ |
 GPU             | ✅ |                   ❌ |
 Gradient non-linearities    | ✔️|       ❌ |
-Non-local PDEs  | ✔️  | ✔️  |
 
 ✔️ : will be supported in the future
