@@ -15,7 +15,7 @@ dt = 1f-1 # time step
 σ(X,p,t) = 1f-1 # diffusion coefficients
 
 d = 5
-u_domain = repeat([-5f-1,5f-1]',d,1)
+x0_sample = repeat([-5f-1,5f-1]',d,1)
 
 ##############################
 ####### Neural Network #######
@@ -37,7 +37,7 @@ opt = Flux.Optimiser(ExpDecay(0.1,
                 2000,
                 1e-6),
                 ADAM() )#optimiser
-alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1], u_domain[2]) )
+alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(x0_sample[1], x0_sample[2]) )
 
 ##########################
 ###### PDE Problem #######
@@ -46,14 +46,14 @@ g(x) = exp.(-0.25f0 * sum(x.^2, dims = 1))   # initial condition
 a(u) = u - u^3
 
 # for uniform sampling of nl term
-vol = prod(u_domain[:,2] - u_domain[:,1])
+vol = prod(x0_sample[:,2] - x0_sample[:,1])
 f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = a.(v_y) .- a.(v_z) * vol
 # for random sampling of nl term
 # f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = a.(v_y) .- a.(v_z) .* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2)
 
 # defining the problem
 prob = PIDEProblem(g, f, μ, σ, tspan, 
-                    u_domain = u_domain
+                    x0_sample = x0_sample
                     )
 # solving
 @time xgrid, sol = HighDimPDE.solve(prob, 

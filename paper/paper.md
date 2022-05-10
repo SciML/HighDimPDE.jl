@@ -105,7 +105,7 @@ ss0 = 5f-2#std g0
 
 d = 5
 U = 25f-2
-u_domain = (fill(-U, d), fill(U, d))
+x0_sample = (fill(-U, d), fill(U, d))
 
 batch_size = 10000
 train_steps = 2000
@@ -119,16 +119,16 @@ nn_batch = Flux.Chain(
                     Dense(hls, 1, x->x^2)) # positive function
 
 opt = ADAM(1e-2)#optimiser
-alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(u_domain[1], u_domain[2]) )
+alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = UniformSampling(x0_sample[1], x0_sample[2]) )
 
 g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
 m(x) = - 5f-1 * sum(x.^2, dims=1)
-vol = prod(u_domain[2] - u_domain[1])
-f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
+vol = prod(x0_sample[2] - x0_sample[1])
+f(y, z, v_y, v_z, p, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
 
 # defining the problem
 prob = PIDEProblem(g, f, μ, σ, tspan, 
-                    u_domain = u_domain
+                    x0_sample = x0_sample
                     )
 # solving
 xgrid,ts,sol = solve(prob, 
@@ -160,14 +160,14 @@ x0 = fill(0.,d)  # initial point
 g(x) = exp( -sum(x.^2) ) # initial condition
 μ(x, p, t) = 0.0 # advection coefficients
 σ(x, p, t) = 0.1 # diffusion coefficients
-u_domain = [-1/2, 1/2]
+x0_sample = [-1/2, 1/2]
 f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max(0.0, v_x) * (1 -  max(0.0, v_y)) 
 prob = PIDEProblem(g, f, μ, 
                     σ, x0, tspan, 
-                    u_domain = u_domain) # defining u_domain is sufficient to implement Neumann boundary conditions
+                    x0_sample = x0_sample) # defining x0_sample is sufficient to implement Neumann boundary conditions
 
 ## Definition of the algorithm
-alg = MLP(mc_sample = UniformSampling(u_domain[1], u_domain[2]) ) 
+alg = MLP(mc_sample = UniformSampling(x0_sample[1], x0_sample[2]) ) 
 
 sol = solve(prob, alg, multithreading=true)
 ```

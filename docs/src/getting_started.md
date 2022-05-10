@@ -36,7 +36,40 @@ alg = MLP() # defining the algorithm. We use the Multi Level Picard algorithm
 sol = solve(prob, alg, multithreading=true)
 ```
 
+<<<<<<< HEAD
 ## `DeepSplitting`(@ref deepsplitting)
+=======
+### Non local PDE with Neumann boundary conditions
+Let's include in the previous equation non local competition, i.e.
+```math
+\partial_t u = u (1 - \int_\Omega u(t,y)dy) + \frac{1}{2}\sigma^2\Delta_xu \tag{2}
+```
+where $\Omega = [-1/2, 1/2]^d$, and let's assume Neumann Boundary condition on $\Omega$.
+```julia
+using HighDimPDE
+
+## Definition of the problem
+d = 10 # dimension of the problem
+tspan = (0.0,0.5) # time horizon
+x0 = fill(0.,d)  # initial point
+g(x) = exp( -sum(x.^2) ) # initial condition
+μ(x, p, t) = 0.0 # advection coefficients
+σ(x, p, t) = 0.1 # diffusion coefficients
+x0_sample = [-1/2, 1/2]
+f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max(0.0, v_x) * (1 -  max(0.0, v_y)) 
+prob = PIDEProblem(g, f, μ, 
+                    σ, x0, tspan, 
+                    x0_sample = x0_sample) # defining x0_sample is sufficient to implement Neumann boundary conditions
+
+## Definition of the algorithm
+alg = MLP(mc_sample = UniformSampling(x0_sample[1], x0_sample[2]) ) 
+
+sol = solve(prob, alg, multithreading=true)
+```
+
+## `DeepSplitting`
+Let's solve the previous equation with [`DeepSplitting`](@ref deepsplitting).
+>>>>>>> f_without_grad
 ```julia
 using HighDimPDE
 
@@ -47,11 +80,16 @@ x0 = fill(0.,d)  # initial point
 g(x) = exp.(- sum(x.^2, dims=1) ) # initial condition
 μ(x, p, t) = 0.0 # advection coefficients
 σ(x, p, t) = 0.1 # diffusion coefficients
+<<<<<<< HEAD
 u_domain = [-1/2, 1/2]
 f(x, v_x, ∇v_x, t) = max.(0f0, v_x) .* (1f0 .-  max.(0f0, v_x)) 
+=======
+x0_sample = [-1/2, 1/2]
+f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max.(0f0, v_x) .* (1f0 .-  max.(0f0, v_y)) 
+>>>>>>> f_without_grad
 prob = PIDEProblem(g, f, μ, 
                     σ, x0, tspan, 
-                    u_domain = u_domain)
+                    x0_sample = x0_sample)
 
 ## Definition of the neural network to use
 using Flux # needed to define the neural network
@@ -69,7 +107,9 @@ opt = Flux.Optimiser(ExpDecay(0.1,
                 ADAM() )#optimiser
 
 ## Definition of the algorithm
-alg = DeepSplitting(nn, opt = opt)
+alg = DeepSplitting(nn,
+                    opt = opt,
+                    mc_sample = UniformSampling(x0_sample[1], x0_sample[2]))
 
 sol = solve(prob, 
             alg, 

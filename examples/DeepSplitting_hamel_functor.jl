@@ -24,7 +24,7 @@ dt = 1f-2 # time step
 d = 5
 ss0 = 5f-2 #std g0
 U = 1f0
-u_domain = repeat([-U,U]', d, 1)
+x0_sample = repeat([-U,U]', d, 1)
 
 ##############################
 ####### Neural Network #######
@@ -50,19 +50,19 @@ opt = Flux.Optimiser(ExpDecay(0.1,
                 1000,
                 1e-6),
                 ADAM() )#optimiser
-alg = DeepSplitting(fn, K=K, opt = opt, mc_sample = UniformSampling(u_domain[:,1], u_domain[:,2]) )
+alg = DeepSplitting(fn, K=K, opt = opt, mc_sample = UniformSampling(x0_sample[:,1], x0_sample[:,2]) )
 
 ##########################
 ###### PDE Problem #######
 ##########################
 g(x) = Float32((2*π)^(-d/2)) * ss0^(- Float32(d) * 5f-1) * exp.(-5f-1 *sum(x .^2f0 / ss0, dims = 1)) # initial condition
 m(x) = - 5f-1 * sum(x.^2, dims=1)
-vol = prod(u_domain[:,2] - u_domain[:,1])
+vol = prod(x0_sample[:,2] - x0_sample[:,1])
 f(y, z, v_y, v_z, ∇v_y, ∇v_z, t) = max.(0f0, v_y) .* (m(y) .- vol * max.(0f0, v_z) .* m(z) ) # nonlocal nonlinear part of the
 
 # defining the problem
 prob = PIDEProblem(g, f, μ, σ, tspan, 
-                    u_domain = u_domain
+                    x0_sample = x0_sample
                     )
 # solving
 @time xgrid,ts,sol = solve(prob, 
@@ -124,7 +124,7 @@ if plotting
         #####
         if false
                 dx = 0.05
-                x = u_domain[1,1]:dx:u_domain[1,2]
+                x = x0_sample[1,1]:dx:x0_sample[1,2]
                 plt.contourf(x,x,g.(repeat(x,2)))
         end
 end
