@@ -1,4 +1,4 @@
-using Documenter, HighDimPDE, Revise
+using Documenter, HighDimPDE
 # push!(LOAD_PATH,"/Users/victorboussange/ETHZ/projects/EvoId/") # not sure this is necessary
 pathsrc = joinpath(@__DIR__,"src")
 makedocs(sitename="HighDimPDE.jl",
