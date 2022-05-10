@@ -3,3 +3,4 @@ mlp_bio
 *.pdf
 docs/build
 .vscode
+Manifest.toml
