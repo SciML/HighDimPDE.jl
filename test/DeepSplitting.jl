@@ -6,7 +6,7 @@ using Statistics
 using CUDA
 if CUDA.functional() 
     use_cuda = true 
-    cuda_device = 7
+    cuda_device = 1
 else
     use_cuda = false
     cuda_device = nothing
@@ -62,7 +62,7 @@ end
         u1_anal = u_anal(x0, tspan[end])
         e_l2 = rel_error_l2(u1, u1_anal)
         println("rel_error_l2 = ", e_l2, "\n")
-        @test e_l2 < 0.1
+        @test e_l2 < 0.2
     end
 end
 
@@ -550,11 +550,11 @@ end
                     )
         xs = x0_sample(repeat(x0,1,batch_size))
         u1 = [sol.ufuns[end](x)[] for x in eachcol(xs)]
-        u1_anal = [u_anal(x, tspan[end]) for x in eachcol(xs) ]
+        u1_anal = [uanal(x, tspan[end], nothing) for x in eachcol(xs) ]
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
         println("analytical sol: $(uanal(x0, tspan[end], nothing)) \napproximation: $(sol.ufuns[end](x0)[])")
         println("rel_error_l2 = ", e_l2, "\n")
-        @test e_l2 < 0.1
+        @test e_l2 < 0.2
     end
 end
 
