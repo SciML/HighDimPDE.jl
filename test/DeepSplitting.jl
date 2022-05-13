@@ -99,7 +99,7 @@ end
         sol = solve(prob, alg, dt, 
                     verbose = false, 
                     use_cuda = use_cuda,
-                    maxiters = 1000,
+                    maxiters = 1500,
                     batch_size = batch_size,
                     cuda_device = cuda_device)
         xs = x0_sample(repeat(x0,1,batch_size))
