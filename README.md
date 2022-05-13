@@ -1,6 +1,6 @@
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/stable)
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/dev)
-[![Build Status](https://github.com/vboussange/HighDimPDE.jl/workflows/CI/badge.svg)](https://github.com/vboussange/HighDimPDE.jl/actions?query=workflow%3ACI)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://highdimpde.sciml.ai/stable)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://highdimpde.sciml.ai/dev)
+[![Build Status](https://github.com/SciML/HighDimPDE.jl/workflows/CI/badge.svg)](https://github.com/SciML/HighDimPDE.jl/actions?query=workflow%3ACI)
 
 # HighDimPDE.jl
 
@@ -19,15 +19,15 @@ $$ -->
 where <!-- $u \colon [0,T] \times \Omega \to \R$ --> <img style="transform: translateY(0.1em); background: white;" src="https://render.githubusercontent.com/render/math?math=u%20%5Ccolon%20%5B0%2CT%5D%20%5Ctimes%20%5COmega%20%5Cto%20%5CR">, <!-- $\Omega\subseteq \R^d$ --> <img style="transform: translateY(0.1em); background: white;" src="https://render.githubusercontent.com/render/math?math=%5COmega%5Csubseteq%20%5CR%5Ed"> is subject to initial and boundary conditions, and where <!-- $d$ --> <img style="transform: translateY(0.1em); background: white;" src="https://render.githubusercontent.com/render/math?math=d"> is large.
 
 ## Documentation
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/stable)
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vboussange.github.io/HighDimPDE.jl/dev)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://highdimpde.sciml.ai/stable)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://highdimpde.sciml.ai/dev)
 
 ## Installation
 Open Julia and type the following
 
 ```julia
 using Pkg;
-Pkg.add("https://github.com/vboussange/HighDimPDE.jl.git")
+Pkg.add("HighDimPDE.jl")
 ```
 This will download the latest version from the git repo and download all dependencies.
 
