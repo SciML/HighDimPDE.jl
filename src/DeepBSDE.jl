@@ -1,3 +1,15 @@
+"""
+```julia
+NNPDENS(u0,σᵀ∇u;opt=Flux.ADAM(0.1))
+```
+Uses a neural stochastic differential equation, which is then solved by the methods available in DifferentialEquations.jl. 
+The alg keyword is required for specifying the SDE solver algorithm that will be used on the internal SDE. All of the other 
+keyword arguments are passed to the SDE solver.
+## Arguments
+- `u0`: a Flux.jl `Chain` for the initial condition guess.
+- `σᵀ∇u`: a Flux.jl `Chain` for the BSDE value guess.
+- `opt`: the optimization algorithm to be used to optimize the neural networks. Defaults to `ADAM`.
+"""
 struct NNPDENS{C1,C2,O} <: NeuralPDEAlgorithm
     u0::C1
     σᵀ∇u::C2
