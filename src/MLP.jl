@@ -32,7 +32,7 @@ Returns a `PIDESolution` object.
 * `multithreading` : if `true`, distributes the job over all the threads available.
 * `verbose`: print information over the iterations.
 """
-function solve(
+function DiffEqBase.solve(
         prob::PIDEProblem,
         alg::MLP;
         multithreading=true,

@@ -69,7 +69,7 @@ Returns a `PIDESolution` object.
 - `use_cuda` : set to `true` to use CUDA.
 - `cuda_device` : integer, to set the CUDA device used in the training, if `use_cuda == true`.
 """
-function solve(
+function DiffEqBase.solve(
     prob::PIDEProblem,
     alg::DeepSplitting,
     dt;
