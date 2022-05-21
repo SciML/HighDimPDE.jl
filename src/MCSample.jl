@@ -1,10 +1,12 @@
-# """
-#     MCSampling
+abstract type Sampling{T} end
+Base.eltype(::Sampling{T}) where T = eltype(T)
 
-# Sampling method for the Monte Carlo integration.
-# """
-abstract type MCSampling{T} end
-Base.eltype(::MCSampling{T}) where T = eltype(T)
+struct DeterministicSampling{T}
+    urange::T
+end
+
+# Monte Carlo Sampling
+abstract type MCSampling{T} <: Sampling{T} end
 
 """
     UniformSampling(a, b)
@@ -56,7 +58,7 @@ end
 
 
 
-struct NoSampling <: MCSampling{Nothing} end
+struct NoSampling <: Sampling{Nothing} end
 
 (mc_sample::NoSampling)(x...) = nothing
 
