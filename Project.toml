@@ -6,6 +6,7 @@ version = "1.2.1"
 [deps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
+DiffEqSensitivity = "41bf760c-e81c-5289-8e54-58b1f1f8abe2"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 ExprTools = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
