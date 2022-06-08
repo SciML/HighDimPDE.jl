@@ -44,8 +44,7 @@ res = solve(prob,
 
 u_analytical(x,t) = sum(x.^2) .+ d*t
 analytical_ans = u_analytical(x0, tspan[end])
-
-error_l2 = sqrt((res.us[1]-analytical_ans)^2/ans^2)
+error_l2 = sqrt((res.us-analytical_ans)^2/res.us^2)
 
 println("one-dimensional heat equation")
 # println("numerical = ", ans)
@@ -79,11 +78,13 @@ u0 = Flux.Chain(Dense(d,hls,relu),
 pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
 
 ans = solve(prob, pdealg, verbose=true, maxiters=150, trajectories=m,
-                            alg=EM(), dt=dt, pabstol = 1f-6)
+                            alg=StochasticDiffEq.EM(), dt=dt, pabstol = 1f-6)
 
+
+                            
 u_analytical(x,t) = sum(x.^2) .+ d*t
 analytical_ans = u_analytical(x0, tspan[end])
-error_l2 = sqrt((ans - analytical_ans)^2/ans^2)
+error_l2 = sqrt((ans.us - analytical_ans)^2/ans.us^2)
 
 println("high-dimensional heat equation")
 # println("numerical = ", ans)
@@ -118,9 +119,9 @@ u0 = Flux.Chain(Dense(d,hls,relu),
 pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
 
 ans = solve(prob, pdealg, verbose=true, maxiters=150, trajectories=m,
-                            alg=EM(), dt=dt, pabstol = 1f-6)
+                            alg=StochasticDiffEq.EM(), dt=dt, pabstol = 1f-6)
 
-u_analytical(x, t) = exp((r + sigma^2).*(tspan[end] .- tspan[1])).*sum(x.^2)
+ u_analytical(x, t) = exp((r + sigma^2).*(tspan[end] .- tspan[1])).*sum(x.^2)
 analytical_ans = u_analytical(x0, tspan[1])
 error_l2 = sqrt((ans .- analytical_ans)^2/ans^2)
 
@@ -157,10 +158,10 @@ u0 = Flux.Chain(Dense(d,hls,relu),
 pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
 
 ans = solve(prob, pdealg, verbose=true, maxiters=150, trajectories=m,
-                            alg=EM(), dt=dt, pabstol = 1f-6)
+                            alg=StochasticDiffEq.EM(), dt=dt, pabstol = 1f-6)
 
 prob_ans = 0.30879
-error_l2 = sqrt((ans - prob_ans)^2/ans^2)
+error_l2 = sqrt((ans.us - prob_ans)^2/ans.us^2)
 
 println("Allen-Cahn equation")
 # println("numerical = ", ans)
@@ -207,7 +208,7 @@ W() = randn(d,1)
 u_analytical(x, t) = -(1/λ)*log(mean(exp(-λ*g(x .+ sqrt(2.0)*abs.(T-t).*W())) for _ = 1:MC))
 analytical_ans = u_analytical(x0, tspan[1])
 
-error_l2 = sqrt((ans - analytical_ans)^2/ans^2)
+error_l2 = sqrt((ans.us - analytical_ans)^2/ans.us^2)
 
 println("Hamilton Jacobi Bellman Equation")
 # println("numerical = ", ans)
@@ -268,10 +269,11 @@ pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
                             alg=EM(), dt=dt, pabstol = 1f-6)
 
 prob_ans = 57.3
-error_l2 = sqrt((ans - prob_ans)^2/ans^2)
+error_l2 = sqrt((ans.us - prob_ans)^2/ans.us^2)
 
 println("Nonlinear Black-Scholes Equation with Default Risk")
 # println("numerical = ", ans)
 # println("prob_ans = " , prob_ans)
 println("error_l2 = ", error_l2, "\n")
 @test error_l2 < 1.0
+
