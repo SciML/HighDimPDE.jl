@@ -7,6 +7,7 @@ module HighDimPDE
     using DocStringExtensions
     @reexport using DiffEqBase
     using DiffEqSensitivity
+    using StochasticDiffEq
     using Statistics
     using Flux, Zygote, LinearAlgebra
     using Functors
@@ -144,13 +145,23 @@ module HighDimPDE
                             typeof(kwargs)}(
                             g,f,μ,σ,x,tspan,p,A,x0_sample,neumann_bc,kwargs)
     end
-    struct PIDESolution{X0,Ts,L,Us,NNs}
+    struct PIDESolution{X0,Ts,L,Us,NNs,Ls}
         x0::X0
         ts::Ts
         losses::L
         us::Us # array of solution evaluated at x0, ts[i]
         ufuns::NNs # array of parametric functions
+        limits::Ls
     end
+    function PIDESolution(x0, ts, losses, usols, ufuns, limits=nothing)
+        PIDESolution{typeof(x0),
+                            typeof(ts),
+                            typeof(losses),
+                            typeof(usols),
+                            typeof(ufuns),
+                            typeof(limits)}(
+                            x0, ts, losses, usols, ufuns, limits)
+    end    
 
     Base.summary(prob::PIDESolution) = string(nameof(typeof(prob)))
 
@@ -166,9 +177,10 @@ module HighDimPDE
     include("reflect.jl")
     include("DeepSplitting.jl")
     include("NNPDENS.jl")
+    include("NNPDEHan.jl")
     include("MLP.jl")
 
-    export PIDEProblem, TerminalPDEProblem, PIDESolution, DeepSplitting, NNPDENS, MLP
+    export PIDEProblem, TerminalPDEProblem, PIDESolution, DeepSplitting, NNPDENS, MLP, NNPDEHan
 
     export NormalSampling, UniformSampling, NoSampling, solve
 end
