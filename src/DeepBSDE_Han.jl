@@ -1,25 +1,18 @@
-struct NNPDEHan{C1,C2,O} <: HighDimPDEAlgorithm
-    u0::C1
-    σᵀ∇u::C2
-    opt::O
-end
-NNPDEHan(u0,σᵀ∇u;opt=Flux.ADAM(0.1)) = NNPDEHan(u0,σᵀ∇u,opt)
-
+# called whenever sdealg is not specified.
 function DiffEqBase.solve(
     prob::TerminalPDEProblem,
-    alg::NNPDEHan;
+    alg::DeepBSDE;
+    dt,
     abstol = 1f-6,
     verbose = false,
     maxiters = 300,
     save_everystep = false,
-    dt,
-    give_limit = false,
     trajectories,
-    sdealg = EM(),
     ensemblealg = EnsembleThreads(),
+    limits = false,
     trajectories_upper = 1000,
     trajectories_lower = 1000,
-    maxiters_upper = 10,
+    maxiters_limits = 10,
     )
 
     X0 = prob.x
@@ -69,7 +62,7 @@ function DiffEqBase.solve(
     Flux.train!(loss, ps, data, opt; cb = callback)
 
 
-    if give_limit == false
+    if limits == false
         if save_everystep
             sol = PIDESolution(X0, ts, losses, iters, u0)
         else
@@ -80,7 +73,7 @@ function DiffEqBase.solve(
         A = prob.A
         u_domain = prob.x0_sample
 
-        ## UPPER LIMIT
+        verbose && println("Upper limit")
         sdeProb = SDEProblem(μ , σ , X0 , prob.tspan)
         ensembleprob = EnsembleProblem(sdeProb)
         sim = solve(ensembleprob, EM(), ensemblealg, dt=dt, trajectories=trajectories_upper,prob.kwargs...)
@@ -107,11 +100,11 @@ function DiffEqBase.solve(
             verbose && println("Current loss is: $l")
             l < abstol && Flux.stop()
         end
-        dataS = Iterators.repeated((), maxiters_upper)
+        dataS = Iterators.repeated((), maxiters_limits)
         Flux.train!(loss_, ps, dataS, ADAM(0.01); cb = callback)
         u_high = loss_()
-        ##Lower Limit
 
+        verbose && println("Lower limit")
         # Function to precalculate the f values over the domain
         function give_f_matrix(X,urange,σᵀ∇u,p,t)
           map(urange) do u

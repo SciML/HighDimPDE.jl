@@ -1,7 +1,6 @@
 using Flux, OptimizationFlux, Zygote, LinearAlgebra, Statistics
-println("NNPDEHAN_tests")
+println("DeepBSDE_tests")
 using Test, StochasticDiffEq
-println("Starting Soon!")
 using HighDimPDE
 
 using Random
@@ -32,19 +31,19 @@ u0 = Flux.Chain(Dense(d,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,d)) for i in 1:time_steps]
 
-alg = NNPDEHan(u0, σᵀ∇u, opt = opt)
+alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-ans = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 200, dt=dt, trajectories=m)
+sol = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 200, dt=dt, trajectories=m)
 
 
 u_analytical(x,t) = sum(x.^2) .+ d*t
-analytical_ans = u_analytical(x0, tspan[end])
-ans.us
-error_l2 = sqrt((ans.us-analytical_ans)^2/ans.us^2)
+analytical_sol = u_analytical(x0, tspan[end])
+sol.us
+error_l2 = sqrt((sol.us-analytical_sol)^2/sol.us^2)
 
 println("one-dimensional heat equation")
-# println("numerical = ", ans)
-# println("analytical = " ,analytical_ans)
+# println("numerical = ", sol)
+# println("analytical = " ,analytical_sol)
 println("error_l2 = ", error_l2, "\n")
 @test error_l2 < 0.1
 
@@ -74,17 +73,17 @@ u0 = Flux.Chain(Dense(d,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,d)) for i in 1:time_steps]
 
-alg = NNPDEHan(u0, σᵀ∇u, opt = opt)
+alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-ans = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 150, dt=dt, trajectories=m)
+sol = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 150, dt=dt, trajectories=m)
 
 u_analytical(x,t) = sum(x.^2) .+ d*t
-analytical_ans = u_analytical(x0, tspan[end])
-error_l2 = sqrt((ans.us - analytical_ans)^2/ans.us^2)
+analytical_sol = u_analytical(x0, tspan[end])
+error_l2 = sqrt((sol.us - analytical_sol)^2/sol.us^2)
 
 println("high-dimensional heat equation")
-# println("numerical = ", ans)
-# println("analytical = " ,analytical_ans)
+# println("numerical = ", sol)
+# println("analytical = " ,analytical_sol)
 println("error_l2 = ", error_l2, "\n")
 @test error_l2 < 1.0
 
@@ -115,17 +114,17 @@ u0 = Flux.Chain(Dense(d,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,d)) for i in 1:time_steps]
 
-alg = NNPDEHan(u0, σᵀ∇u, opt = opt)
+alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-ans = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 150, dt=dt, trajectories=m)
+sol = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 150, dt=dt, trajectories=m)
 
 u_analytical(x, t) = exp((r + sigma^2).*(tspan[end] .- tspan[1])).*sum(x.^2)
-analytical_ans = u_analytical(x0, tspan[1])
-error_l2 = sqrt((ans.us .- analytical_ans)^2/ans.us^2)
+analytical_sol = u_analytical(x0, tspan[1])
+error_l2 = sqrt((sol.us .- analytical_sol)^2/sol.us^2)
 
 println("Black Scholes Barenblatt equation")
-# println("numerical ans= ", ans)
-# println("analytical ans = " , analytical_ans)
+# println("numerical sol= ", sol)
+# println("analytical sol = " , analytical_sol)
 println("error_l2 = ", error_l2, "\n")
 @test error_l2 < 1.0
 
@@ -156,15 +155,15 @@ u0 = Flux.Chain(Dense(d,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,d)) for i in 1 : time_steps]
 
-alg = NNPDEHan(u0, σᵀ∇u, opt = opt)
+alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-ans = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 150, dt=dt, trajectories=m)
+sol = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 150, dt=dt, trajectories=m)
 
 prob_ans = 0.30879
-error_l2 = sqrt((ans.us - prob_ans)^2/ans.us^2)
+error_l2 = sqrt((sol.us - prob_ans)^2/sol.us^2)
 
 println("Allen-Cahn equation")
-# println("numerical = ", ans)
+# println("numerical = ", sol)
 # println("prob_ans = " , prob_ans)
 println("error_l2 = ", error_l2, "\n")
 @test error_l2 < 1.0
@@ -199,21 +198,21 @@ u0 = Flux.Chain(Dense(d,hls,relu),
                    Dense(hls,hls,relu),
                    Dense(hls,d)) for i in 1 : time_steps]
 
-alg = NNPDEHan(u0, σᵀ∇u, opt = opt)
+alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-ans = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 200, dt=dt, trajectories=m)
+sol = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 200, dt=dt, trajectories=m)
 
 T = tspan[2]
 MC = 10^5
 W() = randn(d,1)
 u_analytical(x, t) = -(1/λ)*log(mean(exp(-λ*g(x .+ sqrt(2.0)*abs.(T-t).*W())) for _ = 1:MC))
-analytical_ans = u_analytical(x0, tspan[1])
+analytical_sol = u_analytical(x0, tspan[1])
 
-error_l2 = sqrt((ans.us - analytical_ans)^2/ans.us^2)
+error_l2 = sqrt((sol.us - analytical_sol)^2/sol.us^2)
 
 println("Hamilton Jacobi Bellman Equation")
-# println("numerical = ", ans)
-# println("analytical = " , analytical_ans)
+# println("numerical = ", sol)
+# println("analytical = " , analytical_sol)
 println("error_l2 = ", error_l2, "\n")
 @test error_l2 < 2.
 
@@ -263,15 +262,15 @@ u0 = Flux.Chain(Dense(d,hls,relu),
                    Dense(hls,hls,relu),
                    Dense(hls,hls,relu),
                    Dense(hls,d)) for i in 1:time_steps]
-alg = NNPDEHan(u0, σᵀ∇u, opt = opt)
+alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-ans = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 100, dt=dt, trajectories=m)
+sol = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 100, dt=dt, trajectories=m)
 
 prob_ans = 57.3 #60.781
-error_l2 = sqrt((ans.us - prob_ans)^2/ans.us^2)
+error_l2 = sqrt((sol.us - prob_ans)^2/sol.us^2)
 
 println("Nonlinear Black-Scholes Equation with Default Risk")
-# println("numerical = ", ans)
+# println("numerical = ", sol)
 # println("prob_ans = " , prob_ans)
 println("error_l2 = ", error_l2, "\n")
 @test error_l2 < 1.0
@@ -292,8 +291,8 @@ u_domain = -500:0.1:500
 A = -2:0.01:2
 prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan ;A = A , x0_sample = u_domain)
 
-hls = 10 + d #hidden layer size
-opt = Flux.ADAM(0.005)  #optimizer
+hls = 10 + d # hidden layer size
+opt = Flux.ADAM(0.005)  # optimizer
 
 u0 = Flux.Chain(Dense(d,hls,relu),
                 Dense(hls,hls,relu),
@@ -303,7 +302,17 @@ u0 = Flux.Chain(Dense(d,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,d)) for i in 1:time_steps]
 
-alg = NNPDEHan(u0, σᵀ∇u, opt = opt)
+alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-ans = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 200, dt=dt, trajectories=m , give_limit = true,
-trajectories_upper = 10000 , trajectories_lower = 10 , maxiters_upper = 10 , sdealg = EM() , ensemblealg = EnsembleThreads() )
+sol = solve(prob, 
+            alg, 
+            verbose = true,
+            abstol=1e-8,
+            maxiters = 200, 
+            dt=dt, 
+            trajectories=m , 
+            limits = true, 
+            trajectories_upper = m,
+            trajectories_lower = m, 
+            maxiters_limits = 200)
+@test sol.limits[1] < sol.us[end] < sol.limits[2] # TODO: results seem dubious and must be confirmed
