@@ -176,11 +176,11 @@ module HighDimPDE
     include("MCSample.jl")
     include("reflect.jl")
     include("DeepSplitting.jl")
-    include("NNPDENS.jl")
-    include("NNPDEHan.jl")
+    include("DeepBSDE.jl")
+    include("DeepBSDE_Han.jl")
     include("MLP.jl")
 
-    export PIDEProblem, TerminalPDEProblem, PIDESolution, DeepSplitting, NNPDENS, MLP, NNPDEHan
+    export PIDEProblem, TerminalPDEProblem, PIDESolution, DeepSplitting, DeepBSDE, MLP
 
     export NormalSampling, UniformSampling, NoSampling, solve
 end

@@ -1,7 +1,7 @@
 using Flux, GalacticFlux, Zygote
 import StochasticDiffEq
 using LinearAlgebra, Statistics
-println("NNPDENS_tests")
+println("DeepBSDE_tests")
 using Test, HighDimPDE
 
 using Random
@@ -31,24 +31,24 @@ u0 = Flux.Chain(Dense(d,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,d))
-pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
+pdealg = DeepBSDE(u0, σᵀ∇u, opt=opt)
 
 res = solve(prob, 
             pdealg, 
+            StochasticDiffEq.EM(),
             verbose=true, 
             maxiters=200, 
             trajectories=m,
-            alg=StochasticDiffEq.EM(), 
             dt=dt, 
             pabstol = 1f-6)
 
 u_analytical(x,t) = sum(x.^2) .+ d*t
-analytical_ans = u_analytical(x0, tspan[end])
-error_l2 = sqrt((res.us-analytical_ans)^2/res.us^2)
+analytical_sol = u_analytical(x0, tspan[end])
+error_l2 = sqrt((res.us-analytical_sol)^2/res.us^2)
 
 println("one-dimensional heat equation")
-# println("numerical = ", ans)
-# println("analytical = " ,analytical_ans)
+# println("numerical = ", sol)
+# println("analytical = " ,analytical_sol)
 println("error_l2 = ", error_l2, "\n")
 @test error_l2 < 0.1
 
@@ -75,20 +75,24 @@ u0 = Flux.Chain(Dense(d,hls,relu),
 σᵀ∇u = Flux.Chain(Dense(d+1,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,d))
-pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
+pdealg = DeepBSDE(u0, σᵀ∇u, opt=opt)
 
-ans = solve(prob, pdealg, verbose=true, maxiters=150, trajectories=m,
-                            alg=StochasticDiffEq.EM(), dt=dt, pabstol = 1f-6)
-
-
+sol = solve(prob, 
+            pdealg, 
+            StochasticDiffEq.EM(),
+            verbose=true, 
+            maxiters=150, 
+            trajectories=m,
+            dt=dt, 
+            pabstol = 1f-6)
                             
 u_analytical(x,t) = sum(x.^2) .+ d*t
-analytical_ans = u_analytical(x0, tspan[end])
-error_l2 = sqrt((ans.us - analytical_ans)^2/ans.us^2)
+analytical_sol = u_analytical(x0, tspan[end])
+error_l2 = sqrt((sol.us - analytical_sol)^2/sol.us^2)
 
 println("high-dimensional heat equation")
-# println("numerical = ", ans)
-# println("analytical = " ,analytical_ans)
+# println("numerical = ", sol)
+# println("analytical = " ,analytical_sol)
 println("error_l2 = ", error_l2, "\n")
 @test error_l2 < 1.0
 
@@ -116,20 +120,26 @@ u0 = Flux.Chain(Dense(d,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,d))
-pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
+pdealg = DeepBSDE(u0, σᵀ∇u, opt=opt)
 
-ans = solve(prob, pdealg, verbose=true, maxiters=150, trajectories=m,
-                            alg=StochasticDiffEq.EM(), dt=dt, pabstol = 1f-6)
+sol = solve(prob, 
+            pdealg, 
+            StochasticDiffEq.EM(), 
+            verbose=true, 
+            maxiters=150, 
+            trajectories=m, 
+            dt=dt, 
+            pabstol = 1f-6)
 
- u_analytical(x, t) = exp((r + sigma^2).*(tspan[end] .- tspan[1])).*sum(x.^2)
-analytical_ans = u_analytical(x0, tspan[1])
-error_l2 = sqrt((ans .- analytical_ans)^2/ans^2)
+u_analytical(x, t) = exp((r + sigma^2).*(tspan[end] .- tspan[1])).*sum(x.^2)
+analytical_sol = u_analytical(x0, tspan[1])
+error_l2 = sqrt((sol .- analytical_sol)^2/sol^2)
 
 println("Black Scholes Barenblatt equation")
-# println("numerical ans= ", ans)
-# println("analytical ans = " , analytical_ans)
+# println("numerical sol= ", sol)
+# println("analytical sol = " , analytical_sol)
 println("error_l2 = ", error_l2, "\n")
-@test error_l2 < 1.0
+@test error_l2 < 1.0 # TODO: this fails
 
 # Allen-Cahn Equation
 d = 10 # number of dimensions
@@ -155,19 +165,25 @@ u0 = Flux.Chain(Dense(d,hls,relu),
 σᵀ∇u = Flux.Chain(Dense(d+1,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,d))
-pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
+pdealg = DeepBSDE(u0, σᵀ∇u, opt=opt)
 
-ans = solve(prob, pdealg, verbose=true, maxiters=150, trajectories=m,
-                            alg=StochasticDiffEq.EM(), dt=dt, pabstol = 1f-6)
+sol = solve(prob, 
+        pdealg, 
+        StochasticDiffEq.EM(), 
+        verbose=true, 
+        maxiters=150, 
+        trajectories=m,
+        dt=dt, 
+        pabstol = 1f-6)
 
 prob_ans = 0.30879
-error_l2 = sqrt((ans.us - prob_ans)^2/ans.us^2)
+error_l2 = sqrt((sol.us - prob_ans)^2/sol.us^2)
 
 println("Allen-Cahn equation")
-# println("numerical = ", ans)
+# println("numerical = ", sol)
 # println("prob_ans = " , prob_ans)
 println("error_l2 = ", error_l2, "\n")
-@test error_l2 < 1.0
+@test error_l2 < 1.0 # TODO: this is too large as a relative error
 
 
 # Hamilton Jacobi Bellman Equation
@@ -184,6 +200,7 @@ f(X,u,σᵀ∇u,p,t) = -λ*sum(σᵀ∇u.^2)
 σ_f(X,p,t) = Diagonal(sqrt(2.0f0)*ones(Float32,d)) #Matrix d x d
 prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
+# TODO: This is a very large neural networks which size must be reduced.
 hls = 256 #hidden layer size
 opt = Flux.ADAM(0.1)  #optimizer
 #sub-neural network approximating solutions at the desired point
@@ -197,24 +214,30 @@ u0 = Flux.Chain(Dense(d,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,d))
-pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
+pdealg = DeepBSDE(u0, σᵀ∇u, opt=opt)
 
-@time ans = solve(prob, pdealg, verbose=true, maxiters=150, trajectories=m,
-                            alg=EM(), dt=dt, pabstol = 1f-4)
+@time sol = solve(prob, 
+                    pdealg, 
+                    EM(), 
+                    verbose=true, 
+                    maxiters=150, 
+                    trajectories=m,
+                    dt=dt, 
+                    pabstol = 1f-4)
 
 T = tspan[2]
 MC = 10^5
 W() = randn(d,1)
 u_analytical(x, t) = -(1/λ)*log(mean(exp(-λ*g(x .+ sqrt(2.0)*abs.(T-t).*W())) for _ = 1:MC))
-analytical_ans = u_analytical(x0, tspan[1])
+analytical_sol = u_analytical(x0, tspan[1])
 
-error_l2 = sqrt((ans.us - analytical_ans)^2/ans.us^2)
+error_l2 = sqrt((sol.us - analytical_sol)^2/sol.us^2)
 
 println("Hamilton Jacobi Bellman Equation")
-# println("numerical = ", ans)
-# println("analytical = " , analytical_ans)
+# println("numerical = ", sol)
+# println("analytical = " , analytical_sol)
 println("error_l2 = ", error_l2, "\n")
-@test error_l2 < 1.0
+@test error_l2 < 1.0 # TODO: this is too large as a relative error
 
 
 # Nonlinear Black-Scholes Equation with Default Risk
@@ -263,17 +286,24 @@ u0 = Flux.Chain(Dense(d,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,d))
-pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
+pdealg = DeepBSDE(u0, σᵀ∇u, opt=opt)
 
-@time ans = solve(prob, pdealg, verbose=true, maxiters=100, trajectories=m,
-                            alg=EM(), dt=dt, pabstol = 1f-6)
+@time sol = solve(prob, 
+                pdealg,
+                EM(),
+                verbose=true, 
+                maxiters=100, 
+                trajectories=m,
+                dt=dt, 
+                pabstol = 1f-6) #TODO: fails
 
 prob_ans = 57.3
-error_l2 = sqrt((ans.us - prob_ans)^2/ans.us^2)
+error_l2 = sqrt((sol.us - prob_ans)^2/sol.us^2)
 
 println("Nonlinear Black-Scholes Equation with Default Risk")
-# println("numerical = ", ans)
+# println("numerical = ", sol)
 # println("prob_ans = " , prob_ans)
 println("error_l2 = ", error_l2, "\n")
-@test error_l2 < 1.0
+@test error_l2 < 1.0 #TODO: this is a too large relative error 
 
+# TODO: implement a test with limits=true
