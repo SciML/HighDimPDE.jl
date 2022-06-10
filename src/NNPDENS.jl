@@ -119,10 +119,11 @@ function DiffEqBase.solve(
     end
 
     iters = eltype(x0)[]
-
+    losses = eltype(x0)[]
     cb = function ()
         save_everystep && push!(iters, u0(x0)[1])
         l = loss_n_sde()
+        push!(losses, l)
         verbose && println("Current loss is: $l")
         l < pabstol && Flux.stop()
     end
@@ -132,9 +133,9 @@ function DiffEqBase.solve(
     if !give_limit
         # Returning iters or simply u0(x0) and the tained neural network approximation u0
         if save_everystep
-            sol = PIDESolution(x0, ts, losses, iters, re1(p3))
+            sol = PIDESolution(x0, tspan[1]:dt:tspan[2], losses, iters, re1(p3))
         else
-            sol = PIDESolution(x0, ts, losses, re1(p3)(x0)[1], re1(p3))
+            sol = PIDESolution(x0, tspan[1]:dt:tspan[2], losses, re1(p3)(x0)[1], re1(p3))
         end
         save_everystep ? iters : re1(p3)(x0)[1]
         return sol
@@ -210,6 +211,11 @@ function DiffEqBase.solve(
             end
         end
         u_low = sum(exp(I)*g(X) - Q for (I ,Q ,X) in sol_low())/(trajectories_lower)
-        save_everystep ? iters : re1(p3)(x0)[1] , u_low , u_high
+        if save_everystep
+            sol = PIDESolution(x0, tspan[1]:dt:tspan[2], losses, iters, re1(p3), (u_low, u_high))
+        else
+            sol = PIDESolution(x0, tspan[1]:dt:tspan[2], losses, re1(p3)(x0)[1], re1(p3), (u_low, u_high))
+        end
+        return sol
     end
 end #pde_solve_ns
