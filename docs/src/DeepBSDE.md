@@ -5,7 +5,9 @@ Modules = [HighDimPDE]
 Pages   = ["DeepBSDE.jl", "DeepBSDE_Han.jl"]
 ```
 
+## The general idea 💡
+The `DeepBSDE` algorithm is similar in essence to the `DeepSplitting` algorithm, with the difference that 
+it uses two neural networks to approximate both the the solution and its gradient.
 
 ## References
-- Boussange, V., Becker, S., Jentzen, A., Kuckuck, B., Pellissier, L., Deep learning approximations for non-local nonlinear PDEs with Neumann boundary conditions. [arXiv](https://arxiv.org/abs/2205.03672) (2022)
-- Becker, S., Braunwarth, R., Hutzenthaler, M., Jentzen, A., von Wurstemberger, P., Numerical simulations for full history recursive multilevel Picard approximations for systems of high-dimensional partial differential equations. [arXiv](https://arxiv.org/abs/2005.10206) (2020)
+- Han, J., Jentzen, A., E, W., Solving high-dimensional partial differential equations using deep learning. [arXiv](https://arxiv.org/abs/1707.02568) (2018)

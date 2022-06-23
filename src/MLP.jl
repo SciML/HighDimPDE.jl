@@ -1,5 +1,5 @@
 """
-    MLP(; M=4, L=4, K=10, mc_sample = NoSampling())
+$(SIGNATURES)
 
 Multi level Picard algorithm.
 
@@ -21,10 +21,7 @@ end
 MLP(; M=4, L=4, K=10, mc_sample = NoSampling()) = MLP(M ,L, K, mc_sample)
 
 """
-    solve(prob::PIDEProblem,
-        alg::MLP;
-        multithreading=true,
-        verbose=false)
+$(SIGNATURES)
 
 Returns a `PIDESolution` object.
 

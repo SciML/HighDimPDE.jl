@@ -28,7 +28,7 @@ module HighDimPDE
     end
 
     """
-        PIDEProblem(g, f, μ, σ, x, tspan, p = nothing, x0_sample=nothing, neumann_bc=nothing)
+    $(SIGNATURES)
 
 <<<<<<< HEAD
     Defines a Partial Integro Differential Problem, of the form
@@ -50,7 +50,7 @@ module HighDimPDE
     * `f` : nonlinear function, of the form `f(x, y, u(x, t), u(y, t), ∇u(x, t), ∇u(y, t), p, t)`.
     * `μ` : drift function, of the form `μ(x, p, t)`.
     * `σ` : diffusion function `σ(x, p, t)`.
-    * `x`: point where `u(x,t)` is approximated. Is required even in the case where `x0_sample` is provided.
+    * `x`: point where `u(x,t)` is approximated. Is required even in the case where `x0_sample` is provided. Determines the dimensionality of the PDE.
     * `tspan`: timespan of the problem.
     * `p`: the parameter vector.
     * `x0_sample` : sampling method for `x0`. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default). If `NoSampling`, only solution at the single point `x` is evaluated.
@@ -97,8 +97,8 @@ module HighDimPDE
     end
 
     """
-        TerminalPDEProblem(g, f, μ, σ, x0, tspan)
-        
+    $(SIGNATURES)   
+
     Defines a semilinear Partial Differential Equation Problem with terminal conditions, of the form 
     ```math 
     \\begin{aligned}
@@ -114,6 +114,7 @@ module HighDimPDE
     * `f` : The nonlinear function, of the form `f(x, u(x, t), ∇u(x, t), p, t)`.
     * `μ` : drift function, of the form `μ(x, p, t)`.
     * `σ` : diffusion function `σ(x, p, t)`.
+    * `x`: point where `u(x,t)` is approximated. Is required even in the case where `x0_sample` is provided. Determines the dimensionality of the PDE.
     * `tspan`: timespan of the problem.
     * `p`: the parameter vector.
     """

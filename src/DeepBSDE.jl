@@ -6,20 +6,9 @@ DeepBSDE(u0,σᵀ∇u;opt=Flux.ADAM(0.1))
 [DeepBSDE algorithm](https://www.pnas.org/doi/10.1073/pnas.1718942115), from J. Han, A. Jentzen and Weinan E. 
 
 ## Arguments
-- `u0`: a Flux.jl `Chain` for the initial condition guess.
+- `u0`: a Flux.jl `Chain` with a d-dimensional input and a 1-dimensional output for the solytion guess.
 - `σᵀ∇u`: a Flux.jl `Chain` for the BSDE value guess.
 - `opt`: the optimization algorithm to be used to optimize the neural networks. Defaults to `ADAM(0.1)`.
-
-## Arguments passed to `solve`
-- `sdealg`: a SDE solver from [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/solvers/sde_solve/). 
-    If not provided, the plain vanilla [DeepBSDE](https://www.pnas.org/doi/10.1073/pnas.1718942115) method will be applied.
-    If provided, the SDE associated with the PDE problem will be solved relying on 
-    methods from DifferentialEquations.jl, using [Ensemble solves](https://diffeq.sciml.ai/stable/features/ensemble/) 
-    via `sdealg`. Check the available `sdealg` on the 
-    [DifferentialEquations.jl doc](https://diffeq.sciml.ai/stable/solvers/sde_solve/).
-- `limits`: if `true`, upper and lower limits will be calculated, based on 
-    [Deep Primal-Dual algorithm for BSDEs](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3071506).
-- Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
 
 ## Example
 Black-Scholes-Barenblatt equation
@@ -69,6 +58,23 @@ end
 
 DeepBSDE(u0,σᵀ∇u;opt=Flux.ADAM(0.1)) = DeepBSDE(u0,σᵀ∇u,opt)
 
+"""
+$(SIGNATURES)
+
+Returns a `PIDESolution` object.
+
+# Arguments
+
+- `sdealg`: a SDE solver from [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/solvers/sde_solve/). 
+    If not provided, the plain vanilla [DeepBSDE](https://www.pnas.org/doi/10.1073/pnas.1718942115) method will be applied.
+    If provided, the SDE associated with the PDE problem will be solved relying on 
+    methods from DifferentialEquations.jl, using [Ensemble solves](https://diffeq.sciml.ai/stable/features/ensemble/) 
+    via `sdealg`. Check the available `sdealg` on the 
+    [DifferentialEquations.jl doc](https://diffeq.sciml.ai/stable/solvers/sde_solve/).
+- `limits`: if `true`, upper and lower limits will be calculated, based on 
+    [Deep Primal-Dual algorithm for BSDEs](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3071506).
+- Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
+"""
 function DiffEqBase.solve(
     prob::TerminalPDEProblem,
     pdealg::DeepBSDE,

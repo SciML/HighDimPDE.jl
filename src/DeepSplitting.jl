@@ -47,16 +47,7 @@ function DeepSplitting(nn;
 end
 
 """
-    solve(prob::PIDEProblem,
-        alg::DeepSplitting,
-        dt;
-        batch_size = 1,
-        abstol = 1f-6,
-        verbose = false,
-        maxiters = 300,
-        use_cuda = false,
-        cuda_device = nothing,
-        verbose_rate = 100)
+$(SIGNATURES)
 
 Returns a `PIDESolution` object.
 
