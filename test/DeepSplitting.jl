@@ -68,7 +68,7 @@ end
 
 @testset "DeepSplitting - heat equation - interval" begin # solving on interval [-5f-1, 5f-1]^d
     batch_size = 1000
-    for d in [1, 10, 50]
+    for d in [1, 10, 20]
         println("test for d = ", d)
         tspan = (0f0, 5f-1)
         dt = 5f-1  # time step

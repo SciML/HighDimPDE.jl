@@ -3,6 +3,7 @@ $(DocStringExtensions.README)
 """
 module HighDimPDE
     using Reexport
+    using DocStringExtensions
     @reexport using DiffEqBase
     using Statistics
     using Flux, Zygote, LinearAlgebra
