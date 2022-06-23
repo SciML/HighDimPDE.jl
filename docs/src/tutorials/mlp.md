@@ -1,6 +1,6 @@
 
-### `MLP`
-#### Local PDE
+# `MLP`
+## Local PDE
 Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) PDE in dimension 10 with [`MLP`](@ref mlp).
 ```math
 \partial_t u = u (1 - u) + \frac{1}{2}\sigma^2\Delta_xu \tag{1}
@@ -26,7 +26,7 @@ alg = MLP() # defining the algorithm. We use the Multi Level Picard algorithm
 sol = solve(prob, alg, multithreading=true)
 ```
 
-#### Non local PDE with Neumann boundary conditions
+## Non local PDE with Neumann boundary conditions
 Let's include in the previous equation non local competition, i.e.
 ```math
 \partial_t u = u (1 - \int_\Omega u(t,y)dy) + \frac{1}{2}\sigma^2\Delta_xu \tag{2}
