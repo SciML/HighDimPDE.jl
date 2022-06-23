@@ -9,12 +9,12 @@
 
 $$
 \begin{aligned}
-    (\partial_t u)(t,x) &= \int_{\Omega} f\big(t,x,{\bf x}, u(t,x),u(t,{\bf x}), ( \nabla_x u )(t,x ),( \nabla_x u )(t,{\bf x} ) \big) \, d{\bf x} \\
+    (\partial_t u)(t,x) &= \int_{\Omega} f\big(t,x,{\bf x}, u(t,x),u(t,{\bf x}), ( \nabla_x u )(t,x ),( \nabla_x u )(t,{\bf x} ) \big) d{\bf x} \\
     & \quad + \big\langle \mu(t,x), ( \nabla_x u )( t,x ) \big\rangle + \tfrac{1}{2} \text{Trace} \big(\sigma(t,x) [ \sigma(t,x) ]^* ( \text{Hess}_x u)(t, x ) \big).
 \end{aligned}
 $$
 
-where $u \colon [0,T] \times \Omega \to \mathbb{R}$, $\Omega\subseteq \mathbb{R}^{d}$ is subject to initial and boundary conditions, and where $d$ is large.
+where $u \colon [0,T] \times \Omega \to \mathbb{R}, \Omega \subseteq \mathbb{R}^{d}$ is subject to initial and boundary conditions, and where $d$ is large.
 
 ## Documentation
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://highdimpde.sciml.ai/stable)
