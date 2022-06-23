@@ -159,7 +159,7 @@ end
 
     sol = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 150, dt=dt, trajectories=m)
 
-    prob_ans = 0.30879
+    analytical_sol = 0.30879
     error_l2 = rel_error_l2(sol.us,analytical_sol)
 
     println("error_l2 = ", error_l2, "\n")
@@ -262,7 +262,7 @@ end
 
     sol = solve(prob, alg, verbose = true, abstol=1e-8, maxiters = 100, dt=dt, trajectories=m)
 
-    prob_ans = 57.3 #60.781
+    analytical_sol = 57.3 #60.781
     error_l2 = rel_error_l2(sol.us,analytical_sol)
     println("error_l2 = ", error_l2, "\n")
     @test error_l2 < 1.0
