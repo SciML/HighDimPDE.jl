@@ -18,7 +18,10 @@ where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subseteq \R^d$ is subject 
 
 * the [Deep Splitting scheme](@ref deepsplitting)
 
-* the [Multi-Level Picard iterations scheme](@ref mlp).
+* the [Multi-Level Picard iterations scheme](@ref mlp)
+
+* the Deep BSDE scheme (@ref deepbsde).
+
 
 To make the most out of **HighDimPDE.jl**, we advise to first have a look at the 
 
@@ -28,14 +31,14 @@ as all solver algorithms heavily rely on it.
 
 ## Algorithm overview
 
-----------------------------------------------
-Features  |    `DeepSplitting`   | `MLP`     |
-----------|:----------------------:|:------------:
-Time discretization free|   ❌ |         ✅ |
-Mesh-free       | ✅ |                   ✅ |
-Single point $x \in \R^d$ approximation| ✅   |  ✅ |
-$d$-dimensional cube $[a,b]^d$ approximation| ✅   |          ❌ |
-GPU             | ✅ |                   ❌ |
-Gradient non-linearities    | ✔️|       ❌ |
+------------------------------------------------------------
+Features  |    `DeepSplitting`   | `MLP`     | `DeepBSDE` |
+----------|:----------------------:|:------------:|:--------:
+Time discretization free|  ❌ | ✅ |   ❌ |
+Mesh-free       | ✅ |   ✅ |   ✅ |
+Single point $x \in \R^d$ approximation| ✅  |  ✅ | ✅ |
+$d$-dimensional cube $[a,b]^d$ approximation| ✅   | ❌ | ✔️ |
+GPU | ✅ |  ❌ | ✅ |      
+Gradient non-linearities  | ✔️|  ❌ | ✅ |
 
-✔️ : will be supported in the future
+✔️ : might be supported in the future

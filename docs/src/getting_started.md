@@ -4,13 +4,13 @@
 ## General workflow
 The general workflow for using `HighDimPDE.jl` is as follows:
 
-- Define a Partial Integro Differential Equation problem
+- Define a Partial Integro Differential Equation problem. Two problem types are available:
 ```@autodocs
 Modules = [HighDimPDE]
 Pages   = ["HighDimPDE.jl"]
 ```
 - Select a solver algorithm
-- Solve the problem
+- Solve the problem.
 
 ## Examples
 Let's illustrate that with some examples.
