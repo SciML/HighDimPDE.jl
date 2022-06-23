@@ -14,7 +14,7 @@ $$
 \end{aligned}
 $$
 
-where $u \colon [0,T] \times \Omega \to \mathbb{R}$, $\Omega\subseteq \mathbb{R}^d$ is subject to initial and boundary conditions, and where $d$ is large.
+where $u \colon [0,T] \times \Omega \to \mathbb{R}$, $\Omega\subseteq \mathbb{R}^{d}$ is subject to initial and boundary conditions, and where $d$ is large.
 
 ## Documentation
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://highdimpde.sciml.ai/stable)
