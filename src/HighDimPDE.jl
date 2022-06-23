@@ -1,3 +1,6 @@
+"""
+$(DocStringExtensions.README)
+"""
 module HighDimPDE
     using Reexport
     @reexport using DiffEqBase
