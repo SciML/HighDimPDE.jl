@@ -2,7 +2,7 @@ using HighDimPDE
 using Random
 using Test
 using Statistics
-using Revise
+# using Revise
 
 #relative error l2
 function rel_error_l2(u, uanal) 
