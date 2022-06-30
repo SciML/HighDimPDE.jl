@@ -80,6 +80,7 @@ end
     σᵀ∇u = Flux.Chain(Dense(d+1,hls,relu),
                     Dense(hls,hls,relu),
                     Dense(hls,d))
+    opt = ADAM(0.005)
     pdealg = DeepBSDE(u0, σᵀ∇u, opt=opt)
 
     sol = solve(prob, 
@@ -93,7 +94,7 @@ end
                                 
     u_analytical(x,t) = sum(x.^2) .+ d*t
     analytical_sol = u_analytical(x0, tspan[end])
-    error_l2 = rel_error_l2(res.us,analytical_sol)
+    error_l2 = rel_error_l2(sol.us,analytical_sol)
     println("error_l2 = ", error_l2, "\n")
     @test error_l2 < 1.0
 end

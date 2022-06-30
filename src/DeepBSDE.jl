@@ -153,7 +153,7 @@ function DiffEqBase.solve(
     function neural_sde(init_cond)
         output_func(sol,i) = ((sol[end][1:end-1], sol[end][end]),false)
         function prob_func(prob,i,repeat)
-            SDEProblem(prob.f , prob.g , init_cond, prob.tspan , prob.p ,noise_rate_prototype = prob.noise_rate_prototype)
+            SDEProblem(prob.f , prob.g , init_cond, prob.tspan , prob.p ,noise_rate_prototype = copy(prob.noise_rate_prototype))
         end
         ensembleprob = EnsembleProblem(prob, output_func = output_func, prob_func = prob_func)
         sim = solve(ensembleprob,sdealg,ensemblealg, dt=dt, save_everystep = false;sensealg=DiffEqSensitivity.TrackerAdjoint(),trajectories=trajectories)
