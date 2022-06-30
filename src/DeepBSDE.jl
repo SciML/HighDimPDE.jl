@@ -158,16 +158,6 @@ function DiffEqBase.solve(
         ensembleprob = EnsembleProblem(prob, output_func = output_func, prob_func = prob_func)
         sim = solve(ensembleprob,sdealg,ensemblealg, dt=dt, save_everystep = false;sensealg=DiffEqSensitivity.TrackerAdjoint(),trajectories=trajectories)
         return sim.u
-        # map(1:trajectories) do j #TODO add Ensemble Simulation
-        #     predict_ans = Array(solve(prob, sdealg;
-        #                                  dt = dt,
-        #                                  u0 = init_cond,
-        #                                  p = p3,
-        #                                  save_everystep=false,
-        #                                  sensealg=DiffEqSensitivity.TrackerAdjoint(),
-        #                                  kwargs...))[:,end]
-        #     (X,u) = (predict_ans[1:(end-1)], predict_ans[end])
-        # end
     end
 
     function predict_n_sde()
