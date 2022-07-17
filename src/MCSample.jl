@@ -1,10 +1,6 @@
 abstract type Sampling{T} end
 Base.eltype(::Sampling{T}) where T = eltype(T)
 
-struct DeterministicSampling{T}
-    urange::T
-end
-
 # Monte Carlo Sampling
 abstract type MCSampling{T} <: Sampling{T} end
 
@@ -62,7 +58,7 @@ struct NoSampling <: Sampling{Nothing} end
 
 (mc_sample::NoSampling)(x...) = nothing
 
-function _integrate(::MCS) where {MCS <: MCSampling}
+function _integrate(::MCS) where {MCS <: Sampling}
     if MCS <: NoSampling
         return false
     else
