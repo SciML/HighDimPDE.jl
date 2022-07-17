@@ -18,7 +18,7 @@ struct MLP{T, MCS} <: HighDimPDEAlgorithm where {T <: Int, MCS <: MCSampling}
 end
 
 #Note: mc_sample mutates its first argument but for the user interface we hide this technicality
-MLP(; M=4, L=4, K=10, mc_sample::Sampling = NoSampling()) = MLP(M ,L, K, mc_sample)
+MLP(; M=4, L=4, K=10, mc_sample::AbstractSampling = NoSampling()) = MLP(M ,L, K, mc_sample)
     
 """
 $(SIGNATURES)

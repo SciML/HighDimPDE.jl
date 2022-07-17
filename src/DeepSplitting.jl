@@ -41,7 +41,7 @@ function DeepSplitting(nn;
                         K=1, 
                         opt::O = ADAM(0.01), 
                         λs::L = nothing, 
-                        mc_sample::Sampling = NoSampling()) where {O <: Flux.Optimise.AbstractOptimiser, L <: Union{Nothing,Vector{N}} where N <: Number}
+                        mc_sample::AbstractSampling = NoSampling()) where {O <: Flux.Optimise.AbstractOptimiser, L <: Union{Nothing,Vector{N}} where N <: Number}
     isnothing(λs) ? λs = [opt.eta] : nothing
     DeepSplitting(nn, K, opt, λs, mc_sample)
 end
