@@ -2,7 +2,6 @@
 using Test
 using CUDA
 using Random
-# using Revise
 using Flux
 using HighDimPDE
 
