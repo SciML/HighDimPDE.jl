@@ -1,8 +1,8 @@
-abstract type Sampling{T} end
-Base.eltype(::Sampling{T}) where T = eltype(T)
+abstract type AbstractSampling{T} end
+Base.eltype(::AbstractSampling{T}) where T = eltype(T)
 
-# Monte Carlo Sampling
-abstract type MCSampling{T} <: Sampling{T} end
+# Monte Carlo AbstractSampling
+abstract type MCSampling{T} <: AbstractSampling{T} end
 
 """
     UniformSampling(a, b)
@@ -54,11 +54,11 @@ end
 
 
 
-struct NoSampling <: Sampling{Nothing} end
+struct NoSampling <: AbstractSampling{Nothing} end
 
 (mc_sample::NoSampling)(x...) = nothing
 
-function _integrate(::MCS) where {MCS <: Sampling}
+function _integrate(::MCS) where {MCS <: AbstractSampling}
     if MCS <: NoSampling
         return false
     else
