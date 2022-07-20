@@ -21,6 +21,7 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 [compat]
 CUDA = "3"
 DiffEqBase = "6"
+DocStringExtensions = "0.9"
 ExprTools = "0.1"
 Reexport = "1"
 Zygote = "0.6"
