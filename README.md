@@ -1,11 +1,16 @@
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://highdimpde.sciml.ai/stable)
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://highdimpde.sciml.ai/dev)
+[![Join the chat at https://julialang.zulipchat.com #sciml-bridged](https://img.shields.io/static/v1?label=Zulip&message=chat&color=9558b2&labelColor=389826)](https://julialang.zulipchat.com/#narrow/stream/279055-sciml-bridged)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](http://highdimpde.sciml.ai/stable/)
+[![Global Docs](https://img.shields.io/badge/docs-SciML-blue.svg)](https://docs.sciml.ai/dev/modules/HighDimPDE/)
+
+[![codecov](https://codecov.io/gh/SciML/HighDimPDE.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/SciML/HighDimPDE.jl)
 [![Build Status](https://github.com/SciML/HighDimPDE.jl/workflows/CI/badge.svg)](https://github.com/SciML/HighDimPDE.jl/actions?query=workflow%3ACI)
+
+[![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
+[![SciML Code Style](https://img.shields.io/static/v1?label=code%20style&message=SciML&color=9558b2&labelColor=389826)](https://github.com/SciML/SciMLStyle)
 
 # HighDimPDE.jl
 
 **HighDimPDE.jl** is a Julia package to **solve Highly Dimensional non-local, non-linear PDEs** of the form
-
 
 $$
 \begin{aligned}
@@ -15,10 +20,6 @@ $$
 $$
 
 where $u \colon [0,T] \times \Omega \to \mathbb{R}, \Omega \subseteq \mathbb{R}^{d}$ is subject to initial and boundary conditions, and where $d$ is large.
-
-## Documentation
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://highdimpde.sciml.ai/stable)
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://highdimpde.sciml.ai/dev)
 
 ## Installation
 Open Julia and type the following
