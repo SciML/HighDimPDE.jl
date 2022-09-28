@@ -30,7 +30,7 @@ module HighDimPDE
     ## Arguments
 
     * `g` : initial condition, of the form `g(x, p, t)`.
-    * `f` : nonlinear function, of the form `f(x, y, u(x, t), u(y, t), ∇u(x, t), ∇u(x, t), p, t)`.
+    * `f` : nonlinear function, of the form `f(x, y, u(x, t), u(y, t), ∇u(x, t), ∇u(y, t), p, t)`.
     * `μ` : drift function, of the form `μ(x, p, t)`.
     * `σ` : diffusion function `σ(x, p, t)`.
     * `x`: point where `u(x,t)` is approximated. Is required even in the case where `x0_sample` is provided.

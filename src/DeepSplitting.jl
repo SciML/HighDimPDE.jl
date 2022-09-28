@@ -195,7 +195,7 @@ function solve(
                 Flux.Optimise.update!(opt_net, ps, gs) # update parameters
                 
                 # report on training
-                if epoch % verbose_rate == 1
+                if (epoch % verbose_rate == 1) || (verbose_rate == 1)
                     l = loss(y0, y1, z, t) # explictly computing loss every verbose_rate
                     verbose && println("Current loss is: $l")
                     push!(losses[net], l)
