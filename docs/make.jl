@@ -1,13 +1,16 @@
 using Documenter, HighDimPDE
 
+cp("./docs/Manifest.toml", "./docs/src/assets/Manifest.toml", force = true)
+cp("./docs/Project.toml", "./docs/src/assets/Project.toml", force = true)
+
 include("pages.jl")
 
 makedocs(sitename="HighDimPDE.jl",
         authors = "Victor Boussange",
         pages = pages,
         strict=[
-        :doctest, 
-        :linkcheck, 
+        :doctest,
+        :linkcheck,
         :parse_error,
         :example_block,
         # Other available options are
