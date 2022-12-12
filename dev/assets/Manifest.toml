@@ -337,9 +337,9 @@ version = "0.1.1"
 
 [[Functors]]
 deps = ["LinearAlgebra"]
-git-tree-sha1 = "a2657dd0f3e8a61dbe70fc7c122038bd33790af5"
+git-tree-sha1 = "993c2b4a9a54496b6d8e265db1244db418f37e01"
 uuid = "d9f16b24-f501-4c13-a1f2-28368ffc5196"
-version = "0.3.0"
+version = "0.4.1"
 
 [[Future]]
 deps = ["Random"]
