@@ -22,7 +22,7 @@ Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) 
 \partial_t u = u (1 - u) + \frac{1}{2}\sigma^2\Delta_xu \tag{1}
 ```
 
-```julia
+```@example MLP_local_PDE
 using HighDimPDE
 
 ## Definition of the problem
@@ -48,7 +48,7 @@ Let's include in the previous equation non local competition, i.e.
 \partial_t u = u (1 - \int_\Omega u(t,y)dy) + \frac{1}{2}\sigma^2\Delta_xu \tag{2}
 ```
 where $\Omega = [-1/2, 1/2]^d$, and let's assume Neumann Boundary condition on $\Omega$.
-```julia
+```@example MLP_non_local_PDE
 using HighDimPDE
 
 ## Definition of the problem
@@ -59,7 +59,7 @@ g(x) = exp( -sum(x.^2) ) # initial condition
 μ(x, p, t) = 0.0 # advection coefficients
 σ(x, p, t) = 0.1 # diffusion coefficients
 mc_sample = UniformSampling(fill(-5f-1, d), fill(5f-1, d))
-f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max(0.0, v_x) * (1 -  max(0.0, v_y)) 
+f(x, y, v_x, v_y, ∇v_x, ∇v_y, p, t) = max(0.0, v_x) * (1 -  max(0.0, v_y)) 
 prob = PIDEProblem(g, f, μ, 
                     σ, x0, tspan) # defining x0_sample is sufficient to implement Neumann boundary conditions
 
@@ -71,7 +71,7 @@ sol = solve(prob, alg, multithreading=true)
 
 ### `DeepSplitting`
 Let's solve the previous equation with [`DeepSplitting`](@ref deepsplitting).
-```julia
+```@example DeepSplitting_non_local_PDE
 using HighDimPDE
 
 ## Definition of the problem
