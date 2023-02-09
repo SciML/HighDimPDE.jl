@@ -18,15 +18,15 @@ module HighDimPDE
     """
         PIDEProblem(g, f, μ, σ, x, tspan, p = nothing, x0_sample=nothing, neumann_bc=nothing)
 
-    Defines a Partial Integro Differential Problem, of the form 
-    ```math 
+    Defines a Partial Integro Differential Problem, of the form
+    ```math
     \\begin{aligned}
-        \\frac{du}{dt} &= \\tfrac{1}{2} \\text{Tr}(\\sigma \\sigma^T) \\Delta u(x, t) + \\mu \\nabla u(x, t) \\\\ 
+        \\frac{du}{dt} &= \\tfrac{1}{2} \\text{Tr}(\\sigma \\sigma^T) \\Delta u(x, t) + \\mu \\nabla u(x, t) \\\\
         &\\quad + \\int f(x, y, u(x, t), u(y, t), ( \\nabla_x u )(x, t), ( \\nabla_x u )(y, t), p, t) dy,
     \\end{aligned}
     ```
     with `` u(x,0) = g(x)``.
-    
+
     ## Arguments
 
     * `g` : initial condition, of the form `g(x, p, t)`.
@@ -37,9 +37,9 @@ module HighDimPDE
     * `tspan`: timespan of the problem.
     * `p`: the parameter vector.
     * `x0_sample` : sampling method for `x0`. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default). If `NoSampling`, only solution at the single point `x` is evaluated.
-    * `neumann_bc`: if provided, neumann boundary conditions on the hypercube `neumann_bc[1] × neumann_bc[2]`. 
+    * `neumann_bc`: if provided, Neumann boundary conditions on the hypercube `neumann_bc[1] × neumann_bc[2]`.
     """
-    struct PIDEProblem{uType,G,F,Mu,Sigma,xType,tType,P,UD,NBC,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false} 
+    struct PIDEProblem{uType,G,F,Mu,Sigma,xType,tType,P,UD,NBC,K} <: DiffEqBase.AbstractODEProblem{uType,tType,false}
         u0::uType
         g::G # initial condition
         f::F # nonlinear part
@@ -51,7 +51,7 @@ module HighDimPDE
         x0_sample::UD # for DeepSplitting only
         neumann_bc::NBC # neumann boundary conditions
         kwargs::K
-    end 
+    end
 
     function PIDEProblem(g, f, μ, σ, x::Vector{X}, tspan;
                                     p=nothing,
@@ -91,7 +91,7 @@ module HighDimPDE
     struct PIDESolution{X0,Ts,L,Us,NNs}
         x0::X0
         ts::Ts
-        losses::L 
+        losses::L
         us::Us # array of solution evaluated at x0, ts[i]
         ufuns::NNs # array of parametric functions
     end

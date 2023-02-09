@@ -45,4 +45,4 @@ See documentation and `test` folders.
 - Han, J., Jentzen, A., E, W., Solving high-dimensional partial differential equations using deep learning. [arXiv](https://arxiv.org/abs/1707.02568) (2018) -->
 
 <!-- ## Acknowledgements
-`HighDimPDE.jl` is inspired from Sebastian Becker's scripts in Python, TensorFlow and C++. Pr. Arnulf Jentzen largely contributed to the theoretical developments of the solver algorithms implemented. -->
+`HighDimPDE.jl` is inspired from Sebastian Becker's scripts in Python, TensorFlow, and C++. Pr. Arnulf Jentzen largely contributed to the theoretical developments of the solver algorithms implemented. -->
