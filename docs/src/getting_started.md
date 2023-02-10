@@ -4,7 +4,7 @@
 ## General workflow
 The general workflow for using `HighDimPDE.jl` is as follows:
 
-- Define a Partial Integro Differential Equation problem
+- Define a Partial Integro-Differential Equation problem
 ```@autodocs
 Modules = [HighDimPDE]
 Pages   = ["HighDimPDE.jl"]
@@ -42,8 +42,8 @@ alg = MLP() # defining the algorithm. We use the Multi Level Picard algorithm
 sol = solve(prob, alg, multithreading=true)
 ```
 
-#### Non local PDE with Neumann boundary conditions
-Let's include in the previous equation non local competition, i.e.
+#### Non-local PDE with Neumann boundary conditions
+Let's include in the previous equation non-local competition, i.e.
 ```math
 \partial_t u = u (1 - \int_\Omega u(t,y)dy) + \frac{1}{2}\sigma^2\Delta_xu \tag{2}
 ```

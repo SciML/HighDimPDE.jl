@@ -11,9 +11,9 @@ Deep splitting algorithm.
 # Arguments
 * `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl).
 * `K`: the number of Monte Carlo integrations.
-* `opt`: optimiser to be use. By default, `Flux.ADAM(0.01)`.
+* `opt`: optimizer to be used. By default, `Flux.ADAM(0.01)`.
 * `λs`: the learning rates, used sequentially. Defaults to a single value taken from `opt`.
-* `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
+* `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non-local term. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
 
 # Example
 ```julia
@@ -37,10 +37,10 @@ struct DeepSplitting{NN,F,O,L,MCS} <: HighDimPDEAlgorithm
     mc_sample!::MCS # Monte Carlo sample
 end
 
-function DeepSplitting(nn; 
-                        K=1, 
-                        opt::O = ADAM(0.01), 
-                        λs::L = nothing, 
+function DeepSplitting(nn;
+                        K=1,
+                        opt::O = ADAM(0.01),
+                        λs::L = nothing,
                         mc_sample::MCSampling = NoSampling()) where {O <: Flux.Optimise.AbstractOptimiser, L <: Union{Nothing,Vector{N}} where N <: Number}
     isnothing(λs) ? λs = [opt.eta] : nothing
     DeepSplitting(nn, K, opt, λs, mc_sample)
@@ -99,7 +99,7 @@ function solve(
     neumann_bc = prob.neumann_bc |> _device
     x0 = prob.x |> _device
     mc_sample! =  alg.mc_sample! |> _device
-    x0_sample! = prob.x0_sample |> _device 
+    x0_sample! = prob.x0_sample |> _device
 
     d  = size(x0,1)
     K = alg.K
@@ -115,7 +115,7 @@ function solve(
     vj = Flux.fmap(nn) do x
         x isa AbstractArray && return copy(x)
         x
-      end   
+      end
     ps = Flux.params(vj)
 
     dt = convert(T,dt)
@@ -172,8 +172,8 @@ function solve(
         verbose && println("Step $(net) / $(N) ")
         t = ts[net]
         # first of maxiters used for first nn, second used for the other nn
-        _maxiters = length(maxiters) > 1 ? maxiters[min(net,2)] : maxiters[] 
-        
+        _maxiters = length(maxiters) > 1 ? maxiters[min(net,2)] : maxiters[]
+
         for λ in λs
             opt_net = copy(opt) # starting with a new optimiser state at each time step
             opt_net.eta = λ
@@ -193,7 +193,7 @@ function solve(
                     loss(y0, y1, z, t)
                 end
                 Flux.Optimise.update!(opt_net, ps, gs) # update parameters
-                
+
                 # report on training
                 if epoch % verbose_rate == 1
                     l = loss(y0, y1, z, t) # explictly computing loss every verbose_rate
@@ -215,7 +215,7 @@ function solve(
         vi = Flux.fmap(vj) do x
             x isa AbstractArray && return copy(x)
             x
-          end   
+          end
         # vj = deepcopy(nn)
         # ps = Flux.params(vj)
         push!(usol, cpu(vi(reshape(x0, d, 1)))[])
@@ -226,4 +226,3 @@ function solve(
     sol = PIDESolution(x0, ts, losses, usol, nns)
     return sol
 end
-

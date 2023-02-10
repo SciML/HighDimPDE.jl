@@ -66,9 +66,9 @@ The `DeepSplitting`[@Beck2019] algorithm reformulates the PDE as a stochastic le
 
 `DeepSplitting` relies on two main ideas:
 
-- the approximation of the solution $u$ by a parametric function $\bf u^\theta$,
+- The approximation of the solution $u$ by a parametric function $\bf u^\theta$.
 
-- the training of $\bf u^\theta$ by simulated stochastic trajectories of particles, with the help of the Machine-Learning library [@Flux].
+- The training of $\bf u^\theta$ by simulated stochastic trajectories of particles, with the help of the Machine-Learning library [@Flux].
 
 ## `MLP`
 The `MLP`[@Becker2020], for Multi-Level Picard iterations, reformulates the PDE problem as a fixed point equation through the Feynman Kac formula. 
@@ -77,7 +77,7 @@ The `MLP`[@Becker2020], for Multi-Level Picard iterations, reformulates the PDE 
 
 - [Picard iterations](https://en.wikipedia.org/wiki/Picard–Lindelöf_theorem), and
 
-- a [Multilvel Monte Carlo](https://en.wikipedia.org/wiki/Multilevel_Monte_Carlo_method) approach to reduce the complexity of the numerical approximation of the time integral in the fixed point equation.
+- a [Multilevel Monte Carlo](https://en.wikipedia.org/wiki/Multilevel_Monte_Carlo_method) approach to reduce the complexity of the numerical approximation of the time integral in the fixed point equation.
 
 # Examples
 
