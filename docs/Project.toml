@@ -4,6 +4,6 @@ Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 HighDimPDE = "57c578d5-59d4-4db8-a490-a9fc372d19d2"
 
 [compat]
-Documenter = "0.27"
+Documenter = "0.27, 1"
 Flux = "0.13, 0.14"
 HighDimPDE = "1.2"
