@@ -1,21 +1,22 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · HighDimPDE.jl</title><script data-outdated-warner src="assets/warner.js"></script><link rel="canonical" href="https://docs.sciml.ai/HighDimPDE/stable/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script><link href="assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href><img src="assets/logo.png" alt="HighDimPDE.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href>HighDimPDE.jl</a></span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Home</a><ul class="internal"><li><a class="tocitem" href="#Algorithm-overview"><span>Algorithm overview</span></a></li><li><a class="tocitem" href="#Reproducibility"><span>Reproducibility</span></a></li></ul></li><li><a class="tocitem" href="getting_started/">Getting started</a></li><li><span class="tocitem">Solver Algorithms</span><ul><li><a class="tocitem" href="MLP/">The <code>MLP</code> algorithm</a></li><li><a class="tocitem" href="DeepSplitting/">The <code>DeepSplitting</code> algorithm</a></li></ul></li><li><a class="tocitem" href="Feynman_Kac/">Feynman Kac formula</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Home</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Home</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/SciML/HighDimPDE.jl/blob/main/docs/src/index.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="HighDimPDE.jl"><a class="docs-heading-anchor" href="#HighDimPDE.jl">HighDimPDE.jl</a><a id="HighDimPDE.jl-1"></a><a class="docs-heading-anchor-permalink" href="#HighDimPDE.jl" title="Permalink"></a></h1><p><strong>HighDimPDE.jl</strong> is a Julia package to <strong>solve Highly Dimensional non-linear, non-local PDEs</strong> of the form</p><p class="math-container">\[\begin{aligned}
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · HighDimPDE.jl</title><meta name="title" content="Home · HighDimPDE.jl"/><meta property="og:title" content="Home · HighDimPDE.jl"/><meta property="twitter:title" content="Home · HighDimPDE.jl"/><meta name="description" content="Documentation for HighDimPDE.jl."/><meta property="og:description" content="Documentation for HighDimPDE.jl."/><meta property="twitter:description" content="Documentation for HighDimPDE.jl."/><meta property="og:url" content="https://docs.sciml.ai/HighDimPDE/stable/"/><meta property="twitter:url" content="https://docs.sciml.ai/HighDimPDE/stable/"/><link rel="canonical" href="https://docs.sciml.ai/HighDimPDE/stable/"/><script data-outdated-warner src="assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="search_index.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script><link href="assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href><img src="assets/logo.png" alt="HighDimPDE.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href>HighDimPDE.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Home</a><ul class="internal"><li><a class="tocitem" href="#Algorithm-overview"><span>Algorithm overview</span></a></li><li><a class="tocitem" href="#Reproducibility"><span>Reproducibility</span></a></li></ul></li><li><a class="tocitem" href="getting_started/">Getting started</a></li><li><span class="tocitem">Solver Algorithms</span><ul><li><a class="tocitem" href="MLP/">The <code>MLP</code> algorithm</a></li><li><a class="tocitem" href="DeepSplitting/">The <code>DeepSplitting</code> algorithm</a></li></ul></li><li><a class="tocitem" href="Feynman_Kac/">Feynman Kac formula</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Home</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Home</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/SciML/HighDimPDE.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/SciML/HighDimPDE.jl/blob/main/docs/src/index.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="HighDimPDE.jl"><a class="docs-heading-anchor" href="#HighDimPDE.jl">HighDimPDE.jl</a><a id="HighDimPDE.jl-1"></a><a class="docs-heading-anchor-permalink" href="#HighDimPDE.jl" title="Permalink"></a></h1><p><strong>HighDimPDE.jl</strong> is a Julia package to <strong>solve Highly Dimensional non-linear, non-local PDEs</strong> of the form</p><p class="math-container">\[\begin{aligned}
     (\partial_t u)(t,x) &amp;= \int_{\Omega} f\big(t,x,{\bf x}, u(t,x),u(t,{\bf x}), ( \nabla_x u )(t,x ),( \nabla_x u )(t,{\bf x} ) \big) \, d{\bf x} \\
     &amp; \quad + \big\langle \mu(t,x), ( \nabla_x u )( t,x ) \big\rangle + \tfrac{1}{2} \text{Trace} \big(\sigma(t,x) [ \sigma(t,x) ]^* ( \text{Hess}_x u)(t, x ) \big).
 \end{aligned}\]</p><p>where <span>$u \colon [0,T] \times \Omega \to \R$</span>, <span>$\Omega \subseteq \R^d$</span> is subject to initial and boundary conditions, and where <span>$d$</span> is large.</p><p><strong>HighDimPDE.jl</strong> implements solver algorithms that break down the curse of dimensionality, including</p><ul><li><p>the <a href="DeepSplitting/#deepsplitting">Deep Splitting scheme</a></p></li><li><p>the <a href="MLP/#mlp">Multi-Level Picard iterations scheme</a>.</p></li></ul><p>To make the most out of <strong>HighDimPDE.jl</strong>, we advise to first have a look at the </p><ul><li><a href="Feynman_Kac/#feynmankac">documentation on the Feynman Kac formula</a>,</li></ul><p>as all solver algorithms heavily rely on it.</p><h2 id="Algorithm-overview"><a class="docs-heading-anchor" href="#Algorithm-overview">Algorithm overview</a><a id="Algorithm-overview-1"></a><a class="docs-heading-anchor-permalink" href="#Algorithm-overview" title="Permalink"></a></h2><hr/><table><tr><th style="text-align: right">Features</th><th style="text-align: center"><code>DeepSplitting</code></th><th style="text-align: center"><code>MLP</code></th></tr><tr><td style="text-align: right">Time discretization free</td><td style="text-align: center">❌</td><td style="text-align: center">✅</td></tr><tr><td style="text-align: right">Mesh-free</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td></tr><tr><td style="text-align: right">Single point <span>$x \in \R^d$</span> approximation</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td></tr><tr><td style="text-align: right"><span>$d$</span>-dimensional cube <span>$[a,b]^d$</span> approximation</td><td style="text-align: center">✅</td><td style="text-align: center">❌</td></tr><tr><td style="text-align: right">GPU</td><td style="text-align: center">✅</td><td style="text-align: center">❌</td></tr><tr><td style="text-align: right">Gradient non-linearities</td><td style="text-align: center">✔️</td><td style="text-align: center">❌</td></tr></table><p>✔️ : will be supported in the future</p><h2 id="Reproducibility"><a class="docs-heading-anchor" href="#Reproducibility">Reproducibility</a><a id="Reproducibility-1"></a><a class="docs-heading-anchor-permalink" href="#Reproducibility" title="Permalink"></a></h2><details><summary>The documentation of this SciML package was built using these direct dependencies,</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">      Status `~/work/HighDimPDE.jl/HighDimPDE.jl/docs/Project.toml`
-  [e30172f5] Documenter v0.27.25
+  [e30172f5] Documenter v1.0.1
   [587475ba] Flux v0.13.13
   [57c578d5] HighDimPDE v1.2.1 `~/work/HighDimPDE.jl/HighDimPDE.jl`</code></pre></details><details><summary>and using this machine and Julia version.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Julia Version 1.6.7
 Commit 3b76b25b64 (2022-07-19 15:11 UTC)
 Platform Info:
   OS: Linux (x86_64-pc-linux-gnu)
-  CPU: Intel(R) Xeon(R) Platinum 8171M CPU @ 2.60GHz
+  CPU: Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
   WORD_SIZE: 64
   LIBM: libopenlibm
   LLVM: libLLVM-11.0.1 (ORCJIT, skylake-avx512)</code></pre></details><details><summary>A more complete overview of all dependencies and their versions is also provided.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">      Status `~/work/HighDimPDE.jl/HighDimPDE.jl/docs/Manifest.toml`
   [47edcb42] ADTypes v0.2.4
   [a4c015fc] ANSIColoredPrinters v0.0.1
   [621f4979] AbstractFFTs v1.5.0
+  [1520ce14] AbstractTrees v0.4.4
   [79e6a3ab] Adapt v3.6.2
   [dce04be8] ArgCheck v2.3.0
   [4fba245c] ArrayInterface v7.4.11
@@ -44,14 +45,15 @@ Platform Info:
   [e2d170a0] DataValueInterfaces v1.0.0
   [244e2a9f] DefineSingletons v0.1.2
   [b429d917] DensityInterface v0.4.0
-  [2b5f629d] DiffEqBase v6.130.0
+  [2b5f629d] DiffEqBase v6.130.2
   [163ba53b] DiffResults v1.1.0
   [b552c78f] DiffRules v1.15.1
   [31c24e10] Distributions v0.25.100
   [ffbed154] DocStringExtensions v0.9.3
-  [e30172f5] Documenter v0.27.25
+  [e30172f5] Documenter v1.0.1
   [fa6b7ba4] DualNumbers v0.6.8
   [4e289a0a] EnumX v1.0.4
+  [f151be2c] EnzymeCore v0.6.0
   [e2ba6199] ExprTools v0.1.10
   [cc61a311] FLoops v0.2.1
   [b9860ae5] FLoopsBase v0.1.1
@@ -80,12 +82,14 @@ Platform Info:
   [63c18a36] KernelAbstractions v0.9.8
   [929cbde3] LLVM v4.17.1
   [10f19ff3] LayoutPointers v0.1.14
+  [0e77f7df] LazilyInitializedFields v1.2.1
   [50d2b5c4] Lazy v0.15.1
   [2ab3a3ac] LogExpFunctions v0.3.26
   [d8e11817] MLStyle v0.4.17
   [f1d291b0] MLUtils v0.4.3
   [1914dd2f] MacroTools v0.5.11
   [d125e4d3] ManualMemory v0.1.8
+  [d0879d2d] MarkdownAST v0.1.1
   [128add7d] MicroCollections v0.1.4
   [e1d29d7a] Missings v1.1.0
   [46d2c3a1] MuladdMacro v0.2.4
@@ -96,7 +100,7 @@ Platform Info:
   [0b1bfda6] OneHotArrays v0.2.4
   [3bd65402] Optimisers v0.2.20
   [bac558e1] OrderedCollections v1.6.2
-  [90014a1f] PDMats v0.11.17
+  [90014a1f] PDMats v0.11.18
   [d96e819e] Parameters v0.12.3
   [69de0a69] Parsers v2.7.2
   [f517fe37] Polyester v0.7.6
@@ -106,18 +110,19 @@ Platform Info:
   [21216c6a] Preferences v1.4.1
   [8162dcfd] PrettyPrint v0.2.0
   [33c8b6b6] ProgressLogging v0.1.4
-  [1fd47b50] QuadGK v2.9.0
+  [1fd47b50] QuadGK v2.9.1
   [74087812] Random123 v1.6.1
   [e6cf234a] RandomNumbers v1.5.3
   [c1ae055f] RealDot v0.1.0
   [3cdcf5f2] RecipesBase v1.3.4
   [731186ca] RecursiveArrayTools v2.38.10
   [189a3867] Reexport v1.2.2
+  [2792f1a3] RegistryInstances v0.1.0
   [ae029012] Requires v1.3.0
   [79098fc4] Rmath v0.7.1
   [7e49a35a] RuntimeGeneratedFunctions v0.5.12
   [94e857df] SIMDTypes v0.1.0
-  [0bca4576] SciMLBase v1.98.1
+  [0bca4576] SciMLBase v2.0.1
   [c0aeaf25] SciMLOperators v0.3.6
   [efcf1570] Setfield v1.1.1
   [605ecd9f] ShowCases v0.1.0
@@ -128,7 +133,7 @@ Platform Info:
   [171d559e] SplittablesBase v0.1.15
   [aedffcd0] Static v0.8.8
   [0d7ed370] StaticArrayInterface v1.4.1
-  [90137ffa] StaticArrays v1.6.3
+  [90137ffa] StaticArrays v1.6.4
   [1e83bf80] StaticArraysCore v1.4.2
   [82ae8749] StatsAPI v1.7.0
   [2913bbd2] StatsBase v0.33.21
@@ -192,6 +197,4 @@ Platform Info:
   [05823500] OpenLibm_jll
   [83775a58] Zlib_jll
   [8e850ede] nghttp2_jll
-  [3f19e933] p7zip_jll</code></pre></details>You can also download the 
-<a href="https://github.com/SciML/HighDimPDE.jl/tree/gh-pages/v1.2.1/assets/Manifest.toml">manifest</a> file and the
-<a href="https://github.com/SciML/HighDimPDE.jl/tree/gh-pages/v1.2.1/assets/Project.toml">project</a> file.</article><nav class="docs-footer"><a class="docs-footer-nextpage" href="getting_started/">Getting started »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Thursday 21 September 2023 06:57">Thursday 21 September 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+  [3f19e933] p7zip_jll</code></pre></details><p>You can also download the <a href="https://github.com/SciML/HighDimPDE.jl/tree/gh-pages/v1.2.1/assets/Manifest.toml">manifest</a> file and the <a href="https://github.com/SciML/HighDimPDE.jl/tree/gh-pages/v1.2.1/assets/Project.toml">project</a> file.</p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="getting_started/">Getting started »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.0.1 on <span class="colophon-date" title="Monday 25 September 2023 03:03">Monday 25 September 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
