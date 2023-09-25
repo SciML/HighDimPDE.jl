@@ -22,7 +22,7 @@ and $B_t$ is a [Brownian motion](https://en.wikipedia.org/wiki/Wiener_process).
 Intuitively, this formula is motivated by the fact that [the density of Brownian particles (motion) satisfies the diffusion equation](https://en.wikipedia.org/wiki/Brownian_motion#Einstein's_theory).
 
 
-The equivalence between the average trajectory of particles and PDEs given by the Feynman-Kac formula allows overcoming the curse of dimensionality that standard numerical methods suffer from, because the expectations can be approximated [Monte Carlo integrations]((https://en.wikipedia.org/wiki/Monte_Carlo_integration)), which approximation error decreases as $1/\sqrt{N}$ and is therefore not dependent on the dimensions. On the other hand, the computational complexity of traditional deterministic techniques grows exponentially in the number of dimensions. 
+The equivalence between the average trajectory of particles and PDEs given by the Feynman-Kac formula allows overcoming the curse of dimensionality that standard numerical methods suffer from, because the expectations can be approximated [Monte Carlo integrations](https://en.wikipedia.org/wiki/Monte_Carlo_integration), which approximation error decreases as $1/\sqrt{N}$ and is therefore not dependent on the dimensions. On the other hand, the computational complexity of traditional deterministic techniques grows exponentially in the number of dimensions. 
 
 ## Forward non-linear Feynman-Kac
 > How to transform previous equation to an initial value problem?

@@ -31,7 +31,7 @@ u_{l+1} = \phi(u_l),
 the [Banach fixed-point theorem](https://en.wikipedia.org/wiki/Banach_fixed-point_theorem) ensures that the sequence converges to the true solution $u$. Such a technique is known as [Picard iterations](https://en.wikipedia.org/wiki/Picard–Lindelöf_theorem).
 
 
-The time integral term is evaluated by a [Monte-Carlo integration](https:/en.wikipedia.org/wiki/Monte_Carlo_integration)
+The time integral term is evaluated by a [Monte-Carlo integration](https://en.wikipedia.org/wiki/Monte_Carlo_integration)
 
 ```math
 u_L  = \frac{1}{M}\sum_i^M \left[ f(X^{x,(i)}_{t - s_{(l, i)}}, u_{L-1}(T-s_i, X^{x,( i)}_{t - s_{(l, i)}})) + u(0, X^{x,(i)}_{t - s_{(l, i)}}) \right].
