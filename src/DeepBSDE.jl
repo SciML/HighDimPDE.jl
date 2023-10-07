@@ -1,6 +1,6 @@
 """
 ```julia
-DeepBSDE(u0,σᵀ∇u;opt=Flux.ADAM(0.1))
+DeepBSDE(u0,σᵀ∇u;opt=Flux.Optimise.Adam(0.1))
 ```
 
 [DeepBSDE algorithm](https://www.pnas.org/doi/10.1073/pnas.1718942115), from J. Han, A. Jentzen and Weinan E. 
@@ -29,7 +29,7 @@ g(X) = sum(X.^2)
 prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
 hls  = 10 + d #hiden layer size
-opt = Flux.ADAM(0.001)
+opt = Flux.Optimise.Adam(0.001)
 u0 = Flux.Chain(Dense(d,hls,relu),
                 Dense(hls,hls,relu),
                 Dense(hls,1))
@@ -56,7 +56,7 @@ struct DeepBSDE{C1,C2,O} <: HighDimPDEAlgorithm
     opt::O
 end
 
-DeepBSDE(u0,σᵀ∇u;opt=Flux.ADAM(0.1)) = DeepBSDE(u0,σᵀ∇u,opt)
+DeepBSDE(u0,σᵀ∇u;opt=Flux.Optimise.Adam(0.1)) = DeepBSDE(u0,σᵀ∇u,opt)
 
 """
 $(SIGNATURES)
@@ -119,32 +119,37 @@ function DiffEqBase.solve(
     function F(h, p, t)
         u =  h[end]
         X =  h[1:end-1]
-        _σᵀ∇u = re2(p)([X;t])
+        t_ = eltype(X)(t)
+        _σᵀ∇u = re2(p)([X;t_])'
         _p = re3(p)
-        _f = -f(X, u, _σᵀ∇u, _p, t)
+        _f = -f(X, u, _σᵀ∇u, _p, t_)
         vcat(μ(X,_p,t),[_f])
     end
 
     function G(h, p, t)
         X = h[1:end-1]
         _p = re3(p)
-        _σᵀ∇u = re2(p)([X;t])'
+        t_ = eltype(X)(t)
+        _σᵀ∇u = re2(p)([X;t_])'
         vcat(σ(X,_p,t),_σᵀ∇u)
     end
 
     # used for AD
-    function F(h::Flux.Params, p, t)
+    function F(h::Tracker.TrackedArray, p, t)
         u =  h[end]
         X =  h[1:end-1].data
-        _σᵀ∇u = σᵀ∇u([X;t])
-        _f = -f(X, u, _σᵀ∇u, p, t)
-        Flux.params(vcat(μ(X,p,t),[_f]))
+        t_ = eltype(X)(t)
+        _σᵀ∇u = σᵀ∇u([X;t_])' |> collect
+        _f = -f(X, u.data, _σᵀ∇u, p, t_)
+
+        Tracker.TrackedArray(vcat(μ(X,p,t),[_f]))
     end
 
-    function G(h::Flux.Params, p, t)
+    function G(h::Tracker.TrackedArray, p, t)
         X = h[1:end-1].data
-        _σᵀ∇u = σᵀ∇u([X;t])'
-        Flux.params(vcat(σ(X,p,t),_σᵀ∇u))
+        t_ = eltype(X)(t)
+        _σᵀ∇u = σᵀ∇u([X;t_])' |> collect
+        Tracker.TrackedArray(vcat(σ(X,p,t),_σᵀ∇u))
     end
 
     noise = zeros(Float32,d+1,d)
@@ -157,7 +162,7 @@ function DiffEqBase.solve(
                                          u0 = init_cond,
                                          p = p3,
                                          save_everystep=false,
-                                         sensealg=DiffEqSensitivity.TrackerAdjoint(),
+                                         sensealg=SciMLSensitivity.TrackerAdjoint(),
                                          kwargs...))[:,end]
             (X,u) = (predict_ans[1:(end-1)], predict_ans[end])
         end
