@@ -11,7 +11,7 @@ Deep splitting algorithm.
 # Arguments
 * `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl).
 * `K`: the number of Monte Carlo integrations.
-* `opt`: optimizer to be used. By default, `Flux.ADAM(0.01)`.
+* `opt`: optimizer to be used. By default, `Flux.Optimise.Adam(0.01)`.
 * `λs`: the learning rates, used sequentially. Defaults to a single value taken from `opt`.
 * `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non-local term. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
 
@@ -41,7 +41,7 @@ function DeepSplitting(nn;
                         K=1,
                         opt::O = ADAM(0.01),
                         λs::L = nothing,
-                        mc_sample::MCSampling = NoSampling()) where {O <: Flux.Optimise.AbstractOptimiser, L <: Union{Nothing,Vector{N}} where N <: Number}
+                        mc_sample = NoSampling()) where {O <: Flux.Optimise.AbstractOptimiser, L <: Union{Nothing,Vector{N}} where N <: Number}
     isnothing(λs) ? λs = [opt.eta] : nothing
     DeepSplitting(nn, K, opt, λs, mc_sample)
 end
