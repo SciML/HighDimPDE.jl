@@ -87,7 +87,7 @@ needs to be `d+1` dimensional to `d` dimensions. Thus we define the following:
 
 ```julia
 hls = 10 + d #hidden layer size
-opt = Flux.ADAM(0.01)  #optimizer
+opt = Flux.Optimise.Adam(0.01)  #optimizer
 #sub-neural network approximating solutions at the desired point
 u0 = Flux.Chain(Dense(d,hls,relu),
                 Dense(hls,hls,relu),
@@ -145,7 +145,7 @@ needs to be `d+1`-dimensional to `d` dimensions. Thus we define the following:
 
 ```julia
 hls  = 10 + d #hide layer size
-opt = Flux.ADAM(0.001)
+opt = Flux.Optimise.Adam(0.001)
 u0 = Flux.Chain(Dense(d,hls,relu),
                 Dense(hls,hls,relu),
                 Dense(hls,1))
