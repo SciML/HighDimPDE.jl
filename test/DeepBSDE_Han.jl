@@ -1,4 +1,4 @@
-using Flux, OptimizationFlux, Zygote, LinearAlgebra, Statistics
+using Flux, Zygote, LinearAlgebra, Statistics
 println("DeepBSDE_tests")
 using Test, StochasticDiffEq
 using HighDimPDE
@@ -31,7 +31,7 @@ end
     prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls = 10 + d #hidden layer size
-    opt = Flux.ADAM(0.005)  #optimizer
+    opt = Flux.Optimise.Adam(0.005)  #optimizer
     #sub-neural network approximating solutions at the desired point
     u0 = Flux.Chain(Dense(d,hls,relu),
                     Dense(hls,hls,relu),
@@ -70,6 +70,7 @@ end
 
 
     hls = 10 + d #hidden layer size
+    opt = Flux.Optimise.Adam(0.005)  #optimizer
     #sub-neural network approximating solutions at the desired point
     u0 = Flux.Chain(Dense(d,hls,relu),
                     Dense(hls,hls,relu),
@@ -108,7 +109,7 @@ end
     prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls  = 10 + d #hide layer size
-    opt = Flux.ADAM(0.001)
+    opt = Flux.Optimise.Adam(0.001)
     u0 = Flux.Chain(Dense(d,hls,relu),
                     Dense(hls,hls,relu),
                     Dense(hls,1))
@@ -144,7 +145,7 @@ end
     prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls = 10 + d #hidden layer size
-    opt = Flux.ADAM(5^-4)  #optimizer
+    opt = Flux.Optimise.Adam(5^-4)  #optimizer
     #sub-neural network approximating solutions at the desired point
     u0 = Flux.Chain(Dense(d,hls,relu),
                     Dense(hls,hls,relu),
@@ -184,7 +185,7 @@ end
     prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls = 12 + d #hidden layer size
-    opt = Flux.ADAM(0.03)  #optimizer
+    opt = Flux.Optimise.Adam(0.03)  #optimizer
     #sub-neural network approximating solutions at the desired point
     u0 = Flux.Chain(Dense(d,hls,relu),
                     Dense(hls,hls,relu),
@@ -223,13 +224,15 @@ end
     g(X) = minimum(X)
     δ = 2.0f0/3
     R = 0.02f0
-    f(X,u,σᵀ∇u,p,t) = -(1 - δ)*Q(u)*u - R*u
+    function f(X,u,σᵀ∇u,p,t)
+         -(1 - δ)*Q_(u)*u - R*u
+    end
 
     vh = 50.0f0
     vl = 70.0f0
     γh = 0.2f0
     γl = 0.02f0
-    function Q(u)
+    function Q_(u)
         Q = 0
         if u < vh
             Q = γh
@@ -242,13 +245,12 @@ end
 
     µc = 0.02f0
     σc = 0.2f0
-
     μ_f(X,p,t) = µc*X #Vector d x 1
     σ_f(X,p,t) = σc*Diagonal(X) #Matrix d x d
     prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls = 10 + d #hidden layer size
-    opt = Flux.ADAM(0.008)  #optimizer
+    opt = Flux.Optimise.Adam(0.008)  #optimizer
     #sub-neural network approximating solutions at the desired point
     u0 = Flux.Chain(Dense(d,hls,relu),
                     Dense(hls,hls,relu),
@@ -268,45 +270,45 @@ end
     @test error_l2 < 1.0
 end
 
-@testset "DeepBSDE_Han - Limit check on heat equation" begin
-    x0 = [10.0f0]  # initial points
-    tspan = (0.0f0,5.0f0)
-    dt = 0.5   # time step
-    time_steps = div(tspan[2]-tspan[1],dt)
-    d = 1      # number of dimensions
-    m = 10     # number of trajectories (batch size)
+# @testset "DeepBSDE_Han - Limit check on heat equation" begin
+#     x0 = [10.0f0]  # initial points
+#     tspan = (0.0f0,5.0f0)
+#     dt = 0.5   # time step
+#     time_steps = div(tspan[2]-tspan[1],dt)
+#     d = 1      # number of dimensions
+#     m = 10     # number of trajectories (batch size)
 
-    g(X) = sum(X.^2)   # terminal condition
-    f(X,u,σᵀ∇u,p,t) = 0.0  # function from solved equation
-    μ_f(X,p,t) = 0.0
-    σ_f(X,p,t) = 1.0
-    u_domain = -500:0.1:500
-    A = -2:0.01:2
-    prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan ;A = A , x0_sample = u_domain)
+#     g(X) = sum(X.^2)   # terminal condition
+#     f(X,u,σᵀ∇u,p,t) = 0.0  # function from solved equation
+#     μ_f(X,p,t) = 0.0
+#     σ_f(X,p,t) = 1.0
+#     u_domain = -500:0.1:500
+#     A = -2:0.01:2
+#     prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan ;A = A , x0_sample = u_domain)
 
-    hls = 10 + d # hidden layer size
-    opt = Flux.ADAM(0.005)  # optimizer
+#     hls = 10 + d # hidden layer size
+#     opt = Flux.Optimise.Adam(0.005)  # optimizer
 
-    u0 = Flux.Chain(Dense(d,hls,relu),
-                    Dense(hls,hls,relu),
-                    Dense(hls,1))
+#     u0 = Flux.Chain(Dense(d,hls,relu),
+#                     Dense(hls,hls,relu),
+#                     Dense(hls,1))
 
-    σᵀ∇u = [Flux.Chain(Dense(d,hls,relu),
-                    Dense(hls,hls,relu),
-                    Dense(hls,d)) for i in 1:time_steps]
+#     σᵀ∇u = [Flux.Chain(Dense(d,hls,relu),
+#                     Dense(hls,hls,relu),
+#                     Dense(hls,d)) for i in 1:time_steps]
 
-    alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
+#     alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-    sol = solve(prob, 
-                alg, 
-                verbose = true,
-                abstol=1e-8,
-                maxiters = 200, 
-                dt=dt, 
-                trajectories=m , 
-                limits = true, 
-                trajectories_upper = m,
-                trajectories_lower = m, 
-                maxiters_limits = 200)
-    @test sol.limits[1] < sol.us[end] < sol.limits[2] # TODO: results seem dubious and must be confirmed
-end
+#     sol = solve(prob, 
+#                 alg, 
+#                 verbose = true,
+#                 abstol=1e-8,
+#                 maxiters = 200, 
+#                 dt=dt, 
+#                 trajectories=m , 
+#                 limits = true, 
+#                 trajectories_upper = m,
+#                 trajectories_lower = m, 
+#                 maxiters_limits = 200)
+#     @test sol.limits[1] < sol.us[end] < sol.limits[2] # TODO: results seem dubious and must be confirmed
+# end

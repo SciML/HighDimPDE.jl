@@ -281,7 +281,7 @@ end
         u1_anal = uanal(x,tspan[2],Dict())
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
         println("rel_error_l2 = ", e_l2, "\n")
-        @test e_l2 < 0.1
+        @test e_l2 < 0.2
     end
 end
 

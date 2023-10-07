@@ -6,7 +6,7 @@ using Statistics
 using CUDA
 if CUDA.functional() 
     use_cuda = true 
-    cuda_device = 1
+    cuda_device = 0
 else
     use_cuda = false
     cuda_device = nothing
