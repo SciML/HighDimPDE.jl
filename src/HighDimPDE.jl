@@ -6,18 +6,19 @@ module HighDimPDE
     using Reexport
     using DocStringExtensions
     @reexport using DiffEqBase
-    using DiffEqSensitivity
+    using SciMLSensitivity
     using StochasticDiffEq
     using Statistics
     using Flux, Zygote, LinearAlgebra
     using Functors
     # using ProgressMeter: @showprogress
+    using Tracker
     using CUDA
     using Random
     using SparseArrays
 
     abstract type HighDimPDEAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
-    abstract type AbstractPDEProblem <: SciMLBase.SciMLProblem end
+    abstract type AbstractPDEProblem <: SciMLBase.AbstractSciMLProblem end
 
     Base.summary(prob::AbstractPDEProblem) = string(nameof(typeof(prob)))
 
@@ -30,13 +31,8 @@ module HighDimPDE
     """
     $(SIGNATURES)
 
-<<<<<<< HEAD
     Defines a Partial Integro Differential Problem, of the form
     ```math
-=======
-    Defines a Partial Integro Differential Equation Problem with initial conditions, of the form 
-    ```math 
->>>>>>> 7230576 (added NNPDEND test file, overloading DiffEqBase.solve, added AbstractPDEProblem and abstract Sampling, still running into a bug with NNPDENS)
     \\begin{aligned}
         \\frac{du}{dt} &= \\tfrac{1}{2} \\text{Tr}(\\sigma \\sigma^T) \\Delta u(x, t) + \\mu \\nabla u(x, t) \\\\
         &\\quad + \\int f(x, y, u(x, t), u(y, t), ( \\nabla_x u )(x, t), ( \\nabla_x u )(y, t), p, t) dy,
