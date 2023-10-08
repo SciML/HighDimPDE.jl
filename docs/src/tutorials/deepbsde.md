@@ -19,7 +19,7 @@ g(X) = log(0.5f0 + 0.5f0 * sum(X.^2))
 f(X,u,σᵀ∇u,p,t) = -λ * sum(σᵀ∇u.^2)
 μ_f(X,p,t) = zero(X)  # Vector d x 1 λ
 σ_f(X,p,t) = Diagonal(sqrt(2.0f0) * ones(Float32, d)) # Matrix d x d
-prob = TerminalPDEProblem(g, f, μ_f, σ_f, X0, tspan)
+prob = PIDEProblem(g, f, μ_f, σ_f, X0, tspan)
 hls = 10 + d # hidden layer size
 opt = Optimisers.Adam(0.01)  # optimizer
 # sub-neural network approximating solutions at the desired point
@@ -63,7 +63,7 @@ with terminating condition $g(x) = \log(1/2 + 1/2 \|x\|^2))$.
 
 #### Define the Problem
 
-To get the solution above using the `TerminalPDEProblem`, we write:
+To get the solution above using the `PIDEProblem`, we write:
 
 ```julia
 d = 100 # number of dimensions
@@ -75,7 +75,7 @@ g(X) = log(0.5f0 + 0.5f0*sum(X.^2))
 f(X,u,σᵀ∇u,p,t) = -λ*sum(σᵀ∇u.^2)
 μ_f(X,p,t) = zero(X)  #Vector d x 1 λ
 σ_f(X,p,t) = Diagonal(sqrt(2.0f0)*ones(Float32,d)) #Matrix d x d
-prob = TerminalPDEProblem(g, f, μ_f, σ_f, X0, tspan)
+prob = PIDEProblem(g, f, μ_f, σ_f, X0, tspan)
 ```
 
 #### Define the Solver Algorithm
@@ -123,7 +123,7 @@ equation, which models uncertain volatility and interest rates derived from the
 Black-Scholes equation. This model results in a nonlinear PDE whose dimension
 is the number of assets in the portfolio.
 
-To solve it using the `TerminalPDEProblem`, we write:
+To solve it using the `PIDEProblem`, we write:
 
 ```julia
 d = 100 # number of dimensions
@@ -135,7 +135,7 @@ f(X,u,σᵀ∇u,p,t) = r * (u - sum(X.*σᵀ∇u))
 g(X) = sum(X.^2)
 μ_f(X,p,t) = zero(X) #Vector d x 1
 σ_f(X,p,t) = Diagonal(sigma*X) #Matrix d x d
-prob = TerminalPDEProblem(g, f, μ_f, σ_f, X0, tspan)
+prob = PIDEProblem(g, f, μ_f, σ_f, X0, tspan)
 ```
 
 As described in the API docs, we now need to define our `NNPDENS` algorithm
