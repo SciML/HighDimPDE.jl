@@ -26,7 +26,7 @@ f(X,u,σᵀ∇u,p,t) = r * (u - sum(X.*σᵀ∇u))
 g(X) = sum(X.^2)
 μ_f(X,p,t) = zero(X) #Vector d x 1
 σ_f(X,p,t) = Diagonal(sigma*X) #Matrix d x d
-prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
+prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
 hls  = 10 + d #hiden layer size
 opt = Flux.Optimise.Adam(0.001)
@@ -76,7 +76,7 @@ Returns a `PIDESolution` object.
 - Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
 """
 function DiffEqBase.solve(
-    prob::TerminalPDEProblem,
+    prob::PIDEProblem,
     pdealg::DeepBSDE,
     sdealg;
     verbose = false,
@@ -95,10 +95,9 @@ function DiffEqBase.solve(
     x0 = prob.x
     tspan = prob.tspan
     d  = length(x0)
-    kwargs = prob.kwargs
     g,f,μ,σ = prob.g,prob.f,prob.μ,prob.σ
     p = prob.p isa AbstractArray ? prob.p : Float32[]
-    A = prob.A
+    A = haskey(kwargs, :A) ? prob.A : nothing
     u_domain = prob.x0_sample
     data = Iterators.repeated((), maxiters)
 

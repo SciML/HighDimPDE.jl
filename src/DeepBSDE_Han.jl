@@ -1,6 +1,6 @@
 # called whenever sdealg is not specified.
 function DiffEqBase.solve(
-    prob::TerminalPDEProblem,
+    prob::PIDEProblem,
     alg::DeepBSDE;
     dt,
     abstol = 1f-6,
@@ -70,7 +70,7 @@ function DiffEqBase.solve(
         end
         return sol        
     else
-        A = prob.A
+        A = haskey(prob.kwargs, :A) ? prob.kwargs.A : nothing
         u_domain = prob.x0_sample
 
         verbose && println("Upper limit")
