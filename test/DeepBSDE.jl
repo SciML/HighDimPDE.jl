@@ -27,7 +27,7 @@ end
     f(X,u,σᵀ∇u,p,t) = Float32(0.0)
     μ_f(X,p,t) = zero(X) #Vector d x 1
     σ_f(X,p,t) = Diagonal(ones(Float32,d)) |> Matrix #Matrix d x d
-    prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls = 10 + d #hidden layer size
     opt = Flux.Optimise.Adam(0.005)  #optimizer
@@ -69,7 +69,7 @@ end
     f(X,u,σᵀ∇u,p,t) = Float32(0.0)
     μ_f(X,p,t) = zero(X) #Vector d x 1
     σ_f(X,p,t) = Diagonal(ones(Float32,d)) |> Matrix #Matrix d x d
-    prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls = 10 + d #hidden layer size
     opt = Flux.Optimise.Adam(0.005)  #optimizer
@@ -114,7 +114,7 @@ end
     g(X) = sum(X.^2)
     μ_f(X,p,t) = zero(X) #Vector d x 1
     σ_f(X,p,t) = Diagonal(sigma*X) |> Matrix #Matrix d x d
-    prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls  = 10 + d #hide layer size
     opt = Flux.Optimise.Adam(0.001)
@@ -150,11 +150,11 @@ end
     dt = 0.015f0 # time step
     m = 20 # number of trajectories (batch size)
 
-    g(X) = 1.0 / (2.0 + 0.4*sum(X.^2))
+    g(X) = 1.0f0 / (2.0f0 + 0.4f0*sum(X.^2))
     f(X,u,σᵀ∇u,p,t) = u .- u.^3
     μ_f(X,p,t) = zero(X) #Vector d x 1
     σ_f(X,p,t) = Diagonal(ones(Float32,d)) |> Matrix #Matrix d x d
-    prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls = 20 + d #hidden layer size
     opt = Flux.Optimise.Adam(5^-3)  #optimizer
@@ -196,7 +196,7 @@ end
     f(X,u,σᵀ∇u,p,t) = -λ*sum(σᵀ∇u.^2)
     μ_f(X,p,t) = zero(X)  #Vector d x 1 λ
     σ_f(X,p,t) = Diagonal(sqrt(2.0f0)*ones(Float32,d)) #Matrix d x d
-    prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     # TODO: This is a very large neural networks which size must be reduced.
     hls = 256 #hidden layer size
@@ -265,7 +265,7 @@ end
 
     μ_f(X,p,t) = µc*X #Vector d x 1
     σ_f(X,p,t) = σc*Diagonal(X) #Matrix d x d
-    prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls = 256 #hidden layer size
     opt = Flux.Optimise.Adam(0.008)  #optimizer

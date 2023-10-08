@@ -25,10 +25,10 @@ end
     m = 10     # number of trajectories (batch size)
 
     g(X) = sum(X.^2)   # terminal condition
-    f(X,u,σᵀ∇u,p,t) = 0.0  # function from solved equation
+    f(X,u,σᵀ∇u,p,t) = 0.0f0  # function from solved equation
     μ_f(X,p,t) = 0.0
     σ_f(X,p,t) = 1.0
-    prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls = 10 + d #hidden layer size
     opt = Flux.Optimise.Adam(0.005)  #optimizer
@@ -63,10 +63,10 @@ end
     m = 30 # number of trajectories (batch size)
 
     g(X) = sum(X.^2)
-    f(X,u,σᵀ∇u,p,t) = 0.0
+    f(X,u,σᵀ∇u,p,t) = 0.0f0
     μ_f(X,p,t) = 0.0
     σ_f(X,p,t) = 1.0
-    prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
 
     hls = 10 + d #hidden layer size
@@ -100,13 +100,13 @@ end
     time_steps = div(tspan[2]-tspan[1],dt)
     m = 30 # number of trajectories (batch size)
 
-    r = 0.05
+    r = 0.05f0
     sigma = 0.4
     f(X,u,σᵀ∇u,p,t) = r * (u .- sum(X.*σᵀ∇u))
     g(X) = sum(X.^2)
     μ_f(X,p,t) = 0.0
     σ_f(X,p,t) = Diagonal(sigma*X)
-    prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls  = 10 + d #hide layer size
     opt = Flux.Optimise.Adam(0.001)
@@ -138,11 +138,11 @@ end
     time_steps = div(tspan[2]-tspan[1], dt)
     m = 20 # number of trajectories (batch size)
 
-    g(X) = 1.0 / (2.0 + 0.4*sum(X.^2))
+    g(X) = 1.0f0 / (2.0f0 + 0.4f0*sum(X.^2))
     f(X,u,σᵀ∇u,p,t) = u .- u.^3
     μ_f(X,p,t) = 0.0
     σ_f(X,p,t) = 1.0
-    prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls = 10 + d #hidden layer size
     opt = Flux.Optimise.Adam(5^-4)  #optimizer
@@ -178,11 +178,11 @@ end
     m = 20 # number of trajectories (batch size)
     λ = 1.0f0
 
-    g(X) = log(0.5 + 0.5*sum(X.^2))
+    g(X) = log(0.5f0 + 0.5f0*sum(X.^2))
     f(X,u,σᵀ∇u,p,t) = -λ*sum(σᵀ∇u.^2)
     μ_f(X,p,t) = 0.0
     σ_f(X,p,t) = sqrt(2)
-    prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls = 12 + d #hidden layer size
     opt = Flux.Optimise.Adam(0.03)  #optimizer
@@ -247,7 +247,7 @@ end
     σc = 0.2f0
     μ_f(X,p,t) = µc*X #Vector d x 1
     σ_f(X,p,t) = σc*Diagonal(X) #Matrix d x d
-    prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
     hls = 10 + d #hidden layer size
     opt = Flux.Optimise.Adam(0.008)  #optimizer
@@ -284,7 +284,7 @@ end
 #     σ_f(X,p,t) = 1.0
 #     u_domain = -500:0.1:500
 #     A = -2:0.01:2
-#     prob = TerminalPDEProblem(g, f, μ_f, σ_f, x0, tspan ;A = A , x0_sample = u_domain)
+#     prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan ;A = A , x0_sample = u_domain)
 
 #     hls = 10 + d # hidden layer size
 #     opt = Flux.Optimise.Adam(0.005)  # optimizer
