@@ -46,7 +46,7 @@ function DiffEqBase.solve(
     g, f = prob.g, prob.f
 
     # errors
-    typeof(prob.x0_sample) <: NoSampling ? nothing : error(
+    prob.x0_sample isa NoSampling ? nothing : error(
         "`MLP` algorithm can only be used with `x0_sample=NoSampling()`.")
 
     if multithreading
