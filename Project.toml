@@ -7,7 +7,6 @@ version = "1.2.1"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
-ExprTools = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 Functors = "d9f16b24-f501-4c13-a1f2-28368ffc5196"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -24,13 +23,27 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 cuDNN = "02a925ec-e4fe-4b08-9a7e-0d78e3d38ccd"
 
 [compat]
+Aqua = "0.8"
+Aqua = "0.8"
 CUDA = "3, 4, 5"
 DiffEqBase = "6"
 DocStringExtensions = "0.8, 0.9"
-ExprTools = "0.1"
 Flux = "0.13, 0.14"
 Functors = "0.2, 0.3, 0.4"
+LinearAlgebra = "1"
+Random = "1"
 Reexport = "1"
+SafeTestsets = "0.1"
+SparseArrays = "1"
 Statistics = "1"
+Test = "1"
 Zygote = "0.6"
-julia = "1.8, 1.9"
+julia = "1.10"
+
+[extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Aqua", "Test", "SafeTestsets"]

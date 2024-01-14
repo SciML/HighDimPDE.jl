@@ -44,7 +44,7 @@ end
             Dense(hls, hls, relu),
             Dense(hls, 1)) # Neural network used by the scheme
 
-        opt = ADAM(0.01) #optimiser
+        opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0.0f0 .* v_y
@@ -88,7 +88,7 @@ end
             Dense(hls, hls, relu),
             Dense(hls, 1)) # Neural network used by the scheme
 
-        opt = ADAM(0.01) #optimiser
+        opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0.0f0 .* v_y #TODO: this fix is not nice
@@ -134,7 +134,7 @@ end
             Dense(hls, hls, relu),
             Dense(hls, 1)) # Neural network used by the scheme
 
-        opt = ADAM(0.01) #optimiser
+        opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0.0f0 .* v_y #TODO: this fix is not nice
@@ -192,7 +192,7 @@ end
             Dense(hls, hls, relu),
             Dense(hls, 1)) # Neural network used by the scheme
 
-        opt = ADAM(0.01) #optimiser
+        opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = r * v_y #TODO: this fix is not nice
@@ -234,8 +234,8 @@ end
             Dense(hls, hls, tanh),
             Dense(hls, 1)) # Neural network used by the scheme
 
-        opt = ADAM(1e-3) #optimiser
-        alg = DeepSplitting(nn, opt = opt)
+        opt = Flux.Optimise.Adam(1e-3) #optimiser
+        alg = DeepSplitting(nn, opt = opt )
 
         X0 = fill(0.0f0, d)  # initial point
         g(X) = 1.0f0 ./ (2.0f0 .+ 4.0f-1 * sum(X .^ 2, dims = 1))   # initial condition
@@ -257,7 +257,7 @@ end
         u1 = sol.us[end]
         # value coming from \cite{Beck2017a}
         e_l2 = rel_error_l2(u1, 0.30879)
-        @test e_l2 < 0.5 # this is quite high as a relative error. 
+        @test e_l2 < 0.5 # this is quite high as a relative error.
         println("d = $d, rel_error_l2 = $e_l2")
     end
 end
@@ -281,8 +281,8 @@ end
             Dense(hls, hls, relu),
             Dense(hls, 1)) # Neural network used by the scheme
 
-        opt = ADAM(1e-2) #optimiser
-        alg = DeepSplitting(nn, opt = opt)
+        opt = Flux.Optimise.Adam(1e-2) #optimiser
+        alg = DeepSplitting(nn, opt = opt )
 
         X0 = fill(0.0f0, d)  # initial point
         g(X) = exp.(-0.25f0 * sum(X .^ 2, dims = 1))   # initial condition
@@ -329,8 +329,8 @@ if false
                 Dense(hls, hls, tanh),
                 Dense(hls, 1)) # Neural network used by the scheme
 
-            opt = ADAM(1e-3) #optimiser
-            alg = DeepSplitting(nn, opt = opt)
+            opt = Flux.Optimise.Adam(1e-3) #optimiser
+            alg = DeepSplitting(nn, opt = opt )
 
             X0 = repeat([1.0f0, 0.5f0], div(d, 2))  # initial point
             g(X) = sum(X .^ 2, dims = 1) # initial condition
@@ -381,8 +381,8 @@ if false
             Dense(hls, hls, tanh),
             Dense(hls, 1)) # Neural network used by the scheme
 
-        opt = ADAM(1e-3) #optimiser
-        alg = DeepSplitting(nn, opt = opt)
+        opt = Flux.Optimise.Adam(1e-3) #optimiser
+        alg = DeepSplitting(nn, opt = opt )
 
         X0 = fill(0.0f0, d)  # initial point
         g(X) = log.(5.0f-1 .+ 5.0f-1 * sum(X .^ 2, dims = 1)) # initial condition
@@ -430,8 +430,8 @@ end
         Dense(hls, hls, tanh),
         Dense(hls, 1)) # Neural network used by the scheme
 
-    opt = ADAM()
-    alg = DeepSplitting(nn, opt = opt, λs = [1e-2, 1e-3])
+    opt = Flux.Optimise.Adam()
+    alg = DeepSplitting(nn, opt = opt, λs = [1e-2,1e-3] )
 
     X0 = fill(100.0f0, d)  # initial point
     g(X) = minimum(X, dims = 1) # initial condition
@@ -519,8 +519,8 @@ end
             # BatchNorm(hls, affine = true, dim = 1),
             Dense(hls, 1, x -> x^2)) # positive function
 
-        opt = ADAM(1e-2)#optimiser
-        alg = DeepSplitting(nn_batch, K = K, opt = opt, mc_sample = x0_sample)
+        opt = Flux.Optimise.Adam(1e-2)#optimiser
+        alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = x0_sample)
 
         function g(x)
             Float32((2 * π)^(-d / 2)) * ss0^(-Float32(d) * 5.0f-1) *
@@ -575,8 +575,8 @@ end
                 Dense(hls, hls, tanh),
                 Dense(hls, 1)) # Neural network used by the scheme
 
-            opt = ADAM(1e-2) #optimiser
-            alg = DeepSplitting(nn, K = K, opt = opt, mc_sample = UniformSampling(-∂, ∂))
+            opt = Flux.Optimise.Adam(1e-2) #optimiser
+            alg = DeepSplitting(nn, K=K, opt = opt, mc_sample = UniformSampling(-∂, ∂) )
 
             x0 = fill(0.0f0, d)  # initial point
             g(X) = exp.(-0.25f0 * sum(X .^ 2, dims = 1))   # initial condition

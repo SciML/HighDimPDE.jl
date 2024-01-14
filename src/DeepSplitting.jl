@@ -1,10 +1,11 @@
-Base.copy(t::Tuple) = t # required for below
-function Base.copy(opt::O) where {O <: Flux.Optimise.AbstractOptimiser}
-    return O([copy(getfield(opt, f)) for f in fieldnames(typeof(opt))]...)
+_copy(t::Tuple) = t
+_copy(t) = t
+function _copy(opt::O) where  O<:Flux.Optimise.AbstractOptimiser
+    return O([_copy(getfield(opt,f)) for f in fieldnames(typeof(opt))]...)
 end
 
 """
-    DeepSplitting(nn, K=1, opt = ADAM(0.01), λs = nothing, mc_sample =  NoSampling())
+    DeepSplitting(nn, K=1, opt = Flux.Optimise.Adam(0.01), λs = nothing, mc_sample =  NoSampling())
 
 Deep splitting algorithm.
 
@@ -25,7 +26,7 @@ nn = Flux.Chain(Dense(d, hls, tanh),
                 Dense(hls,hls,tanh),
                 Dense(hls, 1, x->x^2))
 
-alg = DeepSplitting(nn, K=10, opt = ADAM(), λs = [5e-3,1e-3],
+alg = DeepSplitting(nn, K=10, opt = Flux.Optimise.Adam(), λs = [5e-3,1e-3],
                     mc_sample = UniformSampling(zeros(d), ones(d)) )
 ```
 """
@@ -39,7 +40,7 @@ end
 
 function DeepSplitting(nn;
         K = 1,
-        opt::O = ADAM(0.01),
+        opt::O = Flux.Optimise.Adam(0.01),
         λs::L = nothing,
         mc_sample = NoSampling()) where {
         O <: Flux.Optimise.AbstractOptimiser,
@@ -167,7 +168,7 @@ function DiffEqBase.solve(prob::PIDEProblem,
         _maxiters = length(maxiters) > 1 ? maxiters[min(net, 2)] : maxiters[]
 
         for λ in λs
-            opt_net = copy(opt) # starting with a new optimiser state at each time step
+            opt_net = _copy(opt) # starting with a new optimiser state at each time step
             opt_net.eta = λ
             verbose &&
                 println("Training started with ", typeof(opt_net), " and λ :", opt_net.eta)
