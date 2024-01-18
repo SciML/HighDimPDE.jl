@@ -3,7 +3,7 @@
 DeepBSDE(u0,σᵀ∇u;opt=Flux.Optimise.Adam(0.1))
 ```
 
-[DeepBSDE algorithm](https://www.pnas.org/doi/10.1073/pnas.1718942115), from J. Han, A. Jentzen and Weinan E. 
+[DeepBSDE algorithm](https://arxiv.org/abs/1707.02568), from J. Han, A. Jentzen and Weinan E. 
 
 ## Arguments
 - `u0`: a Flux.jl `Chain` with a d-dimensional input and a 1-dimensional output for the solytion guess.
@@ -66,7 +66,7 @@ Returns a `PIDESolution` object.
 # Arguments
 
 - `sdealg`: a SDE solver from [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/solvers/sde_solve/). 
-    If not provided, the plain vanilla [DeepBSDE](https://www.pnas.org/doi/10.1073/pnas.1718942115) method will be applied.
+    If not provided, the plain vanilla [DeepBSDE](https://arxiv.org/abs/1707.02568) method will be applied.
     If provided, the SDE associated with the PDE problem will be solved relying on 
     methods from DifferentialEquations.jl, using [Ensemble solves](https://diffeq.sciml.ai/stable/features/ensemble/) 
     via `sdealg`. Check the available `sdealg` on the 
