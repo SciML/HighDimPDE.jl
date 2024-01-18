@@ -13,7 +13,7 @@ module HighDimPDE
     using Functors
     # using ProgressMeter: @showprogress
     using Tracker
-    using CUDA
+    using CUDA, cuDNN
     using Random
     using SparseArrays
 
