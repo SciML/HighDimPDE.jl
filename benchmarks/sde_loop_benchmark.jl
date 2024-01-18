@@ -14,39 +14,38 @@ else
     device = Flux.cpu
 end
 
-function sde_loop(d,batch_size)
-    X0 = zeros(Float32,d)
-    y0 = repeat(X0[:],1,batch_size)
-    y1 = repeat(X0[:],1,batch_size)
+function sde_loop(d, batch_size)
+    X0 = zeros(Float32, d)
+    y0 = repeat(X0[:], 1, batch_size)
+    y1 = repeat(X0[:], 1, batch_size)
     dt = 0.1
-    dWall = sqrt(dt) * randn(d,batch_size,N)
+    dWall = sqrt(dt) * randn(d, batch_size, N)
     for i in 1:N
-        dW = @view dWall[:,:,i]
+        dW = @view dWall[:, :, i]
         y0 .= y1
-        y1 .= y0 .+ 0. * dt .+ 1. .* dW
+        y1 .= y0 .+ 0.0 * dt .+ 1.0 .* dW
     end
     return y0, y1
 end
 
-
-function sde_loop_CUDA(d,batch_size)
-    X0 = CUDA.zeros(Float32,d)
-    y0 = CUDA.repeat(X0[:],1,batch_size)
-    y1 = CUDA.repeat(X0[:],1,batch_size)
+function sde_loop_CUDA(d, batch_size)
+    X0 = CUDA.zeros(Float32, d)
+    y0 = CUDA.repeat(X0[:], 1, batch_size)
+    y1 = CUDA.repeat(X0[:], 1, batch_size)
     dt = 0.1
-    dWall = sqrt(dt) * CUDA.randn(d,batch_size,N)
+    dWall = sqrt(dt) * CUDA.randn(d, batch_size, N)
     for i in 1:N
-        dW = @view dWall[:,:,i]
+        dW = @view dWall[:, :, i]
         y0 .= y1
-        y1 .= y0 .+ 0. * dt .+ 1. .* dW
+        y1 .= y0 .+ 0.0 * dt .+ 1.0 .* dW
     end
     return y0, y1
 end
 
 using BenchmarkTools
 
-@btime CUDA.randn(1000,1000)
-@btime randn(1000,1000)
+@btime CUDA.randn(1000, 1000)
+@btime randn(1000, 1000)
 
-@btime sde_loop(d,batch_size)
-@btime sde_loop_CUDA(d,batch_size)
+@btime sde_loop(d, batch_size)
+@btime sde_loop_CUDA(d, batch_size)

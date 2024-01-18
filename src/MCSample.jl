@@ -1,5 +1,5 @@
 abstract type AbstractSampling{T} end
-Base.eltype(::AbstractSampling{T}) where T = eltype(T)
+Base.eltype(::AbstractSampling{T}) where {T} = eltype(T)
 
 # Monte Carlo AbstractSampling
 abstract type MCSampling{T} <: AbstractSampling{T} end
@@ -15,14 +15,12 @@ struct UniformSampling{A} <: MCSampling{A}
 end
 @functor UniformSampling
 
-
-function (mc_sample::UniformSampling{T})(x_mc, kwargs...) where T
+function (mc_sample::UniformSampling{T})(x_mc, kwargs...) where {T}
     Tel = eltype(T)
     rand!(x_mc)
-    m = (mc_sample.b + mc_sample.a) ./ convert(Tel,2)
-    x_mc .= (x_mc .- convert(Tel,0.5)) .* (mc_sample.b - mc_sample.a) .+ m
+    m = (mc_sample.b + mc_sample.a) ./ convert(Tel, 2)
+    x_mc .= (x_mc .- convert(Tel, 0.5)) .* (mc_sample.b - mc_sample.a) .+ m
 end
-
 
 """
     NormalSampling(σ)
@@ -40,19 +38,17 @@ struct NormalSampling{T} <: MCSampling{T}
 end
 @functor NormalSampling
 
-NormalSampling(σ) = NormalSampling(σ,false)
+NormalSampling(σ) = NormalSampling(σ, false)
 
 function (mc_sample::NormalSampling)(x_mc)
     randn!(x_mc)
-    x_mc .*=  mc_sample.σ  
+    x_mc .*= mc_sample.σ
 end
 
 function (mc_sample::NormalSampling)(x_mc, x)
     mc_sample(x_mc)
     mc_sample.shifted ? x_mc .+= x : nothing
 end
-
-
 
 struct NoSampling <: AbstractSampling{Nothing} end
 
