@@ -1,0 +1,18 @@
+steps:
+  - label: "Julia 1"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1"
+      - JuliaCI/julia-test#v1:
+           coverage: false # 1000x slowdown
+    agents:
+      queue: "juliagpu"
+      cuda: "*"
+    env:
+      GROUP: 'GPU'
+    timeout_in_minutes: 60
+    # Don't run Buildkite if the commit message includes the text [skip tests]
+    if: build.message !~ /\[skip tests\]/
+
+env:
+  JULIA_PKG_SERVER: "" # it often struggles with our large artifacts

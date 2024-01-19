@@ -16,5 +16,12 @@ pages = [
         "tutorials/nnkolmogorov.md",
         "tutorials/nnparamkolmogorov.md",
     ],
+    "Extended Examples" => [
+        "examples/blackscholes",
+    ],
+    "Solver Algorithms" => 
+        ["MLP.md",
+        "DeepSplitting.md",
+        "DeepBSDE.md"],
     "Feynman Kac formula" => "Feynman_Kac.md",
 ]
