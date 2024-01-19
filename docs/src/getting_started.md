@@ -6,7 +6,7 @@ The general workflow for using `HighDimPDE.jl` is as follows:
 
 - Define a Partial Integro-Differential Equation problem
 - Select a solver algorithm
-- Solve the problem
+- Solve the problem.
 
 ## Examples
 
@@ -125,5 +125,5 @@ sol = solve(prob,
             abstol = 2e-3,
             maxiters = 1000,
             batch_size = 1000,
-            use_cuda = true)
+            use_cuda=true)
 ```
