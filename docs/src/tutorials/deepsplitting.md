@@ -1,5 +1,5 @@
 
-# `DeepSplitting`
+# Solving the 10-dimensional Fisher-KPP equation with `DeepSplitting`
 Consider the Fisher-KPP equation with non-local competition
 
 ```math
@@ -10,7 +10,7 @@ where $\Omega = [-1/2, 1/2]^d$, and let's assume Neumann Boundary condition on $
 
 Let's solve Eq. (1) with the [`DeepSplitting`](@ref deepsplitting) solver. 
 
-```julia
+```@example deepsplitting
 using HighDimPDE
 
 ## Definition of the problem
@@ -50,10 +50,12 @@ sol = solve(prob,
             maxiters = 1000,
             batch_size = 1000)
 ```
+
 #### Solving on the GPU
+
 `DeepSplitting` can run on the GPU for (much) improved performance. To do so, just set `use_cuda = true`.
 
-```julia
+```@example deepsplitting2
 sol = solve(prob, 
             alg, 
             0.1, 
