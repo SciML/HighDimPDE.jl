@@ -31,7 +31,7 @@ aas-journal: Astrophysical Journal <- The name of the AAS journal.
 `HighDimPDE.jl` is a Julia [@Bezanson2017] package that implements solver algorithms to solve highly dimensional non-local non-linear Partial Differential Equations (PDEs). The solver algorithms provided break down the curse of dimensionality, with a computational complexity that only grows polynomially in the number of dimension of the PDE.  It is an open-source project hosted on GitHub and distributed under the MIT license. The package is designed with a user-friendly interface, provides both CPUs and GPUs support, and is integrated within the Sci-ML[@SciML] ecosystem.
 
 # Statement of need
-Non-local nonlinear Partial Differential Equations arise in a variety of scientific domains including physics, engineering, finance and biology. In biology, they are for instance used for modelling the evolution of biological populations that are phenotypically and physically structured. The dimension of the PDEs can be large, corresponding to the number of phenotypic traits and physical dimensions considered. Highly dimensional PDE's cannot be solved with standard numerical methods as their computational cost increases exponentially in the number of dimensions, a problem commonly refered as the curse of dimensionality. 
+Non-local nonlinear Partial Differential Equations arise in a variety of scientific domains including physics, engineering, finance and biology. In biology, they are for instance used for modelling the evolution of biological populations that are phenotypically and physically structured. The dimension of the PDEs can be large, corresponding to the number of phenotypic traits and physical dimensions considered. Highly dimensional PDE's cannot be solved with standard numerical methods as their computational cost increases exponentially in the number of dimensions, a problem commonly referred as the curse of dimensionality. 
 
 # Solving PDEs with HighDimPDE.jl
 HighDimPDE.jl can solve for PDEs of the form
@@ -42,7 +42,7 @@ $$
     & \quad + \big\langle \mu(t,x), ( \nabla_x u )( t,x ) \big\rangle + \tfrac{1}{2} \text{Trace} \big(\sigma(t,x) [ \sigma(t,x) ]^* ( \text{Hess}_x u)(t, x ) \big). \tag{1}
 \end{aligned}
 $$
-where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subset \R^d$ is a function subject to initial conditions $u(0,x) = g(x)$ and Neumann Boudary conditions.
+where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subset \R^d$ is a function subject to initial conditions $u(0,x) = g(x)$ and Neumann Boundary conditions.
 
 `HighDimPDE.jl` currently proposes ? solver algorithms.
 

@@ -189,7 +189,7 @@ function DiffEqBase.solve(prob::PIDEProblem,
 
                 # report on training
                 if epoch % verbose_rate == 1
-                    l = loss(y0, y1, z, t) # explictly computing loss every verbose_rate
+                    l = loss(y0, y1, z, t) # explicitly computing loss every verbose_rate
                     verbose && println("Current loss is: $l")
                     push!(losses[net], l)
                     if l < abstol
