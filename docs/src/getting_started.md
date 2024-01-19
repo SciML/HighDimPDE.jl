@@ -117,7 +117,7 @@ sol = solve(prob,
 
 [`DeepSplitting`](@ref deepsplitting) can run on the GPU for (much) improved performance. To do so, just set `use_cuda = true`.
 
-```julia
+```@example DeepSplitting_gpu
 sol = solve(prob, 
             alg, 
             0.1, 

@@ -1,11 +1,9 @@
-# `DeepBSDE`
-<!-- TODO: revise the code, which should not work right here -->
-### Solving a 100-dimensional Hamilton-Jacobi-Bellman Equation
+# Solving a 100-dimensional Hamilton-Jacobi-Bellman Equation with `DeepBSDE`
 
 First, here's a fully working code for the solution of a 100-dimensional
 Hamilton-Jacobi-Bellman equation that takes a few minutes on a laptop:
 
-```julia
+```@example deepbsde
 using NeuralPDE
 using Flux, OptimizationOptimisers
 using DifferentialEquations
@@ -65,7 +63,7 @@ with terminating condition $g(x) = \log(1/2 + 1/2 \|x\|^2))$.
 
 To get the solution above using the `PIDEProblem`, we write:
 
-```julia
+```@example deepbsde2
 d = 100 # number of dimensions
 X0 = fill(0.0f0,d) # initial value of stochastic control process
 tspan = (0.0f0, 1.0f0)
@@ -85,7 +83,7 @@ by giving it the Flux.jl chains we want it to use for the neural networks.
 `u0` needs to be a `d` dimensional -> 1 dimensional chain, while `σᵀ∇u`
 needs to be `d+1` dimensional to `d` dimensions. Thus we define the following:
 
-```julia
+```@example deepbsde2
 hls = 10 + d #hidden layer size
 opt = Flux.Optimise.Adam(0.01)  #optimizer
 #sub-neural network approximating solutions at the desired point
@@ -102,7 +100,7 @@ pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
 
 #### Solving with Neural Nets
 
-```julia
+```@example deepbsde2
 @time ans = solve(prob, pdealg, verbose=true, maxiters=100, trajectories=100,
                             alg=EM(), dt=0.2, pabstol = 1f-2)
 
