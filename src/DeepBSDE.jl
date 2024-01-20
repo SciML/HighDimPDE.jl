@@ -28,7 +28,7 @@ g(X) = sum(X.^2)
 σ_f(X,p,t) = Diagonal(sigma*X) #Matrix d x d
 prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
-hls  = 10 + d #hiden layer size
+hls  = 10 + d #hidden layer size
 opt = Flux.Optimise.Adam(0.001)
 u0 = Flux.Chain(Dense(d,hls,relu),
                 Dense(hls,hls,relu),
@@ -188,7 +188,7 @@ function DiffEqBase.solve(prob::PIDEProblem,
     Flux.train!(loss_n_sde, ps, data, opt; cb = cb)
 
     if !limits
-        # Returning iters or simply u0(x0) and the tained neural network approximation u0
+        # Returning iters or simply u0(x0) and the trained neural network approximation u0
         if save_everystep
             sol = PIDESolution(x0, tspan[1]:dt:tspan[2], losses, iters, re1(p3))
         else
