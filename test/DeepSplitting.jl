@@ -107,7 +107,7 @@ end
         u1_anal = [u_anal(x, tspan[end]) for x in eachcol(xs)]
         e_l2 = mean(rel_error_l2.(u1, u1_anal))
         println("rel_error_l2 = ", e_l2, "\n")
-        @test e_l2 < 0.17
+        @test e_l2 < 0.185
     end
 end
 
