@@ -4,7 +4,7 @@ First, here's a fully working code for the solution of a 100-dimensional
 Hamilton-Jacobi-Bellman equation that takes a few minutes on a laptop:
 
 ```@example deepbsde
-using NeuralPDE
+using HighDimPDE
 using Flux, OptimizationOptimisers
 using DifferentialEquations
 using LinearAlgebra
