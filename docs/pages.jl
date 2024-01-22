@@ -17,7 +17,7 @@ pages = [
         "tutorials/nnparamkolmogorov.md",
     ],
     "Extended Examples" => [
-        "examples/blackscholes",
+        "examples/blackscholes.md",
     ],
     "Solver Algorithms" => 
         ["MLP.md",
