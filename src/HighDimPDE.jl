@@ -149,8 +149,9 @@ include("DeepSplitting.jl")
 include("DeepBSDE.jl")
 include("DeepBSDE_Han.jl")
 include("MLP.jl")
+include("NNStopping.jl")
 
-export PIDEProblem, PIDEProblem, PIDESolution, DeepSplitting, DeepBSDE, MLP
+export PIDEProblem, PIDEProblem, PIDESolution, DeepSplitting, DeepBSDE, MLP, NNStopping
 
 export NormalSampling, UniformSampling, NoSampling, solve
 end
