@@ -1,112 +1,93 @@
-struct NNStopping{M, O} <: HighDimPDEAlgorithm
+struct NNStopping{M, O}
     m::M
     opt::O
-
-    function NNStopping(m, opt = Flux.Optimise.Adam(0.1))
-        new{typeof(m), typeof(opt)}(m, opt)
-    end
 end
 
-function DiffEqBase.solve(prob::PIDEProblem,
-    pdealg::NNStopping,
-    sdealg;
-    verbose = false,
-    maxiters = 300,
-    trajectories = 100,
-    dt = eltype(prob.tspan)(0),
-    ensemblealg = EnsembleThreads(),
-    kwargs...)
+struct NNStoppingModelArray{M}
+    ms::M
+end
 
+Flux.@functor NNStoppingModelArray
+
+function (model::NNStoppingModelArray)(X, G)
+    XG = cat(X, reshape(G, 1, size(G)...), dims = 1)
+    broadcast((x, m) -> m(x), eachslice(XG, dims = 2)[2:end], model.ms)
+end
+
+function DiffEqBase.solve(prob::SDEProblem,
+        pdealg::NNStopping,
+        sdealg;
+        verbose = false,
+        maxiters = 300,
+        trajectories = 100,
+        dt = eltype(prob.tspan)(0),
+        ensemblealg = EnsembleThreads(),
+        kwargs...)
+    g = prob.kwargs[:payoff]
+
+    sde_prob = SDEProblem(prob.f, prob.u0, prob.tspan)
+    ensemble_prob = EnsembleProblem(sde_prob)
+    sim = solve(ensemble_prob,
+        sdealg,
+        trajectories = trajectories,
+        dt = dt,
+        adaptive = false)
+
+    m = NNStoppingModelArray(pdealg.m)
+    opt = pdealg.opt
     tspan = prob.tspan
-    sigma = prob.g
-    μ = prob.f
-    g = prob.kwargs.data.g
-    u0 = prob.u0
     ts = tspan[1]:dt:tspan[2]
-    T = tspan[2]
+    N = length(ts) - 1
 
-    m  = alg.m
-    opt    = alg.opt
+    G = reduce(hcat, map(u -> map(i -> g(u.t[i], u.u[i]), 1:(N + 1)), sim))
 
+    function nn_loss(m)
+        preds = m(Array(sim), G)
+        preds = reduce(vcat, preds)
+        un_gs = map(eachcol(preds), eachcol(G)) do pred, g_
+            local u_sum = pred[1]
+            uns = map(1:N) do i
+                i == 1 && return pred[i]
+                # i == N && return (1 - u_sum)
+                res = pred[i] * (1 - u_sum)
+                u_sum += res
+                return res
+            end
 
-    prob = SDEProblem(μ,sigma,u0,tspan)
-    ensembleprob = EnsembleProblem(prob)
-    sim = solve(ensembleprob, sdealg, ensemblealg, dt=dt,trajectories=trajectories,adaptive=false)
-    payoff = []
-    times = []
-    iter = 0
-    # for u in sim.u
-    # un = []
-    # function Un(n , X )
-    #     if size(un)[1] >= n
-    #         return un[n]
-    #     else
-    #         if(n == 1)
-    #               ans =  first(m(X[1])[1])
-    #               un = [ans]
-    #               return ans
-    #           else
-    #               ans =  max(first(m(X[n])[n]) , n + 1 - size(ts)[1])*(1 - sum(Un(i , X ) for i in 1:n-1))
-    #               un = vcat( un , ans)
-    #               return ans
-    #           end
-    #       end
-    # end
-
-    function Un!(un_cache, n, X)
-        !isnan(un_cache[n]) && return un_cache[n]
-        if n == 1
-            un_cache[n] = first(m(X[1])[1])
-        else
-            un_cache[n] = max(first(m(X[n])[n]) , n + 1 - length(ts))*(1 - sum(un_cache[1:n-1]))
+            return sum(uns .* g_[2:end])
         end
-        return un_cache[n]
+        return -1 * mean(un_gs)
     end
 
-
-    function loss()
-        reward = 0.00
-        map(sim.u) do X 
-            un_cache = fill(NaN, length(ts))
-            reward += mapreduce((x, t) -> Un!(un_cache, i, X)*g(t,X), +, X, ts)
+    opt_state = Flux.setup(opt, m)
+    for epoch in 1:maxiters
+        # sim = solve(ensemble_prob, EM(), trajectories = M, dt = dt)
+        gs = Flux.gradient(m) do model
+            nn_loss(model)
         end
-
-        return 10000 - reward
+        Flux.update!(opt_state, m, gs[1])
+        l = nn_loss(m)
+        verbose && @info "Current Epoch : $epoch  Current Loss :$l"
     end
 
-    dataset = Iterators.repeated(() , maxiters)
-
-    callback = function ()
-        l = loss()
-        println("Current loss is: $l")
+    final_preds = m(Array(sim), G)
+    final_preds = reduce(vcat, final_preds)
+    un_gs = map(eachcol(final_preds), eachcol(G)) do pred, g_
+        local u_sum = pred[1]
+        uns = map(1:N) do i
+            i == 1 && return pred[i]
+            res = pred[i] * (1 - u_sum)
+            u_sum += res
+            return res
+        end
+        uns
     end
 
-    Flux.train!(loss, Flux.params(m), dataset, opt; cb = callback)
-
-    Usum = 0
-    ti = 0
-    Xt = sim.u[1].u
-    un_cache = fill(NaN, N)
-    for i in 1:N
-          Un = Un!(un_cache, i , Xt)
-          Usum = Usum + Un
-          if Usum >= 1 - Un
-            ti = i
-            break
-          end
+    ns = map(un_gs) do un
+        argmax(cumsum(un) + un .>= 1)
     end
-    for u in sim.u
-        X = u.u
-        price = g(ts[ti] , X[ti])
-        payoff = vcat(payoff , price)
-        times = vcat(times, ti)
-        iter = iter + 1
-        # println("SUM : $sump")
-        # println("TIME : $ti")
-    end
-    sum(payoff)/size(payoff)[1]
 
-    
-
-
+    tss = getindex.(Ref(ts), ns .+ 1)
+    payoff = mean(map((t, u) -> g(t, u(t)), tss, sim))
+    return (payoff = payoff, stopping_time = tss)
 end
