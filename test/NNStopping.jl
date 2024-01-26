@@ -1,9 +1,10 @@
 using Test, Flux, StochasticDiffEq, LinearAlgebra
 println("Optimal Stopping Time Test")
 using HighDimPDE
+using Statistics
 
 using Random
-Random.seed!(10)
+Random.seed!(101)
 # Bermudan Max-Call Standard Example
 d = 3
 r = 0.05
@@ -26,7 +27,13 @@ models = [Chain(Dense(d + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoi
           for i in 1:N]
 opt = Flux.Optimisers.Adam(0.01)
 alg = NNStopping(models, opt)
-sol = solve(prob, alg, SRIW1(); dt = dt, trajectories = 1000, maxiters = 1000, verbose = true)
+sol = solve(prob,
+    alg,
+    SRIW1();
+    dt = dt,
+    trajectories = 1000,
+    maxiters = 1000,
+    verbose = true)
 analytical_sol = 11.278 # Ref [1]
 @test abs(analytical_sol - sol.payoff) < 0.5
 
@@ -57,7 +64,13 @@ models = [Chain(Dense(d + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoi
           for i in 1:N]
 opt = Flux.Optimisers.Adam(0.01)
 alg = NNStopping(models, opt)
-sol = solve(prob, alg, SRIW1(); dt = dt, trajectories = 1000, maxiters = 500, verbose = true)
+sol = solve(prob,
+    alg,
+    SRIW1();
+    dt = dt,
+    trajectories = 1000,
+    maxiters = 500,
+    verbose = true)
 analytical_sol = 6.301 # Ref [2]
 @test abs(analytical_sol - sol.payoff) < 0.5
 
