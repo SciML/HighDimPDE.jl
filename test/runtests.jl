@@ -1,12 +1,10 @@
-using Test: include
-using HighDimPDE, Test
-
+using SafeTestsets, Test
 @testset "HighDimPDE" begin
-    # include("reflect.jl")
-    # include("MLP.jl")
-    # include("DeepSplitting.jl")
-    # include("DeepBSDE.jl")
-    # include("DeepBSDE_Han.jl")
-    # include("MCSample.jl")
-    include("NNStopping.jl")
+    @time @safetestset "Quality Assurance" include("qa.jl")
+    @time @safetestset "reflect" include("reflect.jl")
+    @time @safetestset "reflect" include("reflect.jl")
+    @time @safetestset "MLP" include("MLP.jl")
+    @time @safetestset "Deep Splitting" include("DeepSplitting.jl")
+    @time @safetestset "MC Sample" include("MCSample.jl")
+    @time @safetestset "NNStopping" include("NNStopping.jl")
 end

@@ -8,7 +8,7 @@ DeepBSDE(u0,σᵀ∇u;opt=Flux.Optimise.Adam(0.1))
 ## Arguments
 - `u0`: a Flux.jl `Chain` with a d-dimensional input and a 1-dimensional output for the solytion guess.
 - `σᵀ∇u`: a Flux.jl `Chain` for the BSDE value guess.
-- `opt`: the optimization algorithm to be used to optimize the neural networks. Defaults to `ADAM(0.1)`.
+- `opt`: the optimization algorithm to be used to optimize the neural networks. Defaults to `Flux.Optimise.Adam(0.1)`.
 
 ## Example
 Black-Scholes-Barenblatt equation
@@ -28,7 +28,7 @@ g(X) = sum(X.^2)
 σ_f(X,p,t) = Diagonal(sigma*X) #Matrix d x d
 prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
 
-hls  = 10 + d #hiden layer size
+hls  = 10 + d #hidden layer size
 opt = Flux.Optimise.Adam(0.001)
 u0 = Flux.Chain(Dense(d,hls,relu),
                 Dense(hls,hls,relu),
@@ -188,7 +188,7 @@ function DiffEqBase.solve(prob::PIDEProblem,
     Flux.train!(loss_n_sde, ps, data, opt; cb = cb)
 
     if !limits
-        # Returning iters or simply u0(x0) and the tained neural network approximation u0
+        # Returning iters or simply u0(x0) and the trained neural network approximation u0
         if save_everystep
             sol = PIDESolution(x0, tspan[1]:dt:tspan[2], losses, iters, re1(p3))
         else
@@ -254,8 +254,8 @@ function DiffEqBase.solve(prob::PIDEProblem,
             true && println("Current loss is: $l")
             l < 1e-6 && Flux.stop()
         end
-        dataS = Iterators.repeated((), maxiters_limits)
-        Flux.train!(loss_, ps, dataS, ADAM(0.01); cb = cb)
+        dataS = Iterators.repeated((), maxiters_upper)
+        Flux.train!(loss_, ps, dataS, Flux.Optimise.Adam(0.01); cb = cb)
         u_high = loss_()
 
         verbose && println("Lower limit")
