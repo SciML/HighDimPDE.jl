@@ -229,6 +229,57 @@ function ParabolicPDEProblem(μ,
         kwargs)
 end
 
+"""
+Defines a Kolmogorov Backward PDE : 
+## Arguments : 
+* `g` : terminal condition, of the form `g(x)`.
+* `μ` : drift function, of the form `μ(x, p, t)`.
+* `σ` : diffusion function `σ(x, p, t)`.
+* `tspan`: timespan of the problem.
+* `xspan`: the domain of system state 
+* `xdims`: the numner of the state variables
+
+## Keyword Arguments:
+* `noise_rate_prototype` : Incase of a non diagonal noise, the prototype of `dx` in `σ`
+"""
+function PIDEProblem(g,
+        μ,
+        σ,
+        tspan,
+        xspan,
+        xdims;
+        p = nothing,
+        x0_sample = NoSampling(),
+        noise_rate_prototype = nothing,
+        kwargs...)
+    x = first(xspan)
+    x = fill(x, xdims, 1)
+    kwargs = merge(NamedTuple(kwargs),
+        (xspan = xspan, xdims = xdims, noise_rate_prototype = noise_rate_prototype))
+
+    PIDEProblem{typeof(g(x)),
+        typeof(g),
+        Nothing,
+        typeof(μ),
+        typeof(σ),
+        typeof(x),
+        eltype(tspan),
+        typeof(p),
+        typeof(x0_sample),
+        Nothing,
+        typeof(kwargs)}(g(x),
+        g,
+        nothing,
+        μ,
+        σ,
+        x,
+        tspan,
+        p,
+        x0_sample,
+        nothing,
+        kwargs)
+end
+
 struct PIDESolution{X0, Ts, L, Us, NNs, Ls}
     x0::X0
     ts::Ts
@@ -267,6 +318,7 @@ include("DeepBSDE.jl")
 include("DeepBSDE_Han.jl")
 include("MLP.jl")
 include("NNStopping.jl")
+include("NNKolmogorov.jl")
 
 export PIDEProblem, ParabolicPDEProblem, PIDESolution, DeepSplitting, DeepBSDE, MLP, NNStopping
 
