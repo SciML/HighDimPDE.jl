@@ -118,19 +118,19 @@ struct PIDESolution{X0, Ts, L, Us, NNs, Ls}
     us::Us # array of solution evaluated at x0, ts[i]
     ufuns::NNs # array of parametric functions
     limits::Ls
-end
-function PIDESolution(x0, ts, losses, usols, ufuns, limits = nothing)
-    PIDESolution{typeof(x0),
-        typeof(ts),
-        typeof(losses),
-        typeof(usols),
-        typeof(ufuns),
-        typeof(limits)}(x0,
-        ts,
-        losses,
-        usols,
-        ufuns,
-        limits)
+    function PIDESolution(x0, ts, losses, usols, ufuns, limits = nothing)
+        new{typeof(x0),
+            typeof(ts),
+            typeof(losses),
+            typeof(usols),
+            typeof(ufuns),
+            typeof(limits)}(x0,
+            ts,
+            losses,
+            usols,
+            ufuns,
+            limits)
+    end
 end
 
 Base.summary(prob::PIDESolution) = string(nameof(typeof(prob)))
