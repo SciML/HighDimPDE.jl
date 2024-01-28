@@ -15,7 +15,7 @@ tspan = (0.0, 1.0)
 d = 1
 sdealg = EM()
 g(x) = pdf(u0, x)
-prob = PIDEProblem(g, μ, σ, tspan, xspan, d)
+prob = PIDEProblem(g, μ, σ, tspan, xspan)
 opt = Flux.ADAM(0.01)
 m = Chain(Dense(1, 5, elu), Dense(5, 5, elu), Dense(5, 5, elu), Dense(5, 1))
 ensemblealg = EnsembleThreads()
@@ -35,13 +35,13 @@ xspan = (-6.0, 6.0)
 tspan = (0.0, 1.0)
 σ(u, p, t) = 0.5 * u
 μ(u, p, t) = 0.5 * 0.25 * u
-d = 1
+
 function g(x)
     1.77 .* x .- 0.015 .* x .^ 3
 end
 
 sdealg = EM()
-prob = PIDEProblem(g, μ, σ, tspan, xspan, d)
+prob = PIDEProblem(g, μ, σ, tspan, xspan)
 opt = Flux.ADAM(0.01)
 m = Chain(Dense(1, 16, elu), Dense(16, 32, elu), Dense(32, 16, elu), Dense(16, 1))
 sol = solve(prob, NNKolmogorov(m, opt), sdealg, verbose = true, dt = 0.01,
@@ -80,10 +80,10 @@ uo3 = MvNormal([0.0; 0.0], Σ)
 g(x) = pdf(uo3, x)
 
 sdealg = EM()
-xspan = (-10.0, 10.0)
+xspan = [(-10.0, 10.0), (-10.0, 10.0)]
 tspan = (0.0, 1.0)
+prob = PIDEProblem(g, μ_noise, σ_noise, tspan, xspan; noise_rate_prototype = zeros(2, 4))
 d = 2
-prob = PIDEProblem(g, μ_noise, σ_noise, tspan, xspan, d; noise_rate_prototype = zeros(2, 4))
 opt = Flux.ADAM(0.01)
 m = Chain(Dense(d, 32, elu), Dense(32, 64, elu), Dense(64, 1))
 sol = solve(prob, NNKolmogorov(m, opt), sdealg, verbose = true, dt = 0.001,
