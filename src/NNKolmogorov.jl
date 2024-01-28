@@ -42,10 +42,14 @@ function DiffEqBase.solve(prob::Union{PIDEProblem, SDEProblem},
     phi = prob.g
 
     xspan = prob.kwargs.xspan
-    d = prob.kwargs.xdims
 
+    xspans = isa(xspan, Tuple) ? [xspan] : xspan
+
+    d = length(xspans)
     ts = tspan[1]:dt:tspan[2]
-    xs = xspan[1]:dx:xspan[2]
+    xs = map(xspans) do xspan
+        xspan[1]:dx:xspan[2]
+    end
     N = size(ts)
     T = tspan[2]
 
@@ -53,7 +57,7 @@ function DiffEqBase.solve(prob::Union{PIDEProblem, SDEProblem},
     chain = pdealg.chain
     opt = pdealg.opt
     ps = Flux.params(chain)
-    xi = rand(xs, d, trajectories)
+    xi = mapreduce(x -> rand(x, 1, trajectories), vcat, xs)
     #Finding Solution to the SDE having initial condition xi. Y = Phi(S(X , T))
     sdeproblem = SDEProblem(μ,
         sigma,

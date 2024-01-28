@@ -236,8 +236,7 @@ Defines a Kolmogorov Backward PDE :
 * `μ` : drift function, of the form `μ(x, p, t)`.
 * `σ` : diffusion function `σ(x, p, t)`.
 * `tspan`: timespan of the problem.
-* `xspan`: the domain of system state 
-* `xdims`: the numner of the state variables
+* `xspan`: the domain of system state. This can be a tuple of floats for single dimension, and a vector of tuples for multiple dimensions. Where each tuple corresponds to a dimension of state vector.
 
 ## Keyword Arguments:
 * `noise_rate_prototype` : Incase of a non diagonal noise, the prototype of `dx` in `σ`
@@ -246,16 +245,14 @@ function PIDEProblem(g,
         μ,
         σ,
         tspan,
-        xspan,
-        xdims;
+        xspan;
         p = nothing,
         x0_sample = NoSampling(),
         noise_rate_prototype = nothing,
         kwargs...)
-    x = first(xspan)
-    x = fill(x, xdims, 1)
+    x = isa(xspan, Vector) ? first.(xspan) : first(xspan)
     kwargs = merge(NamedTuple(kwargs),
-        (xspan = xspan, xdims = xdims, noise_rate_prototype = noise_rate_prototype))
+        (xspan = xspan, noise_rate_prototype = noise_rate_prototype))
 
     PIDEProblem{typeof(g(x)),
         typeof(g),
