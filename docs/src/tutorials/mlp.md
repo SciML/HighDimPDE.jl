@@ -1,12 +1,12 @@
 
-# `MLP`
-## Local PDE
+# Solving the 10-dimensional Fisher-KPP equation with `MLP`
+
 Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) PDE in dimension 10 with [`MLP`](@ref mlp).
 ```math
 \partial_t u = u (1 - u) + \frac{1}{2}\sigma^2\Delta_xu \tag{1}
 ```
 
-```julia
+```@example mlp
 using HighDimPDE
 
 ## Definition of the problem
@@ -32,7 +32,7 @@ Let's include in the previous equation non local competition, i.e.
 \partial_t u = u (1 - \int_\Omega u(t,y)dy) + \frac{1}{2}\sigma^2\Delta_xu \tag{2}
 ```
 where $\Omega = [-1/2, 1/2]^d$, and let's assume Neumann Boundary condition on $\Omega$.
-```julia
+```@example mlp2
 using HighDimPDE
 
 ## Definition of the problem
