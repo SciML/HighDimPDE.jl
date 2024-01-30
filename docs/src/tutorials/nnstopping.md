@@ -21,14 +21,14 @@ dt = T / (N)
 K = 100.00 # strike price
 
 # payoff function
-function g(t, x)
+function g(x, t)
     return exp(-r * t) * (max(maximum(x) - K, 0))
 end
 
 ```
-We then define a `SDEProblem`:
+We then define a `PIDEProblem` with no non linear term:
 ```julia
-prob = SDEProblem(f, sigma, u0, tspan; payoff = g)
+prob = PIDEProblem(f, sigma, u0, tspan; payoff = g)
 ```
 !!! note 
     We provide the payoff function with a keyword argument `payoff` 

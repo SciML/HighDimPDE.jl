@@ -22,7 +22,7 @@ dX_{t}=\mu(X,t)dt + \sigma(X,t)\ dW_{t}^{Q}
 The payoff of the option would then be:
 
 ```math
-sup\lbrace\mathbb{E}[g(\tau, X_\tau)]\rbrace
+sup\lbrace\mathbb{E}[g(X_\tau, \tau)]\rbrace
 ```
 Where τ is the stopping (exercising) time. The goal is to retrive both the optimal exercising strategy (τ) and the payoff.
 
