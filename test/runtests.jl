@@ -9,4 +9,5 @@ using SafeTestsets, Test
     @time @safetestset "MC Sample" include("MCSample.jl")
     @time @safetestset "NNStopping" include("NNStopping.jl")
     @time @safetestset "NNKolmogorov" include("NNKolmogorov.jl")
+    @time @safetestset "NNKolmogorov" include("NNParamKolmogorov.jl")
 end
