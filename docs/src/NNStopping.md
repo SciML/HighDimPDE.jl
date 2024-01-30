@@ -24,6 +24,6 @@ The payoff of the option would then be:
 ```math
 sup\lbrace\mathbb{E}[g(X_\tau, \tau)]\rbrace
 ```
-Where τ is the stopping (exercising) time. The goal is to retrive both the optimal exercising strategy (τ) and the payoff.
+Where τ is the stopping (exercising) time. The goal is to retrieve both the optimal exercising strategy (τ) and the payoff.
 
 We approximate each stopping decision with a neural network architecture, inorder to maximise the expected payoff.
