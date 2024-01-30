@@ -24,11 +24,11 @@ dt = T / (N)
 K = 100.00 # strike price
 
 # payoff function
-function g(t, x)
+function g(x, t)
     return exp(-r * t) * (max(maximum(x) - K, 0))
 end
 
-prob = SDEProblem(f, sigma, u0, tspan; payoff = g)
+prob = PIDEProblem(f, sigma, u0, tspan; payoff = g)
 models = [Chain(Dense(d + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoid))
           for i in 1:N]
 
@@ -54,7 +54,7 @@ function (model::NNStoppingModelArray)(X, G)
     broadcast((x, m) -> m(x), eachslice(XG, dims = 2)[2:end], model.ms)
 end
 
-function DiffEqBase.solve(prob::SDEProblem,
+function DiffEqBase.solve(prob::PIDEProblem,
         pdealg::NNStopping,
         sdealg;
         verbose = false,
@@ -65,7 +65,7 @@ function DiffEqBase.solve(prob::SDEProblem,
         kwargs...)
     g = prob.kwargs[:payoff]
 
-    sde_prob = SDEProblem(prob.f, prob.u0, prob.tspan)
+    sde_prob = SDEProblem(prob.μ, prob.σ, prob.x, prob.tspan)
     ensemble_prob = EnsembleProblem(sde_prob)
     sim = solve(ensemble_prob,
         sdealg,
@@ -79,7 +79,7 @@ function DiffEqBase.solve(prob::SDEProblem,
     ts = tspan[1]:dt:tspan[2]
     N = length(ts) - 1
 
-    G = reduce(hcat, map(u -> map(i -> g(u.t[i], u.u[i]), 1:(N + 1)), sim))
+    G = reduce(hcat, map(u -> map(i -> g(u.u[i], u.t[i]), 1:(N + 1)), sim))
 
     function nn_loss(m)
         preds = m(Array(sim), G)
@@ -128,6 +128,6 @@ function DiffEqBase.solve(prob::SDEProblem,
     end
 
     tss = getindex.(Ref(ts), ns .+ 1)
-    payoff = mean(map((t, u) -> g(t, u(t)), tss, sim))
+    payoff = mean(map((t, u) -> g(u(t), t), tss, sim))
     return (payoff = payoff, stopping_time = tss)
 end
