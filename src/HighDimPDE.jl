@@ -254,7 +254,16 @@ function PIDEProblem(g,
     kwargs = merge(NamedTuple(kwargs),
         (xspan = xspan, noise_rate_prototype = noise_rate_prototype))
 
-    PIDEProblem{typeof(g(x)),
+    g_ = try
+        g(x)
+    catch e
+        if e isa MethodError
+            g(x, kwargs[:p_domain].p_phi)
+        else
+            throw(e)
+        end
+    end
+    PIDEProblem{typeof(g_),
         typeof(g),
         Nothing,
         typeof(μ),
@@ -264,7 +273,7 @@ function PIDEProblem(g,
         typeof(p),
         typeof(x0_sample),
         Nothing,
-        typeof(kwargs)}(g(x),
+        typeof(kwargs)}(g_,
         g,
         nothing,
         μ,
@@ -316,6 +325,7 @@ include("DeepBSDE_Han.jl")
 include("MLP.jl")
 include("NNStopping.jl")
 include("NNKolmogorov.jl")
+include("NNParamKolmogorov.jl")
 
 export PIDEProblem, ParabolicPDEProblem, PIDESolution, DeepSplitting, DeepBSDE, MLP, NNStopping
 
