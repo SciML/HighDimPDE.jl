@@ -133,6 +133,61 @@ function PIDESolution(x0, ts, losses, usols, ufuns, limits = nothing)
         limits)
 end
 
+"""
+Defines a Partial Differential Equation without the non linear term `f` : 
+## Arguments : 
+* `μ` : drift function, of the form `μ(x, p, t)`.
+* `σ` : diffusion function `σ(x, p, t)`.
+* `x0`: initial condition for the `x`
+* `tspan`: timespan of the problem.
+* `g` : terminal condition, of the form `g(x)`. Defaults to `nothing`
+
+## Keyword Arguments:
+* `payoff`: While defining an optimal stopping problem provide the `payoff` function `pay(x,t)``
+* `xspan`: The domain of system state. This can be a tuple of floats for single dimension, and a vector of tuples for multiple dimensions. Where each tuple corresponds to a dimension of state vector.
+* `noise_rate_prototype` : Incase of a non diagonal noise, the prototype of `dx` in `σ`
+"""
+function PIDEProblem(μ,
+        σ,
+        x0,
+        tspan,
+        g = nothing;
+        xspan = nothing,
+        payoff = nothing,
+        p = nothing,
+        x0_sample = NoSampling(),
+        kwargs...)
+    kwargs = merge(NamedTuple(kwargs), (xspan = xspan, payoff = payoff))
+
+    @assert !isnothing(x0)||!isnothing(xspan) "Both `x0` and `xspan` cannot be nothing"
+    xspan = !isnothing(xspan) && !isa(xspan, AbstractVector) ? [xspan] : xspan
+
+    # For Optimal stopping problem 
+    u_est = isnothing(x0) && !isnothing(xspan) ? g(first.(xspan)) : payoff(x0, tspan[1])
+
+    PIDEProblem{typeof(u_est),
+        typeof(g),
+        Nothing,
+        typeof(μ),
+        typeof(σ),
+        typeof(x0),
+        eltype(tspan),
+        typeof(p),
+        typeof(x0_sample),
+        Nothing,
+        typeof(kwargs)}(u_est,
+        g,
+        nothing,
+        μ,
+        σ,
+        x0,
+        tspan,
+        p,
+        x0_sample,
+        nothing,
+        kwargs)
+end
+
 Base.summary(prob::PIDESolution) = string(nameof(typeof(prob)))
 
 function Base.show(io::IO, A::PIDESolution)
