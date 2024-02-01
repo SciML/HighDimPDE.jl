@@ -4,6 +4,9 @@ using Test
 using Flux
 using Statistics
 using CUDA
+using Random 
+Random.seed!(100)
+
 if CUDA.functional()
     use_cuda = true
     cuda_device = 0
