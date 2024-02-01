@@ -33,7 +33,7 @@ end
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x0, tspan)
+        prob = PIDEProblem(μ, σ, x0, tspan, g, f)
         # solving
         sol = solve(prob, alg, multithreading = false)
         u1 = sol.us[end]
@@ -64,7 +64,7 @@ end
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x0, tspan)
+        prob = PIDEProblem(μ, σ, x0, tspan, g, f)
         # solving
         sol = solve(prob, alg, multithreading = true)
         u1 = sol.us[end]
@@ -90,7 +90,7 @@ end
             f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, x0, tspan, neumann_bc = neumann_bc)
+            prob = PIDEProblem(μ, σ, x0, tspan, g, f, neumann_bc = neumann_bc)
             # solving
             sol = solve(prob, alg)
             push!(u1s, sol.us[end])
@@ -120,7 +120,7 @@ end
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = r * v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x, tspan)
+        prob = PIDEProblem(μ, σ, x, tspan, g, f)
         # solving
         sol = solve(prob, alg)
         u1 = sol.us[end]
@@ -146,7 +146,7 @@ end
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = -a.(v_y)
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, X0, tspan)
+        prob = PIDEProblem(μ, σ, X0, tspan, g, f)
         # solving
         sol = solve(prob, alg)
         u1 = sol.us[end]
@@ -174,7 +174,7 @@ end
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = a.(v_y) # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, X0, tspan, neumann_bc = neumann_bc)
+        prob = PIDEProblem(μ, σ, X0, tspan, g, f; neumann_bc = neumann_bc)
         # solving
         sol = solve(prob, alg)
         u1 = sol.us[end]
@@ -213,7 +213,7 @@ end
     f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = -(1.0f0 - δ) * Q.(v_y) .* v_y .- R * v_y
 
     # defining the problem
-    prob = PIDEProblem(g, f, μ, σ, X0, tspan)
+    prob = PIDEProblem(μ, σ, X0, tspan, g, f)
     # solving
     sol = solve(prob, alg)
 
@@ -268,7 +268,7 @@ end
         end # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x, tspan)
+        prob = PIDEProblem(μ, σ, x, tspan, g, f)
         # solving
         sol = solve(prob, alg)
         u1 = sol.us[end]
@@ -298,7 +298,7 @@ end
             f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, x, tspan, neumann_bc = neumann_bc)
+            prob = PIDEProblem(μ, σ, x, tspan, g, f, neumann_bc = neumann_bc)
             # solving
             sol = solve(prob, alg)
             push!(u1s, sol.us[end])

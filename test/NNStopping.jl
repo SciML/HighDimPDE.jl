@@ -9,7 +9,7 @@ Random.seed!(101)
 d = 3
 r = 0.05
 beta = 0.2
-T = 3
+T = 3.0
 u0 = fill(90.0, d)
 delta = 0.1
 f(du, u, p, t) = du .= (r - delta) * u

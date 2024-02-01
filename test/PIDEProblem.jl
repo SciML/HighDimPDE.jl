@@ -1,4 +1,4 @@
-using HighDimPDE 
+using HighDimPDE
 
 @testset "PIDEs" begin
     for d in [1, 10]
@@ -119,7 +119,7 @@ end
         @test prob.μ == mu
         @test prob.σ == sigma
         @test prob.x == u0
-        @test prob.u0 == payoff(x0, 0.0)
+        @test prob.u0 == payoff(u0, 0.0)
         @test prob.p == nothing
         @test prob.tspan == tspan
         @test prob.kwargs.payoff == payoff

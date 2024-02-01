@@ -50,7 +50,7 @@ end
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0.0f0 .* v_y
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x0, tspan)
+        prob = PIDEProblem(μ, σ, x0, tspan, g, f)
         # solving
         sol = solve(prob, alg, dt,
             verbose = true,
@@ -94,7 +94,7 @@ end
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0.0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x0, tspan, x0_sample = x0_sample)
+        prob = PIDEProblem(μ, σ, x0, tspan, g, f; x0_sample = x0_sample)
         # solving
         sol = solve(prob, alg, dt,
             verbose = false,
@@ -140,7 +140,7 @@ end
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0.0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x0, tspan,
+        prob = PIDEProblem(μ, σ, x0, tspan, g, f;
             x0_sample = x0_sample,
             neumann_bc = [-∂, ∂])
         # solving
@@ -198,7 +198,7 @@ end
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = r * v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x0, tspan,
+        prob = PIDEProblem(μ, σ, x0, tspan, g, f;
             x0_sample = x0_sample)
         # solving
         sol = solve(prob, alg, dt,
@@ -243,7 +243,7 @@ end
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = -a.(v_y) # nonlocal nonlinear function
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, X0, tspan)
+        prob = PIDEProblem(μ, σ, X0, tspan, g, f)
         # solving
         @time sol = solve(prob,
             alg,
@@ -290,7 +290,7 @@ end
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = a.(v_y) # nonlocal nonlinear function
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, X0, tspan, neumann_bc = [-∂, ∂])
+        prob = PIDEProblem(μ, σ, X0, tspan, g, f; neumann_bc = [-∂, ∂])
         # solving
         @time sol = solve(prob,
             alg,
@@ -337,7 +337,7 @@ if false
             f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = r * (v_y .- sum(y .* ∇v_y, dims = 1))
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, X0, tspan)
+            prob = PIDEProblem(μ, σ, X0, tspan, g, f)
             # solving
             @time xs, ts, sol = solve(prob,
                 alg,
@@ -389,7 +389,7 @@ if false
         f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = λ * sum(∇v_y .^ 2, dims = 1)
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, X0, tspan)
+        prob = PIDEProblem(μ, σ, X0, tspang, f)
         # solving
         @time sol = solve(prob,
             alg,
@@ -453,7 +453,7 @@ end
     f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = -(1.0f0 - δ) * Q.(v_y) .* v_y .- R * v_y
 
     # defining the problem
-    prob = PIDEProblem(g, f, μ, σ, X0, tspan)
+    prob = PIDEProblem(μ, σ, X0, tspan, g, f)
     # solving
     @time sol = solve(prob,
         alg,
@@ -533,7 +533,7 @@ end
         end # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x0, tspan,
+        prob = PIDEProblem(μ, σ, x0, tspan, g, f;
             x0_sample = x0_sample)
         # solving
         sol = solve(prob,
@@ -584,7 +584,7 @@ end
             f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, x0, tspan, neumann_bc = [-∂, ∂])
+            prob = PIDEProblem(μ, σ, x0, tspan, g, f; neumann_bc = [-∂, ∂])
             # solving
             @time sol = solve(prob,
                 alg,

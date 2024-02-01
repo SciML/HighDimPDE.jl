@@ -28,7 +28,7 @@ end
     f(X, u, σᵀ∇u, p, t) = 0.0f0  # function from solved equation
     μ_f(X, p, t) = 0.0
     σ_f(X, p, t) = 1.0
-    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
     hls = 10 + d #hidden layer size
     opt = Flux.Optimise.Adam(0.005)  #optimizer
@@ -72,7 +72,7 @@ end
     f(X, u, σᵀ∇u, p, t) = 0.0f0
     μ_f(X, p, t) = 0.0
     σ_f(X, p, t) = 1.0
-    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
     hls = 10 + d #hidden layer size
     opt = Flux.Optimise.Adam(0.005)  #optimizer
@@ -117,7 +117,7 @@ end
     g(X) = sum(X .^ 2)
     μ_f(X, p, t) = 0.0
     σ_f(X, p, t) = Diagonal(sigma * X)
-    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
     hls = 10 + d #hide layer size
     opt = Flux.Optimise.Adam(0.001)
@@ -159,7 +159,7 @@ end
     f(X, u, σᵀ∇u, p, t) = u .- u .^ 3
     μ_f(X, p, t) = 0.0
     σ_f(X, p, t) = 1.0
-    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
     hls = 10 + d #hidden layer size
     opt = Flux.Optimise.Adam(5^-4)  #optimizer
@@ -205,7 +205,7 @@ end
     f(X, u, σᵀ∇u, p, t) = -λ * sum(σᵀ∇u .^ 2)
     μ_f(X, p, t) = 0.0
     σ_f(X, p, t) = sqrt(2)
-    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
     hls = 12 + d #hidden layer size
     opt = Flux.Optimise.Adam(0.03)  #optimizer
@@ -278,7 +278,7 @@ end
     σc = 0.2f0
     μ_f(X, p, t) = µc * X #Vector d x 1
     σ_f(X, p, t) = σc * Diagonal(X) #Matrix d x d
-    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = PIDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
     hls = 10 + d #hidden layer size
     opt = Flux.Optimise.Adam(0.008)  #optimizer
