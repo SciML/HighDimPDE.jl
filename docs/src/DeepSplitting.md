@@ -62,14 +62,14 @@ In `HighDimPDE.jl` the right parameter combination $\theta$ is found by iterativ
 `DeepSplitting` allows obtaining $u(t,x)$ on a single point  $x \in \Omega$ with the keyword $x$.
 
 ```julia
-prob = PIDEProblem(g, f, μ, σ, x, tspan)
+prob = PIDEProblem(μ, σ, x, tspan, g, f,)
 ```
 
 ### Hypercube
 Yet more generally, one wants to solve Eq. (1) on a $d$-dimensional cube $[a,b]^d$. This is offered by `HighDimPDE.jl` with the keyword `x0_sample`.
 
 ```julia
-prob = PIDEProblem(g, f, μ, σ, x, tspan, x0_sample = x0_sample)
+prob = PIDEProblem(μ, σ, x, tspan, g, f; x0_sample = x0_sample)
 ```
 Internally, this is handled by assigning a random variable as the initial point of the particles, i.e.
 ```math

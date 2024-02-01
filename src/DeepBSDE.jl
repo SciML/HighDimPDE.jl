@@ -26,7 +26,7 @@ f(X,u,σᵀ∇u,p,t) = r * (u - sum(X.*σᵀ∇u))
 g(X) = sum(X.^2)
 μ_f(X,p,t) = zero(X) #Vector d x 1
 σ_f(X,p,t) = Diagonal(sigma*X) #Matrix d x d
-prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+prob = PIDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
 hls  = 10 + d #hidden layer size
 opt = Flux.Optimise.Adam(0.001)

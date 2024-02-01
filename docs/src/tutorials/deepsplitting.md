@@ -22,9 +22,7 @@ g(x) = exp.(- sum(x.^2, dims=1) ) # initial condition
 σ(x, p, t) = 0.1f0 # diffusion coefficients
 x0_sample = UniformSampling(fill(-5f-1, d), fill(5f-1, d))
 f(x, y, v_x, v_y, ∇v_x, ∇v_y, p, t) = v_x .* (1f0 .- v_y)
-prob = PIDEProblem(g, f, μ, 
-                    σ, x0, tspan, 
-                    x0_sample = x0_sample)
+prob = prob = PIDEProblem(μ, σ, x0, tspan, g, f; x0_sample = x0_sample)
 
 ## Definition of the neural network to use
 using Flux # needed to define the neural network

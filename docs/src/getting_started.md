@@ -33,7 +33,7 @@ g(x) = exp(-sum(x.^2)) # initial condition
 μ(x, p, t) = 0.0 # advection coefficients
 σ(x, p, t) = 0.1 # diffusion coefficients
 f(x, y, v_x, v_y, ∇v_x, ∇v_y, p, t) = max(0.0, v_x) * (1 -  max(0.0, v_x)) # nonlocal nonlinear part of the
-prob = PIDEProblem(g, f, μ, σ, x0, tspan) # defining the problem
+prob = PIDEProblem(μ, σ, x0, tspan, g, f) # defining the problem
 
 ## Definition of the algorithm
 alg = MLP() # defining the algorithm. We use the Multi Level Picard algorithm
@@ -62,7 +62,7 @@ g(x) = exp( -sum(x.^2) ) # initial condition
 σ(x, p, t) = 0.1 # diffusion coefficients
 mc_sample = UniformSampling(fill(-5f-1, d), fill(5f-1, d))
 f(x, y, v_x, v_y, ∇v_x, ∇v_y, p, t) = max(0.0, v_x) * (1 -  max(0.0, v_y)) 
-prob = PIDEProblem(g, f, μ, σ, x0, tspan) # defining x0_sample is sufficient to implement Neumann boundary conditions
+prob = PIDEProblem(μ, σ, x0, tspan, g, f) # defining x0_sample is sufficient to implement Neumann boundary conditions
 
 ## Definition of the algorithm
 alg = MLP(mc_sample = mc_sample)
@@ -87,7 +87,7 @@ g(x) = exp.(-sum(x.^2, dims=1)) # initial condition
 σ(x, p, t) = 0.1f0 # diffusion coefficients
 x0_sample = UniformSampling(fill(-5f-1, d), fill(5f-1, d))
 f(x, y, v_x, v_y, ∇v_x, ∇v_y, p, t) = v_x .* (1f0 .- v_y)
-prob = PIDEProblem(g, f, μ, σ, x0, tspan,
+prob = PIDEProblem(μ, σ, x0, tspan, g, f;
                    x0_sample = x0_sample)
 
 ## Definition of the neural network to use

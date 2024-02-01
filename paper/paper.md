@@ -127,7 +127,7 @@ vol = prod(x0_sample[2] - x0_sample[1])
 f(y, z, v_y, v_z, p, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
 
 # defining the problem
-prob = PIDEProblem(g, f, μ, σ, tspan, 
+prob = PIDEProblem(μ, σ, tspan, g, f,
                     x0_sample = x0_sample
                     )
 # solving
@@ -162,8 +162,8 @@ g(x) = exp( -sum(x.^2) ) # initial condition
 σ(x, p, t) = 0.1 # diffusion coefficients
 x0_sample = [-1/2, 1/2]
 f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max(0.0, v_x) * (1 -  max(0.0, v_y)) 
-prob = PIDEProblem(g, f, μ, 
-                    σ, x0, tspan, 
+prob = PIDEProblem(μ, 
+                    σ, x0, tspan, g, f, 
                     x0_sample = x0_sample) # defining x0_sample is sufficient to implement Neumann boundary conditions
 
 ## Definition of the algorithm
