@@ -3,7 +3,8 @@ using Random
 using Test
 using Statistics
 # using Revise
-
+using Random 
+Random.seed!(100)
 #relative error l2
 function rel_error_l2(u, uanal)
     if abs(uanal) >= 10 * eps(eltype(uanal))
