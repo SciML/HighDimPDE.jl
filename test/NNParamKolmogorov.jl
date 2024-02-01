@@ -29,7 +29,7 @@ dps = (p_sigma = 0.01, p_mu = nothing, p_phi = nothing)
 
 dt = 0.01
 dx = 0.01
-opt = Flux.ADAM(1e-2)
+opt = Flux.Optimisers.Adam(1e-2)
 
 prob = PIDEProblem(phi,
     mu,
