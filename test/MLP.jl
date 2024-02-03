@@ -31,10 +31,10 @@ end
 
         alg = MLP()
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
+        f(y, v_y, ∇v_y, p, t) = 0e0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(μ, σ, x0, tspan, g, f)
+        prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f)
         # solving
         sol = solve(prob, alg, multithreading = false)
         u1 = sol.us[end]
@@ -62,10 +62,10 @@ end
 
         alg = MLP()
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
+        f(y, v_y, ∇v_y, p, t) = 0e0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(μ, σ, x0, tspan, g, f)
+        prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f)
         # solving
         sol = solve(prob, alg, multithreading = true)
         u1 = sol.us[end]
@@ -88,10 +88,10 @@ end
             # d = 10
             x0 = fill(3e-1, d)
             alg = MLP()
-            f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0e0 .* v_y #TODO: this fix is not nice
+            f(y, v_y, ∇v_y, p, t) = 0e0 .* v_y #TODO: this fix is not nice
 
             # defining the problem
-            prob = PIDEProblem(μ, σ, x0, tspan, g, f, neumann_bc = neumann_bc)
+            prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f, neumann_bc = neumann_bc)
             # solving
             sol = solve(prob, alg)
             push!(u1s, sol.us[end])
@@ -118,10 +118,10 @@ end
 
         alg = MLP()
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = r * v_y #TODO: this fix is not nice
+        f(y, v_y, ∇v_y, p, t) = r * v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(μ, σ, x, tspan, g, f)
+        prob = ParabolicPDEProblem(μ, σ, x, tspan; g, f)
         # solving
         sol = solve(prob, alg)
         u1 = sol.us[end]
@@ -144,10 +144,10 @@ end
         X0 = fill(0.0f0, d)  # initial point
         g(X) = 1.0f0 ./ (2.0f0 .+ 4.0f-1 * sum(X .^ 2))   # initial condition
         a(u) = u - u^3
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = -a.(v_y)
+        f(y, v_y, ∇v_y, p, t) = -a.(v_y)
 
         # defining the problem
-        prob = PIDEProblem(μ, σ, X0, tspan, g, f)
+        prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
         # solving
         sol = solve(prob, alg)
         u1 = sol.us[end]
@@ -172,10 +172,10 @@ end
         X0 = fill(0.0f0, d)  # initial point
         g(X) = exp.(-0.25f0 * sum(X .^ 2))   # initial condition
         a(u) = u - u^3
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = a.(v_y) # nonlocal nonlinear part of the
+        f(y, v_y, ∇v_y, p, t) = a.(v_y) # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(μ, σ, X0, tspan, g, f; neumann_bc = neumann_bc)
+        prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f, neumann_bc = neumann_bc)
         # solving
         sol = solve(prob, alg)
         u1 = sol.us[end]
@@ -211,10 +211,10 @@ end
     µc = 0.02f0
     σc = 0.2f0
 
-    f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = -(1.0f0 - δ) * Q.(v_y) .* v_y .- R * v_y
+    f(y, v_y, ∇v_y, p, t) = -(1.0f0 - δ) * Q.(v_y) .* v_y .- R * v_y
 
     # defining the problem
-    prob = PIDEProblem(μ, σ, X0, tspan, g, f)
+    prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
     # solving
     sol = solve(prob, alg)
 

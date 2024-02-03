@@ -50,10 +50,10 @@ end
         opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0.0f0 .* v_y
+        f(y, v_y, ∇v_y, p, t) = 0.0f0 .* v_y
 
         # defining the problem
-        prob = PIDEProblem(μ, σ, x0, tspan, g, f)
+        prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f)
         # solving
         sol = solve(prob, alg, dt,
             verbose = true,
@@ -94,10 +94,10 @@ end
         opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0.0f0 .* v_y #TODO: this fix is not nice
+        f(y, v_y, ∇v_y, p, t) = 0.0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(μ, σ, x0, tspan, g, f; x0_sample = x0_sample)
+        prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f, x0_sample = x0_sample)
         # solving
         sol = solve(prob, alg, dt,
             verbose = false,
@@ -140,10 +140,10 @@ end
         opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0.0f0 .* v_y #TODO: this fix is not nice
+        f(y, v_y, ∇v_y, p, t) = 0.0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(μ, σ, x0, tspan, g, f;
+        prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f,
             x0_sample = x0_sample,
             neumann_bc = [-∂, ∂])
         # solving
@@ -198,10 +198,10 @@ end
         opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = r * v_y #TODO: this fix is not nice
+        f(y, v_y, ∇v_y, p, t) = r * v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(μ, σ, x0, tspan, g, f;
+        prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f,
             x0_sample = x0_sample)
         # solving
         sol = solve(prob, alg, dt,
@@ -243,10 +243,10 @@ end
         X0 = fill(0.0f0, d)  # initial point
         g(X) = 1.0f0 ./ (2.0f0 .+ 4.0f-1 * sum(X .^ 2, dims = 1))   # initial condition
         a(u) = u - u^3
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = -a.(v_y) # nonlocal nonlinear function
+        f(y, v_y, ∇v_y, p, t) = -a.(v_y) # nonlocal nonlinear function
 
         # defining the problem
-        prob = PIDEProblem(μ, σ, X0, tspan, g, f)
+        prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
         # solving
         @time sol = solve(prob,
             alg,
@@ -290,10 +290,10 @@ end
         X0 = fill(0.0f0, d)  # initial point
         g(X) = exp.(-0.25f0 * sum(X .^ 2, dims = 1))   # initial condition
         a(u) = u - u^3
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = a.(v_y) # nonlocal nonlinear function
+        f(y, v_y, ∇v_y, p, t) = a.(v_y) # nonlocal nonlinear function
 
         # defining the problem
-        prob = PIDEProblem(μ, σ, X0, tspan, g, f; neumann_bc = [-∂, ∂])
+        prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f, neumann_bc = [-∂, ∂])
         # solving
         @time sol = solve(prob,
             alg,
@@ -337,10 +337,10 @@ if false
 
             X0 = repeat([1.0f0, 0.5f0], div(d, 2))  # initial point
             g(X) = sum(X .^ 2, dims = 1) # initial condition
-            f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = r * (v_y .- sum(y .* ∇v_y, dims = 1))
+            f(y, v_y, ∇v_y, p, t) = r * (v_y .- sum(y .* ∇v_y, dims = 1))
 
             # defining the problem
-            prob = PIDEProblem(μ, σ, X0, tspan, g, f)
+            prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
             # solving
             @time xs, ts, sol = solve(prob,
                 alg,
@@ -389,10 +389,10 @@ if false
 
         X0 = fill(0.0f0, d)  # initial point
         g(X) = log.(5.0f-1 .+ 5.0f-1 * sum(X .^ 2, dims = 1)) # initial condition
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = λ * sum(∇v_y .^ 2, dims = 1)
+        f(y, v_y, ∇v_y, p, t) = λ * sum(∇v_y .^ 2, dims = 1)
 
         # defining the problem
-        prob = PIDEProblem(μ, σ, X0, tspang, f)
+        prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
         # solving
         @time sol = solve(prob,
             alg,
@@ -453,10 +453,10 @@ end
     µc = 0.02f0
     σc = 0.2f0
 
-    f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = -(1.0f0 - δ) * Q.(v_y) .* v_y .- R * v_y
+    f(y, v_y, ∇v_y, p, t) = -(1.0f0 - δ) * Q.(v_y) .* v_y .- R * v_y
 
     # defining the problem
-    prob = PIDEProblem(μ, σ, X0, tspan, g, f)
+    prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
     # solving
     @time sol = solve(prob,
         alg,

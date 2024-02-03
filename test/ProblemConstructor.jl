@@ -82,7 +82,7 @@ end
         g(X) = sum(X .^ 2)   # terminal condition
         f_semilinear(X, u, σᵀ∇u, p, t) = Float32(0.0)
 
-        prob = PIDEProblem(μ_f, σ_f, x0, tspan, g, f_semilinear)
+        prob = ParabolicPDEProblem(μ_f, σ_f, x0, tspan; g, f = f_semilinear)
 
         @test prob.f == f_semilinear
         @test prob.g == g
@@ -112,7 +112,7 @@ end
             return exp(-r * t) * (max(maximum(x) - K, 0))
         end
 
-        prob = PIDEProblem(mu, sigma, u0, tspan; payoff = payoff)
+        prob = ParabolicPDEProblem(mu, sigma, u0, tspan; payoff = payoff)
 
         @test prob.f == nothing
         @test prob.g == nothing
@@ -137,7 +137,7 @@ end
             1.77 .* x .- 0.015 .* x .^ 3
         end
 
-        prob = PIDEProblem(μ, σ, nothing, tspan, g; xspan)
+        prob = ParabolicPDEProblem(μ, σ, nothing, tspan; g, xspan)
 
         @test prob.f == nothing
         @test prob.g == g
@@ -178,7 +178,7 @@ end
             p_mu = γ_mu_prototype,
             p_phi = γ_phi_prototype)
 
-        prob = PIDEProblem(mu, sigma, nothing, tspan, g;
+        prob = ParabolicPDEProblem(mu, sigma, nothing, tspan; g,
             xspan,
             p_domain = p_domain,
             p_prototype = p_prototype)

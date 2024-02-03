@@ -22,7 +22,7 @@ function g(x, t)
     return exp(-r * t) * (max(maximum(x) - K, 0))
 end
 
-prob = PIDEProblem(f, sigma, u0, tspan; payoff = g)
+prob = ParabolicPDEProblem(f, sigma, u0, tspan; payoff = g)
 models = [Chain(Dense(d + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoid))
           for i in 1:N]
 opt = Flux.Optimisers.Adam(0.01)
@@ -59,7 +59,7 @@ K = 100.00
 function g(x, t)
     return exp(-r * t) * (max(K - mean(x), 0))
 end
-prob = PIDEProblem(f, sigma, u0, tspan; payoff = g)
+prob = ParabolicPDEProblem(f, sigma, u0, tspan; payoff = g)
 models = [Chain(Dense(d + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoid))
           for i in 1:N]
 opt = Flux.Optimisers.Adam(0.01)
