@@ -64,7 +64,7 @@ Returns a `PIDESolution` object.
 - `use_cuda` : set to `true` to use CUDA.
 - `cuda_device` : integer, to set the CUDA device used in the training, if `use_cuda == true`.
 """
-function DiffEqBase.solve(prob::PIDEProblem,
+function DiffEqBase.solve(prob::Union{PIDEProblem, ParabolicPDEProblem},
         alg::DeepSplitting,
         dt;
         batch_size = 1,
@@ -98,7 +98,13 @@ function DiffEqBase.solve(prob::PIDEProblem,
     K = alg.K
     opt = alg.opt
     λs = alg.λs
-    g, f, μ, σ, p = prob.g, prob.f, prob.μ, prob.σ, prob.p
+    g, μ, σ, p = prob.g, prob.μ, prob.σ, prob.p
+
+    f = if isa(prob, ParabolicPDEProblem)
+        (y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) -> prob.f(y, v_y, ∇v_y, p, t )
+    else
+        prob.f
+    end
     T = eltype(x0)
 
     # neural network model

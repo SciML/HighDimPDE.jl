@@ -1,5 +1,5 @@
 # called whenever sdealg is not specified.
-function DiffEqBase.solve(prob::PIDEProblem,
+function DiffEqBase.solve(prob::ParabolicPDEProblem,
         alg::DeepBSDE;
         dt,
         abstol = 1.0f-6,

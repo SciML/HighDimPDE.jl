@@ -54,7 +54,7 @@ function (model::NNStoppingModelArray)(X, G)
     broadcast((x, m) -> m(x), eachslice(XG, dims = 2)[2:end], model.ms)
 end
 
-function DiffEqBase.solve(prob::PIDEProblem,
+function DiffEqBase.solve(prob::ParabolicPDEProblem,
         pdealg::NNStopping,
         sdealg;
         verbose = false,

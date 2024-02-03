@@ -75,7 +75,7 @@ Returns a `PIDESolution` object.
     [Deep Primal-Dual algorithm for BSDEs](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3071506).
 - Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
 """
-function DiffEqBase.solve(prob::PIDEProblem,
+function DiffEqBase.solve(prob::ParabolicPDEProblem,
         pdealg::DeepBSDE,
         sdealg;
         verbose = false,
