@@ -48,9 +48,89 @@ end
 """
 $(SIGNATURES)
 
-Defines one of the following equations: 
-- Partial Integro Differential Equation
-    * f -> f(x, y, u(x, t), u(y, t), ∇u(x, t), ∇u(y, t), p, t)
+Defines a Partial Integro Differential Problem, of the form
+```math
+\\begin{aligned}
+    \\frac{du}{dt} &= \\tfrac{1}{2} \\text{Tr}(\\sigma \\sigma^T) \\Delta u(x, t) + \\mu \\nabla u(x, t) \\\\
+    &\\quad + \\int f(x, y, u(x, t), u(y, t), ( \\nabla_x u )(x, t), ( \\nabla_x u )(y, t), p, t) dy,
+\\end{aligned}
+```
+with `` u(x,0) = g(x)``.
+
+## Arguments
+
+* `g` : initial condition, of the form `g(x, p, t)`.
+* `f` : nonlinear function, of the form `f(x, y, u(x, t), u(y, t), ∇u(x, t), ∇u(y, t), p, t)`.
+* `μ` : drift function, of the form `μ(x, p, t)`.
+* `σ` : diffusion function `σ(x, p, t)`.
+* `x`: point where `u(x,t)` is approximated. Is required even in the case where `x0_sample` is provided. Determines the dimensionality of the PDE.
+* `tspan`: timespan of the problem.
+* `p`: the parameter vector.
+* `x0_sample` : sampling method for `x0`. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default). If `NoSampling`, only solution at the single point `x` is evaluated.
+* `neumann_bc`: if provided, Neumann boundary conditions on the hypercube `neumann_bc[1] × neumann_bc[2]`.
+"""
+function PIDEProblem(μ,
+    σ,
+    x0::Union{Nothing, AbstractArray},
+    tspan::TF,
+    g,
+    f;
+    p::Union{Nothing, AbstractVector} = nothing,
+    x0_sample::Union{Nothing, AbstractSampling} = NoSampling(),
+    neumann_bc::Union{Nothing, AbstractVector} = nothing,
+    kw...) where {TF <: Tuple{AbstractFloat, AbstractFloat}}
+
+
+    isnothing(neumann_bc) ? nothing : @assert eltype(eltype(neumann_bc)) <: eltype(x0)
+
+    @assert(eltype(f(x0, x0, g(x0), g(x0), x0, x0, p, tspan[1]))==eltype(x0),
+                "Type returned by non linear function `f` must match the type of `x0`")
+
+    @assert eltype(g(x0))==eltype(x0) "Type of `g(x)` must match the Type of x"
+
+    PIDEProblem{typeof(g(x0)),
+    typeof(g),
+    typeof(f),
+    typeof(μ),
+    typeof(σ),
+    typeof(x0),
+    eltype(tspan),
+    typeof(p),
+    typeof(x0_sample),
+    typeof(neumann_bc),
+    typeof(kw)}(g(x0),
+    g,
+    f,
+    μ,
+    σ,
+    x0,
+    tspan,
+    p,
+    x0_sample,
+    neumann_bc,
+    kw)
+
+end
+
+struct ParabolicPDEProblem{uType, G, F, Mu, Sigma, xType, tType, P, UD, NBC, K} <:
+    DiffEqBase.AbstractODEProblem{uType, tType, false}
+ u0::uType
+ g::G # initial condition
+ f::F # nonlinear part
+ μ::Mu
+ σ::Sigma
+ x::xType
+ tspan::Tuple{tType, tType}
+ p::P
+ x0_sample::UD # the domain of u to be solved
+ neumann_bc::NBC # neumann boundary conditions
+ kwargs::K
+end
+
+"""
+$(SIGNATURES)
+
+Defines a Parabolic Partial Differential Equation of the form:
 - Semilinear Parabolic Partial Differential Equation 
     * f -> f(X, u, σᵀ∇u, p, t)
 - Kolmogorov Differential Equation
@@ -68,7 +148,7 @@ Defines one of the following equations:
 * `x`: point where `u(x,t)` is approximated. Is required even in the case where `x0_sample` is provided. Determines the dimensionality of the PDE.
 * `tspan`: timespan of the problem.
 * `g` : initial condition, of the form `g(x, p, t)`.
-* `f` : when defining PIDE : nonlinear function, of the form `f(x, y, u(x, t), u(y, t), ∇u(x, t), ∇u(y, t), p, t)`. When defining Semilinear PDE: `f(X, u, σᵀ∇u, p, t)`
+* `f` : nonlinear function, of the form  `f(X, u, σᵀ∇u, p, t)`
 
 ## Optional Arguments 
 * `p`: the parameter vector.
@@ -77,12 +157,12 @@ Defines one of the following equations:
 * `xspan`: The domain of the independent variable `x`
 * `payoff`: The discounted payoff function. Required when solving for optimal stopping problem (Obstacle PDEs).
 """
-function PIDEProblem(μ,
+function ParabolicPDEProblem(μ,
         σ,
         x0::Union{Nothing, AbstractArray},
-        tspan::TF,
+        tspan::TF;
         g = nothing,
-        f = nothing;
+        f = nothing,
         p::Union{Nothing, AbstractVector} = nothing,
         xspan::Union{Nothing, TF, AbstractVector{<:TF}} = nothing,
         x0_sample::Union{Nothing, AbstractSampling} = NoSampling(),
@@ -97,24 +177,12 @@ function PIDEProblem(μ,
 
     @assert !isnothing(x0)||!isnothing(xspan) "Either of `x0` or `xspan` must be provided."
 
-    # Check if the Non Linear Function `f` returns correct values. 
-    if !isnothing(f)
-        try
-            @assert(eltype(f(x0, x0, g(x0), g(x0), x0, x0, p, tspan[1]))==eltype(x0),
-                "Type of non linear function `f(x)` must type of x")
-        catch e
-            if isa(e, MethodError)
-                @assert(eltype(f(x0, eltype(x0)(0.0), x0, p, tspan[1]))==eltype(x0),
+    !isnothing(f) && @assert(eltype(f(x0, eltype(x0)(0.0), x0, p, tspan[1]))==eltype(x0),
                     "Type of non linear function `f(x)` must type of x")
-            else
-                throw(e)
-            end
-        end
-    end
 
     # Wrap kwargs : 
     kw = NamedTuple(kw)
-    prob_kw = (p = p, xspan = xspan, payoff = payoff)
+    prob_kw = (xspan = xspan, payoff = payoff)
     kwargs = merge(prob_kw, kw)
 
     # If xspan isa Tuple, then convert it as a Vector{Tuple} with single element
@@ -130,7 +198,8 @@ function PIDEProblem(μ,
         !isnothing(g) ? g(x0) : payoff(x0, 0.0)
     end
     @assert eltype(u0)==eltype(x0) "Type of `g(x)` must match the Type of x"
-    PIDEProblem{typeof(u0),
+
+    ParabolicPDEProblem{typeof(u0),
         typeof(g),
         typeof(f),
         typeof(μ),
@@ -192,7 +261,7 @@ include("DeepBSDE_Han.jl")
 include("MLP.jl")
 include("NNStopping.jl")
 
-export PIDEProblem, PIDESolution, DeepSplitting, DeepBSDE, MLP, NNStopping
+export PIDEProblem, ParabolicPDEProblem, PIDESolution, DeepSplitting, DeepBSDE, MLP, NNStopping
 
 export NormalSampling, UniformSampling, NoSampling, solve
 end
