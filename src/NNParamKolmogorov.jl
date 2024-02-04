@@ -6,7 +6,7 @@ end
 
 NNParamKolmogorov(chain; opt = Flux.ADAM(0.1)) = NNParamKolmogorov(chain, opt)
 
-function DiffEqBase.solve(prob::PIDEProblem,
+function DiffEqBase.solve(prob::ParabolicPDEProblem,
         pdealg::NNParamKolmogorov,
         sdealg = EM();
         ensemblealg = EnsembleThreads(),
@@ -100,28 +100,24 @@ function DiffEqBase.solve(prob::PIDEProblem,
     # return train_data, sol
     # Y = reduce(hcat, phi.(eachcol(x_sde)))
     Y = reduce(hcat, phi.(eachcol(Array(sol)), ps_phi_iterator))
-    if use_gpu == true
-        Y = Y |> gpu
-        train_data = train_data |> gpu
-    end
 
-    data = Iterators.repeated((train_data, Y), maxiters)
-    if use_gpu == true
-        data = data |> gpu
-    end
-
+    Y = use_gpu ? Y |> gpu : Y
+    train_data = use_gpu ? train_data |> gpu : train_data
     #MSE Loss Function
-    loss(x, y) = Flux.mse(chain(x), y)
+    loss(m, x, y) = Flux.mse(m(x), y)
 
     losses = AbstractFloat[]
-    callback = function ()
-        l = loss(train_data, Y)
-        verbose && println("Current loss is: $l")
-        push!(losses, l)
-        l < abstol && Flux.stop()
-    end
 
-    Flux.train!(loss, ps, data, opt; cb = callback)
+    opt_state = Flux.setup(opt, chain)
+    for epoch in 1:maxiters
+        gs = Flux.gradient(chain) do model
+            loss(model, train_data, Y)
+        end
+        Flux.update!(opt_state, chain, gs[1])
+        l = loss(chain, train_data, Y)
+        @info "Current Epoch: $epoch Current Loss: $l"
+        push!(losses, l)
+    end
 
     sol_func = (x0, t, _p_sigma, _p_mu, _p_phi) -> begin
         ps = map(zip(p_prototype, (_p_sigma, _p_mu, _p_phi))) do (prototype, p)

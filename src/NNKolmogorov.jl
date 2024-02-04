@@ -22,7 +22,7 @@ struct NNKolmogorov{C, O} <: HighDimPDEAlgorithm
 end
 NNKolmogorov(chain; opt = Flux.ADAM(0.1)) = NNKolmogorov(chain, opt)
 
-function DiffEqBase.solve(prob::Union{PIDEProblem, SDEProblem},
+function DiffEqBase.solve(prob::ParabolicPDEProblem,
         pdealg::HighDimPDE.NNKolmogorov,
         sdealg;
         ensemblealg = EnsembleThreads(),
@@ -38,7 +38,8 @@ function DiffEqBase.solve(prob::Union{PIDEProblem, SDEProblem},
     tspan = prob.tspan
     sigma = prob.σ
     μ = prob.μ
-    noise_rate_prototype = prob.kwargs.noise_rate_prototype
+
+    noise_rate_prototype = get(prob.kwargs, :noise_rate_prototype, nothing)
     phi = prob.g
 
     xspan = prob.kwargs.xspan
@@ -61,9 +62,10 @@ function DiffEqBase.solve(prob::Union{PIDEProblem, SDEProblem},
     #Finding Solution to the SDE having initial condition xi. Y = Phi(S(X , T))
     sdeproblem = SDEProblem(μ,
         sigma,
-        xi,
+        xi[:, 1],
         tspan,
         noise_rate_prototype = noise_rate_prototype)
+
     function prob_func(prob, i, repeat)
         SDEProblem(prob.f,
             xi[:, i],
@@ -85,27 +87,25 @@ function DiffEqBase.solve(prob::Union{PIDEProblem, SDEProblem},
 
     y = reduce(hcat, phi.(eachcol(x_sde)))
 
-    if use_gpu == true
-        y = y |> gpu
-        xi = xi |> gpu
-    end
-    data = Iterators.repeated((xi, y), maxiters)
-    if use_gpu == true
-        data = data |> gpu
-    end
+    y = use_gpu ? y |> gpu : y
+    xi = use_gpu ? xi |> gpu : xi
 
     #MSE Loss Function
-    loss(x, y) = Flux.mse(chain(x), y)
+    loss(m, x, y) = Flux.mse(m(x), y)
 
     losses = AbstractFloat[]
-    callback = function ()
-        l = loss(xi, y)
-        verbose && println("Current loss is: $l")
-        push!(losses, l)
-        l < abstol && Flux.stop()
-    end
 
-    Flux.train!(loss, ps, data, opt; cb = callback)
+    opt_state = Flux.setup(opt, chain)
+    for epoch in 1:maxiters
+        gs = Flux.gradient(chain) do model
+            loss(model, xi, y)
+        end
+        Flux.update!(opt_state, chain, gs[1])
+        l = loss(chain, xi, y)
+        @info "Current Epoch: $epoch Current Loss: $l"
+        push!(losses, l)
+    end
+    # Flux.train!(loss, chain, data, opt; cb = callback)
     chainout = chain(xi)
     xi, chainout
     return PIDESolution(xi, ts, losses, chainout, chain, nothing)
