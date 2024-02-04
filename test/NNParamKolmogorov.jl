@@ -31,11 +31,12 @@ dt = 0.01
 dx = 0.01
 opt = Flux.Optimisers.Adam(1e-2)
 
-prob = PIDEProblem(phi,
-    mu,
+prob = ParabolicPDEProblem(mu,
     sigma,
-    tspan,
-    xspan;
+    nothing,
+    tspan;
+    g = phi,
+    xspan,
     p_domain = p_domain,
     p_prototype = p_prototype)
 

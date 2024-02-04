@@ -15,7 +15,7 @@ tspan = (0.0, 1.0)
 d = 1
 sdealg = EM()
 g(x) = pdf(u0, x)
-prob = PIDEProblem(g, μ, σ, tspan, xspan)
+prob = ParabolicPDEProblem(μ, σ, nothing, tspan; g, xspan)
 opt = Flux.Optimisers.Adam(0.01)
 m = Chain(Dense(1, 5, elu), Dense(5, 5, elu), Dense(5, 5, elu), Dense(5, 1))
 ensemblealg = EnsembleThreads()
@@ -41,7 +41,7 @@ function g(x)
 end
 
 sdealg = EM()
-prob = PIDEProblem(g, μ, σ, tspan, xspan)
+prob = ParabolicPDEProblem(μ, σ, nothing, tspan; g, xspan)
 opt = Flux.Optimisers.Adam(0.01)
 m = Chain(Dense(1, 16, elu), Dense(16, 32, elu), Dense(32, 16, elu), Dense(16, 1))
 sol = solve(prob, NNKolmogorov(m, opt), sdealg, verbose = true, dt = 0.01,
@@ -82,7 +82,13 @@ g(x) = pdf(uo3, x)
 sdealg = EM()
 xspan = [(-10.0, 10.0), (-10.0, 10.0)]
 tspan = (0.0, 1.0)
-prob = PIDEProblem(g, μ_noise, σ_noise, tspan, xspan; noise_rate_prototype = zeros(2, 4))
+prob = ParabolicPDEProblem(μ_noise,
+    σ_noise,
+    nothing,
+    tspan;
+    g,
+    xspan,
+    noise_rate_prototype = zeros(2, 4))
 d = 2
 opt = Flux.Optimisers.Adam(0.01)
 m = Chain(Dense(d, 32, elu), Dense(32, 64, elu), Dense(64, 1))
