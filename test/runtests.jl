@@ -1,7 +1,7 @@
 using SafeTestsets, Test
 @testset "HighDimPDE" begin
     @time @safetestset "Quality Assurance" include("qa.jl")
-    @time @safetestset "PIDEProblem" include("PIDEProblem.jl")
+    @time @safetestset "ProblemConstructors" include("ProblemConstructor.jl")
     @time @safetestset "reflect" include("reflect.jl")
     @time @safetestset "reflect" include("reflect.jl")
     @time @safetestset "MLP" include("MLP.jl")
