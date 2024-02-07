@@ -40,7 +40,7 @@ prob = ParabolicPDEProblem(mu,
     p_domain = p_domain,
     p_prototype = p_prototype)
 
-sol = solve(prob, HighDimPDE.NNParamKolmogorov(m, opt), sdealg, verbose = true, dt = 0.01,
+sol = solve(prob, NNParamKolmogorov(m, opt), sdealg, verbose = true, dt = 0.01,
     abstol = 1e-10, dx = 0.01, trajectories = trajectories, maxiters = 1000,
     use_gpu = false, dps = dps)
 
