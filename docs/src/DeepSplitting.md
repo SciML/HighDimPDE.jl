@@ -1,5 +1,9 @@
 # [The `DeepSplitting` algorithm](@id deepsplitting)
 
+### Problems Supported:
+1. [`PIDEProblem`](@ref)
+2. [`ParabolicPDEProblem`](@ref)
+
 ```@autodocs
 Modules = [HighDimPDE]
 Pages   = ["DeepSplitting.jl"]

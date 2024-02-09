@@ -1,5 +1,8 @@
 # [The `NNStopping` algorithm](@id nn_stopping)
 
+### Problems Supported:
+1. [`ParabolicPDEProblem`](@ref)
+
 ```@autodocs
 Modules = [HighDimPDE]
 Pages   = ["NNStopping.jl"]
