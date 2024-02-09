@@ -21,7 +21,7 @@ end
 MLP(; M = 4, L = 4, K = 10, mc_sample = NoSampling()) = MLP(M, L, K, mc_sample)
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 
 Returns a `PIDESolution` object.
 
@@ -29,7 +29,7 @@ Returns a `PIDESolution` object.
 * `multithreading` : if `true`, distributes the job over all the threads available.
 * `verbose`: print information over the iterations.
 """
-function DiffEqBase.solve(prob::PIDEProblem,
+function DiffEqBase.solve(prob::Union{PIDEProblem, ParabolicPDEProblem},
         alg::MLP;
         multithreading = true,
         verbose = false,)
@@ -41,7 +41,12 @@ function DiffEqBase.solve(prob::PIDEProblem,
     M = alg.M
     L = alg.L
     mc_sample! = alg.mc_sample!
-    g, f = prob.g, prob.f
+    g= prob.g 
+    f = if isa(prob, ParabolicPDEProblem)
+        (y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) -> prob.f(y, v_y, ∇v_y, p, t )
+    else
+        prob.f
+    end
 
     # errors
     prob.x0_sample isa NoSampling ? nothing :

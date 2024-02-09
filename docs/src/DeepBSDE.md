@@ -1,5 +1,8 @@
 # [The `DeepBSDE` algorithm](@id deepbsde)
 
+### Problems Supported:
+1. [`ParabolicPDEProblem`](@ref)
+
 ```@autodocs
 Modules = [HighDimPDE]
 Pages   = ["DeepBSDE.jl", "DeepBSDE_Han.jl"]

@@ -1,5 +1,9 @@
 # [The `MLP` algorithm](@id mlp)
 
+### Problems Supported:
+1. [`PIDEProblem`](@ref)
+2. [`ParabolicPDEProblem`](@ref)
+
 ```@autodocs
 Modules = [HighDimPDE]
 Pages   = ["MLP.jl"]

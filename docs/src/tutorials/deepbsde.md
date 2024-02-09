@@ -19,7 +19,7 @@ g(X) = log(0.5f0 + 0.5f0 * sum(X.^2))
 f(X,u,σᵀ∇u,p,t) = -λ * sum(σᵀ∇u.^2)
 μ_f(X,p,t) = zero(X)  # Vector d x 1 λ
 σ_f(X,p,t) = Diagonal(sqrt(2.0f0) * ones(Float32, d)) # Matrix d x d
-prob = PIDEProblem(g, f, μ_f, σ_f, X0, tspan)
+prob = PIDEProblem(μ_f, σ_f, X0, tspan, g, f)
 hls = 10 + d # hidden layer size
 opt = Optimisers.Adam(0.01)  # optimizer
 # sub-neural network approximating solutions at the desired point
@@ -75,7 +75,7 @@ g(X) = log(0.5f0 + 0.5f0*sum(X.^2))
 f(X,u,σᵀ∇u,p,t) = -λ*sum(σᵀ∇u.^2)
 μ_f(X,p,t) = zero(X)  #Vector d x 1 λ
 σ_f(X,p,t) = Diagonal(sqrt(2.0f0)*ones(Float32,d)) #Matrix d x d
-prob = PIDEProblem(g, f, μ_f, σ_f, X0, tspan)
+prob = PIDEProblem(μ_f, σ_f, X0, tspan, g, f)
 ```
 
 #### Define the Solver Algorithm
@@ -135,7 +135,7 @@ f(X,u,σᵀ∇u,p,t) = r * (u - sum(X.*σᵀ∇u))
 g(X) = sum(X.^2)
 μ_f(X,p,t) = zero(X) #Vector d x 1
 σ_f(X,p,t) = Diagonal(sigma*X) #Matrix d x d
-prob = PIDEProblem(g, f, μ_f, σ_f, X0, tspan)
+prob = PIDEProblem(μ_f, σ_f, X0, tspan, g, f)
 ```
 
 As described in the API docs, we now need to define our `NNPDENS` algorithm

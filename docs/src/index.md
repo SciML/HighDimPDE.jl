@@ -1,8 +1,9 @@
 # HighDimPDE.jl
 
 
-**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional non-linear, non-local PDEs** of the form
+**HighDimPDE.jl** is a Julia package to **solve Highly Dimensional non-linear, non-local PDEs** of the forms: 
 
+1. Partial Integro Differential Equations: 
 ```math
 \begin{aligned}
     (\partial_t u)(t,x) &= \int_{\Omega} f\big(t,x,{\bf x}, u(t,x),u(t,{\bf x}), ( \nabla_x u )(t,x ),( \nabla_x u )(t,{\bf x} ) \big) \, d{\bf x} \\
@@ -12,6 +13,18 @@
 
 where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subseteq \R^d$ is subject to initial and boundary conditions, and where $d$ is large.
 
+2. Parabolic Partial Differential Equations: 
+```math
+\begin{aligned}
+    (\partial_t u)(t,x) &=  f\big(t,x, u(t,x), ( \nabla_x u )(t,x )\big) 
+    + \big\langle \mu(t,x), ( \nabla_x u )( t,x ) \big\rangle + \tfrac{1}{2} \text{Trace} \big(\sigma(t,x) [ \sigma(t,x) ]^* ( \text{Hess}_x u)(t, x ) \big).
+\end{aligned}
+```
+
+where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subseteq \R^d$ is subject to initial and boundary conditions, and where $d$ is large.
+
+!!! note
+    The difference between the two problems is that in Partial Integro Differential Equations, the integrand is integrated over **x**, while in Parabolic Integro Differential Equations, the function `f` is just evaluated for `x`.
 
 **HighDimPDE.jl** implements solver algorithms that break down the curse of dimensionality, including
 

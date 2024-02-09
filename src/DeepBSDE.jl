@@ -26,7 +26,7 @@ f(X,u,σᵀ∇u,p,t) = r * (u - sum(X.*σᵀ∇u))
 g(X) = sum(X.^2)
 μ_f(X,p,t) = zero(X) #Vector d x 1
 σ_f(X,p,t) = Diagonal(sigma*X) #Matrix d x d
-prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+prob = PIDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
 hls  = 10 + d #hidden layer size
 opt = Flux.Optimise.Adam(0.001)
@@ -59,7 +59,7 @@ end
 DeepBSDE(u0, σᵀ∇u; opt = Flux.Optimise.Adam(0.1)) = DeepBSDE(u0, σᵀ∇u, opt)
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 
 Returns a `PIDESolution` object.
 
@@ -73,9 +73,11 @@ Returns a `PIDESolution` object.
     [DifferentialEquations.jl doc](https://diffeq.sciml.ai/stable/solvers/sde_solve/).
 - `limits`: if `true`, upper and lower limits will be calculated, based on 
     [Deep Primal-Dual algorithm for BSDEs](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3071506).
+- `maxiters`: The number of training epochs. Defaults to `300`
+- `trajectories`: The number of trajectories simulated for training. Defaults to `100`
 - Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
 """
-function DiffEqBase.solve(prob::PIDEProblem,
+function DiffEqBase.solve(prob::ParabolicPDEProblem,
         pdealg::DeepBSDE,
         sdealg;
         verbose = false,

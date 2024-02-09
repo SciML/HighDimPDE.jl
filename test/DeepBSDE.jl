@@ -27,7 +27,7 @@ end
     f(X, u, σᵀ∇u, p, t) = Float32(0.0)
     μ_f(X, p, t) = zero(X) #Vector d x 1
     σ_f(X, p, t) = Diagonal(ones(Float32, d)) |> Matrix #Matrix d x d
-    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = ParabolicPDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
     hls = 10 + d #hidden layer size
     opt = Flux.Optimise.Adam(0.005)  #optimizer
@@ -69,7 +69,7 @@ end
     f(X, u, σᵀ∇u, p, t) = Float32(0.0)
     μ_f(X, p, t) = zero(X) #Vector d x 1
     σ_f(X, p, t) = Diagonal(ones(Float32, d)) |> Matrix #Matrix d x d
-    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = ParabolicPDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
     hls = 10 + d #hidden layer size
     opt = Flux.Optimise.Adam(0.005)  #optimizer
@@ -113,7 +113,7 @@ end
     g(X) = sum(X .^ 2)
     μ_f(X, p, t) = zero(X) #Vector d x 1
     σ_f(X, p, t) = Diagonal(sigma * X) |> Matrix #Matrix d x d
-    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = ParabolicPDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
     hls = 10 + d #hide layer size
     opt = Flux.Optimise.Adam(0.001)
@@ -153,7 +153,7 @@ end
     f(X, u, σᵀ∇u, p, t) = u .- u .^ 3
     μ_f(X, p, t) = zero(X) #Vector d x 1
     σ_f(X, p, t) = Diagonal(ones(Float32, d)) |> Matrix #Matrix d x d
-    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = ParabolicPDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
     hls = 20 + d #hidden layer size
     opt = Flux.Optimise.Adam(5^-3)  #optimizer
@@ -195,7 +195,7 @@ end
     f(X, u, σᵀ∇u, p, t) = -λ * sum(σᵀ∇u .^ 2)
     μ_f(X, p, t) = zero(X)  #Vector d x 1 λ
     σ_f(X, p, t) = Diagonal(sqrt(2.0f0) * ones(Float32, d)) #Matrix d x d
-    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = ParabolicPDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
     # TODO: This is a very large neural networks which size must be reduced.
     hls = 256 #hidden layer size
@@ -266,7 +266,7 @@ end
 
     μ_f(X, p, t) = µc * X #Vector d x 1
     σ_f(X, p, t) = σc * Diagonal(X) #Matrix d x d
-    prob = PIDEProblem(g, f, μ_f, σ_f, x0, tspan)
+    prob = ParabolicPDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
     hls = 256 #hidden layer size
     opt = Flux.Optimise.Adam(0.008)  #optimizer

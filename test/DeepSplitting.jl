@@ -4,6 +4,9 @@ using Test
 using Flux
 using Statistics
 using CUDA
+using Random 
+Random.seed!(100)
+
 if CUDA.functional()
     use_cuda = true
     cuda_device = 0
@@ -47,10 +50,10 @@ end
         opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0.0f0 .* v_y
+        f(y, v_y, ∇v_y, p, t) = 0.0f0 .* v_y
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x0, tspan)
+        prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f)
         # solving
         sol = solve(prob, alg, dt,
             verbose = true,
@@ -91,15 +94,15 @@ end
         opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0.0f0 .* v_y #TODO: this fix is not nice
+        f(y, v_y, ∇v_y, p, t) = 0.0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x0, tspan, x0_sample = x0_sample)
+        prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f, x0_sample = x0_sample)
         # solving
         sol = solve(prob, alg, dt,
             verbose = false,
             use_cuda = use_cuda,
-            maxiters = 1500,
+            maxiters = 1800,
             batch_size = batch_size,
             cuda_device = cuda_device)
         xs = x0_sample(repeat(x0, 1, batch_size))
@@ -137,10 +140,10 @@ end
         opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = 0.0f0 .* v_y #TODO: this fix is not nice
+        f(y, v_y, ∇v_y, p, t) = 0.0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x0, tspan,
+        prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f,
             x0_sample = x0_sample,
             neumann_bc = [-∂, ∂])
         # solving
@@ -195,10 +198,10 @@ end
         opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = r * v_y #TODO: this fix is not nice
+        f(y, v_y, ∇v_y, p, t) = r * v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x0, tspan,
+        prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f,
             x0_sample = x0_sample)
         # solving
         sol = solve(prob, alg, dt,
@@ -235,15 +238,15 @@ end
             Dense(hls, 1)) # Neural network used by the scheme
 
         opt = Flux.Optimise.Adam(1e-3) #optimiser
-        alg = DeepSplitting(nn, opt = opt )
+        alg = DeepSplitting(nn, opt = opt)
 
         X0 = fill(0.0f0, d)  # initial point
         g(X) = 1.0f0 ./ (2.0f0 .+ 4.0f-1 * sum(X .^ 2, dims = 1))   # initial condition
         a(u) = u - u^3
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = -a.(v_y) # nonlocal nonlinear function
+        f(y, v_y, ∇v_y, p, t) = -a.(v_y) # nonlocal nonlinear function
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, X0, tspan)
+        prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
         # solving
         @time sol = solve(prob,
             alg,
@@ -282,15 +285,15 @@ end
             Dense(hls, 1)) # Neural network used by the scheme
 
         opt = Flux.Optimise.Adam(1e-2) #optimiser
-        alg = DeepSplitting(nn, opt = opt )
+        alg = DeepSplitting(nn, opt = opt)
 
         X0 = fill(0.0f0, d)  # initial point
         g(X) = exp.(-0.25f0 * sum(X .^ 2, dims = 1))   # initial condition
         a(u) = u - u^3
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = a.(v_y) # nonlocal nonlinear function
+        f(y, v_y, ∇v_y, p, t) = a.(v_y) # nonlocal nonlinear function
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, X0, tspan, neumann_bc = [-∂, ∂])
+        prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f, neumann_bc = [-∂, ∂])
         # solving
         @time sol = solve(prob,
             alg,
@@ -330,14 +333,14 @@ if false
                 Dense(hls, 1)) # Neural network used by the scheme
 
             opt = Flux.Optimise.Adam(1e-3) #optimiser
-            alg = DeepSplitting(nn, opt = opt )
+            alg = DeepSplitting(nn, opt = opt)
 
             X0 = repeat([1.0f0, 0.5f0], div(d, 2))  # initial point
             g(X) = sum(X .^ 2, dims = 1) # initial condition
-            f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = r * (v_y .- sum(y .* ∇v_y, dims = 1))
+            f(y, v_y, ∇v_y, p, t) = r * (v_y .- sum(y .* ∇v_y, dims = 1))
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, X0, tspan)
+            prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
             # solving
             @time xs, ts, sol = solve(prob,
                 alg,
@@ -382,14 +385,14 @@ if false
             Dense(hls, 1)) # Neural network used by the scheme
 
         opt = Flux.Optimise.Adam(1e-3) #optimiser
-        alg = DeepSplitting(nn, opt = opt )
+        alg = DeepSplitting(nn, opt = opt)
 
         X0 = fill(0.0f0, d)  # initial point
         g(X) = log.(5.0f-1 .+ 5.0f-1 * sum(X .^ 2, dims = 1)) # initial condition
-        f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = λ * sum(∇v_y .^ 2, dims = 1)
+        f(y, v_y, ∇v_y, p, t) = λ * sum(∇v_y .^ 2, dims = 1)
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, X0, tspan)
+        prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
         # solving
         @time sol = solve(prob,
             alg,
@@ -431,7 +434,7 @@ end
         Dense(hls, 1)) # Neural network used by the scheme
 
     opt = Flux.Optimise.Adam()
-    alg = DeepSplitting(nn, opt = opt, λs = [1e-2,1e-3] )
+    alg = DeepSplitting(nn, opt = opt, λs = [1e-2, 1e-3])
 
     X0 = fill(100.0f0, d)  # initial point
     g(X) = minimum(X, dims = 1) # initial condition
@@ -450,10 +453,10 @@ end
     µc = 0.02f0
     σc = 0.2f0
 
-    f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = -(1.0f0 - δ) * Q.(v_y) .* v_y .- R * v_y
+    f(y, v_y, ∇v_y, p, t) = -(1.0f0 - δ) * Q.(v_y) .* v_y .- R * v_y
 
     # defining the problem
-    prob = PIDEProblem(g, f, μ, σ, X0, tspan)
+    prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
     # solving
     @time sol = solve(prob,
         alg,
@@ -520,7 +523,7 @@ end
             Dense(hls, 1, x -> x^2)) # positive function
 
         opt = Flux.Optimise.Adam(1e-2)#optimiser
-        alg = DeepSplitting(nn_batch, K=K, opt = opt, mc_sample = x0_sample)
+        alg = DeepSplitting(nn_batch, K = K, opt = opt, mc_sample = x0_sample)
 
         function g(x)
             Float32((2 * π)^(-d / 2)) * ss0^(-Float32(d) * 5.0f-1) *
@@ -533,7 +536,7 @@ end
         end # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(g, f, μ, σ, x0, tspan,
+        prob = PIDEProblem(μ, σ, x0, tspan, g, f;
             x0_sample = x0_sample)
         # solving
         sol = solve(prob,
@@ -576,7 +579,7 @@ end
                 Dense(hls, 1)) # Neural network used by the scheme
 
             opt = Flux.Optimise.Adam(1e-2) #optimiser
-            alg = DeepSplitting(nn, K=K, opt = opt, mc_sample = UniformSampling(-∂, ∂) )
+            alg = DeepSplitting(nn, K = K, opt = opt, mc_sample = UniformSampling(-∂, ∂))
 
             x0 = fill(0.0f0, d)  # initial point
             g(X) = exp.(-0.25f0 * sum(X .^ 2, dims = 1))   # initial condition
@@ -584,7 +587,7 @@ end
             f(y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) = a.(v_y) .- a.(v_z) #.* Float32(π^(d/2)) * σ_sampling^d .* exp.(sum(z.^2, dims = 1) / σ_sampling^2) # nonlocal nonlinear part of the
 
             # defining the problem
-            prob = PIDEProblem(g, f, μ, σ, x0, tspan, neumann_bc = [-∂, ∂])
+            prob = PIDEProblem(μ, σ, x0, tspan, g, f; neumann_bc = [-∂, ∂])
             # solving
             @time sol = solve(prob,
                 alg,
