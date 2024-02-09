@@ -16,8 +16,8 @@ x0 = fill(0.,d)  # initial point
 g(x) = exp(- sum(x.^2) ) # initial condition
 μ(x, p, t) = 0.0 # advection coefficients
 σ(x, p, t) = 0.1 # diffusion coefficients
-f(x, y, v_x, v_y, ∇v_x, ∇v_y, p, t) = max(0.0, v_x) * (1 -  max(0.0, v_x)) # nonlocal nonlinear part of the
-prob = PIDEProblem(μ, σ, x0, tspan, g, f) # defining the problem
+f(x, v_x, ∇v_x, p, t) = max(0.0, v_x) * (1 -  max(0.0, v_x)) # nonlocal nonlinear part of the
+prob = ParabolicPDEProblem(μ, σ, x0, tspan, g, f) # defining the problem
 
 ## Definition of the algorithm
 alg = MLP() # defining the algorithm. We use the Multi Level Picard algorithm
