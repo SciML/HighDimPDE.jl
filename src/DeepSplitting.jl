@@ -51,7 +51,7 @@ function DeepSplitting(nn;
 end
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 
 Returns a `PIDESolution` object.
 
