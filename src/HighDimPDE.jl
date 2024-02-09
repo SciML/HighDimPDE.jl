@@ -131,6 +131,13 @@ end
 $(SIGNATURES)
 
 Defines a Parabolic Partial Differential Equation of the form:
+```math
+\\begin{aligned}
+    \\frac{du}{dt} &= \\tfrac{1}{2} \\text{Tr}(\\sigma \\sigma^T) \\Delta u(x, t) + \\mu \\nabla u(x, t) \\\\
+    &\\quad +  f(x, u(x, t), ( \\nabla_x u )(x, t), p, t)
+\\end{aligned}
+```
+
 - Semilinear Parabolic Partial Differential Equation 
     * f -> f(X, u, σᵀ∇u, p, t)
 - Kolmogorov Differential Equation
