@@ -1,3 +1,5 @@
+# `NNStopping`
+
 ## Solving for optimal strategy and expected payoff of a Bermudan Max-Call option
 
 We will calculate optimal strategy for Bermudan Max-Call option with following drift, diffusion and payoff:

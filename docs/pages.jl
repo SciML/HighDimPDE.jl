@@ -1,6 +1,7 @@
 pages = [
     "Home" => "index.md",
     "Getting started" => "getting_started.md",
+    "Problems" => "problems.md",
     "Solver Algorithms" => ["MLP.md",
         "DeepSplitting.md",
         "DeepBSDE.md",
