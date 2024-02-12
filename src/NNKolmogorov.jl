@@ -2,18 +2,11 @@
 Algorithm for solving Backward Kolmogorov Equations.
 
 ```julia
-NeuralPDE.NNKolmogorov(chain, opt, sdealg, ensemblealg )
+HighDimPDE.NNKolmogorov(chain, opt)
 ```
 Arguments:
 - `chain`: A Chain neural network with a d-dimensional output.
 - `opt`: The optimizer to train the neural network. Defaults to `ADAM(0.1)`.
-- `sdealg`: The algorithm used to solve the discretized SDE according to the process that X follows. Defaults to `EM()`.
-- `ensemblealg`: The algorithm used to solve the Ensemble Problem that performs Ensemble simulations for the SDE. Defaults to `EnsembleThreads()`. See
-  the [Ensemble Algorithms](https://diffeq.sciml.ai/stable/features/ensemble/#EnsembleAlgorithms-1)
-  documentation for more details.
-- - `kwargs`: Additional arguments splatted to the SDE solver. See the
-  [Common Solver Arguments](https://diffeq.sciml.ai/dev/basics/common_solver_opts/)
-  documentation for more details.
 [1]Beck, Christian, et al. "Solving stochastic differential equations and Kolmogorov equations by means of deep learning." arXiv preprint arXiv:1806.00421 (2018).
 """
 struct NNKolmogorov{C, O} <: HighDimPDEAlgorithm
@@ -22,6 +15,23 @@ struct NNKolmogorov{C, O} <: HighDimPDEAlgorithm
 end
 NNKolmogorov(chain; opt = Flux.ADAM(0.1)) = NNKolmogorov(chain, opt)
 
+"""
+$(TYPEDSIGNATURES)
+
+Returns a `PIDESolution` object.
+
+# Arguments
+
+- `sdealg`: a SDE solver from [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/solvers/sde_solve/). 
+    If not provided, the plain vanilla [DeepBSDE](https://arxiv.org/abs/1707.02568) method will be applied.
+    If provided, the SDE associated with the PDE problem will be solved relying on 
+    methods from DifferentialEquations.jl, using [Ensemble solves](https://diffeq.sciml.ai/stable/features/ensemble/) 
+    via `sdealg`. Check the available `sdealg` on the 
+    [DifferentialEquations.jl doc](https://diffeq.sciml.ai/stable/solvers/sde_solve/).
+- `maxiters`: The number of training epochs. Defaults to `300`
+- `trajectories`: The number of trajectories simulated for training. Defaults to `100`
+- Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
+"""
 function DiffEqBase.solve(prob::ParabolicPDEProblem,
         pdealg::HighDimPDE.NNKolmogorov,
         sdealg;

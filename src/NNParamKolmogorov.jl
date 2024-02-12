@@ -1,4 +1,14 @@
+"""
+Algorithm for solving Backward Kolmogorov Equations.
 
+```julia
+HighDimPDE.NNKolmogorov(chain, opt)
+```
+Arguments:
+- `chain`: A Chain neural network with a d-dimensional output.
+- `opt`: The optimizer to train the neural network. Defaults to `ADAM(0.1)`.
+[1] Berner Julius et al. "Numerically solving parametric families of high-dimensional Kolmogorov partial differential equations via deep learning."
+"""
 struct NNParamKolmogorov{C, O} <: HighDimPDEAlgorithm
     chain::C
     opt::O
@@ -6,6 +16,24 @@ end
 
 NNParamKolmogorov(chain; opt = Flux.ADAM(0.1)) = NNParamKolmogorov(chain, opt)
 
+"""
+$(TYPEDSIGNATURES)
+
+Returns a `PIDESolution` object.
+
+# Arguments
+
+- `sdealg`: a SDE solver from [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/solvers/sde_solve/). 
+    If not provided, the plain vanilla [DeepBSDE](https://arxiv.org/abs/1707.02568) method will be applied.
+    If provided, the SDE associated with the PDE problem will be solved relying on 
+    methods from DifferentialEquations.jl, using [Ensemble solves](https://diffeq.sciml.ai/stable/features/ensemble/) 
+    via `sdealg`. Check the available `sdealg` on the 
+    [DifferentialEquations.jl doc](https://diffeq.sciml.ai/stable/solvers/sde_solve/).
+- `maxiters`: The number of training epochs. Defaults to `300`
+- `trajectories`: The number of trajectories simulated for training. Defaults to `100`
+- `dps::NamedTuple`: The sampling interval for ranges of parameters. Should have keys : `p_sigma`, 'p_mu` and `p_phi`
+- Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
+"""
 function DiffEqBase.solve(prob::ParabolicPDEProblem,
         pdealg::NNParamKolmogorov,
         sdealg = EM();
@@ -38,8 +66,11 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         xspan[1]:dx:xspan[2]
     end
 
-    p_domain = prob.kwargs.p_domain
-    p_prototype = prob.kwargs.p_prototype
+    p_defaults = (p_sigma = nothing, p_mu = nothing, p_phi = nothing)
+
+    p_domain = merge(p_defaults, prob.kwargs.p_domain)
+    p_prototype = merge(p_defaults, prob.kwargs.p_prototype)
+    dps = merge(p_defaults, dps)
 
     chain = pdealg.chain
     ps = Flux.params(chain)
