@@ -14,7 +14,7 @@ tspan = (0.0, 1.0)
 
 d = 1
 sdealg = EM()
-g(x) = pdf(u0, x)
+g(x) = map(Base.Fix1(pdf, u0), x)
 prob = ParabolicPDEProblem(μ, σ, nothing, tspan; g, xspan)
 opt = Flux.Optimisers.Adam(0.01)
 m = Chain(Dense(1, 5, elu), Dense(5, 5, elu), Dense(5, 5, elu), Dense(5, 1))
@@ -24,8 +24,7 @@ sol = solve(prob, NNKolmogorov(m, opt), sdealg; ensemblealg = ensemblealg, verbo
     abstol = 1e-10, dx = 0.0001, trajectories = 100000, maxiters = 500)
 
 ## The solution is obtained taking the Fourier Transform.
-analytical(xi) = pdf.(Normal(3, sqrt(1.0 + 5.00)), xi)
-##Validation
+analytical(xi) = map(Base.Fix1(pdf, Normal(3, sqrt(1.0 + 5.00))), xi)##Validation
 xs = -5:0.00001:5
 x_1 = rand(xs, 1, 1000)
 err_l2 = Flux.mse(analytical(x_1), sol.ufuns(x_1))
