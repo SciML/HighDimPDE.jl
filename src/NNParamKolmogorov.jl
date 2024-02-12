@@ -115,7 +115,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
             noise_rate_prototype = noise_rate_prototype)
     end
 
-    output_func = (sol, i) -> (sol[end], false)
+    output_func = (sol, i) -> (sol.u[end], false)
 
     sdeprob = SDEProblem(mu,
         sigma,
