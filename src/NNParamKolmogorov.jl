@@ -1,5 +1,5 @@
 """
-Algorithm for solving Backward Kolmogorov Equations.
+Algorithm for solving paramateric families of Kolmogorov Equations.
 
 ```julia
 HighDimPDE.NNKolmogorov(chain, opt)

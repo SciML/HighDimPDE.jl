@@ -8,11 +8,17 @@ Modules = [HighDimPDE]
 Pages   = ["NNParamKolmogorov.jl"]
 ```
 
-`NNParamKolmogorov` obtains a terminal solution for parametric families of Backward Kolmogorov Equations of the form:
+`NNParamKolmogorov` obtains a 
+- terminal solution for parametric families of Forward Kolmogorov Equations of the form:
 ```math
 \partial_t u(t,x) = \mu(t, x, γ_mu) \nabla_x u(t,x) + \frac{1}{2} \sigma^2(t, x, γ_sigma) \Delta_x u(t,x)
 ```
 with initial condition given by `g(x, γ_phi)`
+- or an initial condition for parametric families of Backward Kolmogorov Equations of the form:
+```math
+\partial_t u(t,x) = - \mu(t, x) \nabla_x u(t,x) - \frac{1}{2} \sigma^2(t, x) \Delta_x u(t,x)
+```
+with terminal condition given by `g(x, γ_phi)`
 
 We can use the Feynman-Kac formula : 
 ```math
