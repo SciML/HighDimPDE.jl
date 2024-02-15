@@ -267,8 +267,10 @@ include("DeepBSDE.jl")
 include("DeepBSDE_Han.jl")
 include("MLP.jl")
 include("NNStopping.jl")
+include("NNKolmogorov.jl")
+include("NNParamKolmogorov.jl")
 
 export PIDEProblem, ParabolicPDEProblem, PIDESolution, DeepSplitting, DeepBSDE, MLP, NNStopping
-
+export NNKolmogorov, NNParamKolmogorov
 export NormalSampling, UniformSampling, NoSampling, solve
 end

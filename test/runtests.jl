@@ -8,4 +8,6 @@ using SafeTestsets, Test
     @time @safetestset "Deep Splitting" include("DeepSplitting.jl")
     @time @safetestset "MC Sample" include("MCSample.jl")
     @time @safetestset "NNStopping" include("NNStopping.jl")
+    @time @safetestset "NNKolmogorov" include("NNKolmogorov.jl")
+    @time @safetestset "NNParamKolmogorov" include("NNParamKolmogorov.jl")
 end

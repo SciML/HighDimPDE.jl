@@ -25,6 +25,7 @@ cuDNN = "02a925ec-e4fe-4b08-9a7e-0d78e3d38ccd"
 Aqua = "0.8"
 CUDA = "4.4, 5"
 DiffEqBase = "6.137"
+Distributions = "v0.25.107"
 DocStringExtensions = "0.9"
 Flux = "0.13.12, 0.14"
 Functors = "0.4"
@@ -44,8 +45,9 @@ julia = "1.10"
 
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Aqua", "Test", "SafeTestsets"]
+test = ["Aqua", "Distributions", "Test", "SafeTestsets"]
