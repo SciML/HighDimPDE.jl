@@ -6,4 +6,4 @@ HighDimPDE = "57c578d5-59d4-4db8-a490-a9fc372d19d2"
 [compat]
 Documenter = "1"
 Flux = "0.13, 0.14"
-HighDimPDE = "2"
+HighDimPDE = "2, 1"
