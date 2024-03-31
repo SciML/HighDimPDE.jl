@@ -1,3 +1,6 @@
+# import package
+using DifferentialEquations
+
 Base.copy(t::Tuple) = t # required for below
 function Base.copy(opt::O) where  O<:Flux.Optimise.AbstractOptimiser
     return O([copy(getfield(opt,f)) for f in fieldnames(typeof(opt))]...)
@@ -149,21 +152,25 @@ function solve(
         u = splitting_model(y0, y1, z, t)
         return sum(u.^2) / batch_size
     end
+    
 
-    # calculating SDE trajectories
-    function sde_loop!(y0, y1, dWall)
-        randn!(dWall) # points normally distributed for brownian motion
-        x0_sample!(y1) # points for initial conditions
+  # calculating the SDE trajectories - use the SDESolver
+    function sde_loop!(y0,y1,dWall)
+        x0_sample!(y1) #initial condition
+        randn!(dWall) #points normally distributed for brownian motion
         for i in 1:size(dWall,3)
-            t = ts[N + 1 - i]
+            t = ts[N + 1 - i] #this is dt
             dW = @view dWall[:,:,i]
             y0 .= y1
-            y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW
+            #y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW 
+            prob = SDEProblem(y0 .+ μ(y0,p,t) .* dt,σ(y0,p,t) .* sqrt(dt),x0_sample!(y1),t) 
+            sol = solve(prob,EM(),dt=dt)
             if !isnothing(neumann_bc)
                 y1 .= _reflect(y0, y1, neumann_bc[1], neumann_bc[2])
             end
         end
     end
+
 
     for net in 1:N
         # preallocate dWall
@@ -174,6 +181,7 @@ function solve(
         # first of maxiters used for first nn, second used for the other nn
         _maxiters = length(maxiters) > 1 ? maxiters[min(net,2)] : maxiters[] 
         
+        #modifying the sde_loop by replacing with StochasticDiffEq
         for λ in λs
             opt_net = copy(opt) # starting with a new optimiser state at each time step
             opt_net.eta = λ
