@@ -31,7 +31,7 @@ aas-journal: Astrophysical Journal <- The name of the AAS journal.
 `HighDimPDE.jl` is a Julia [@Bezanson2017] package that implements solver algorithms to solve highly dimensional non-local non-linear Partial Differential Equations (PDEs). The solver algorithms provided break down the curse of dimensionality, with a computational complexity that only grows polynomially in the number of dimension of the PDE.  It is an open-source project hosted on GitHub and distributed under the MIT license. The package is designed with a user-friendly interface, provides both CPUs and GPUs support, and is integrated within the Sci-ML[@SciML] ecosystem.
 
 # Statement of need
-Non-local nonlinear Partial Differential Equations arise in a variety of scientific domains including physics, engineering, finance and biology. In biology, they are for instance used for modelling the evolution of biological populations that are phenotypically and physically structured. The dimension of the PDEs can be large, corresponding to the number of phenotypic traits and physical dimensions considered. Highly dimensional PDE's cannot be solved with standard numerical methods as their computational cost increases exponentially in the number of dimensions, a problem commonly refered as the curse of dimensionality. 
+Non-local nonlinear Partial Differential Equations arise in a variety of scientific domains including physics, engineering, finance and biology. In biology, they are for instance used for modelling the evolution of biological populations that are phenotypically and physically structured. The dimension of the PDEs can be large, corresponding to the number of phenotypic traits and physical dimensions considered. Highly dimensional PDE's cannot be solved with standard numerical methods as their computational cost increases exponentially in the number of dimensions, a problem commonly referred as the curse of dimensionality. 
 
 # Solving PDEs with HighDimPDE.jl
 HighDimPDE.jl can solve for PDEs of the form
@@ -42,7 +42,7 @@ $$
     & \quad + \big\langle \mu(t,x), ( \nabla_x u )( t,x ) \big\rangle + \tfrac{1}{2} \text{Trace} \big(\sigma(t,x) [ \sigma(t,x) ]^* ( \text{Hess}_x u)(t, x ) \big). \tag{1}
 \end{aligned}
 $$
-where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subset \R^d$ is a function subject to initial conditions $u(0,x) = g(x)$ and Neumann Boudary conditions.
+where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subset \R^d$ is a function subject to initial conditions $u(0,x) = g(x)$ and Neumann Boundary conditions.
 
 `HighDimPDE.jl` currently proposes ? solver algorithms.
 
@@ -66,9 +66,9 @@ The `DeepSplitting`[@Beck2019] algorithm reformulates the PDE as a stochastic le
 
 `DeepSplitting` relies on two main ideas:
 
-- the approximation of the solution $u$ by a parametric function $\bf u^\theta$,
+- The approximation of the solution $u$ by a parametric function $\bf u^\theta$.
 
-- the training of $\bf u^\theta$ by simulated stochastic trajectories of particles, with the help of the Machine-Learning library [@Flux].
+- The training of $\bf u^\theta$ by simulated stochastic trajectories of particles, with the help of the Machine-Learning library [@Flux].
 
 ## `MLP`
 The `MLP`[@Becker2020], for Multi-Level Picard iterations, reformulates the PDE problem as a fixed point equation through the Feynman Kac formula. 
@@ -77,7 +77,7 @@ The `MLP`[@Becker2020], for Multi-Level Picard iterations, reformulates the PDE 
 
 - [Picard iterations](https://en.wikipedia.org/wiki/Picard–Lindelöf_theorem), and
 
-- a [Multilvel Monte Carlo](https://en.wikipedia.org/wiki/Multilevel_Monte_Carlo_method) approach to reduce the complexity of the numerical approximation of the time integral in the fixed point equation.
+- a [Multilevel Monte Carlo](https://en.wikipedia.org/wiki/Multilevel_Monte_Carlo_method) approach to reduce the complexity of the numerical approximation of the time integral in the fixed point equation.
 
 # Examples
 
@@ -127,7 +127,7 @@ vol = prod(x0_sample[2] - x0_sample[1])
 f(y, z, v_y, v_z, p, t) =  max.(v_y, 0f0) .* (m(y) .- vol *  max.(v_z, 0f0) .* m(z)) # nonlocal nonlinear part of the
 
 # defining the problem
-prob = PIDEProblem(g, f, μ, σ, tspan, 
+prob = PIDEProblem(μ, σ, tspan, g, f,
                     x0_sample = x0_sample
                     )
 # solving
@@ -162,8 +162,8 @@ g(x) = exp( -sum(x.^2) ) # initial condition
 σ(x, p, t) = 0.1 # diffusion coefficients
 x0_sample = [-1/2, 1/2]
 f(x, y, v_x, v_y, ∇v_x, ∇v_y, t) = max(0.0, v_x) * (1 -  max(0.0, v_y)) 
-prob = PIDEProblem(g, f, μ, 
-                    σ, x0, tspan, 
+prob = PIDEProblem(μ, 
+                    σ, x0, tspan, g, f, 
                     x0_sample = x0_sample) # defining x0_sample is sufficient to implement Neumann boundary conditions
 
 ## Definition of the algorithm

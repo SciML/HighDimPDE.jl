@@ -1,5 +1,9 @@
 # [The `MLP` algorithm](@id mlp)
 
+### Problems Supported:
+1. [`PIDEProblem`](@ref)
+2. [`ParabolicPDEProblem`](@ref)
+
 ```@autodocs
 Modules = [HighDimPDE]
 Pages   = ["MLP.jl"]
@@ -9,7 +13,7 @@ The `MLP`, for Multi-Level Picard iterations, reformulates the PDE problem as a 
 
 - It relies on [Picard iterations](https://en.wikipedia.org/wiki/Picard–Lindelöf_theorem) to find the fixed point, 
 
-- reducing the complexity of the numerical approximation of the time integral through a [multilvel Monte Carlo](https://en.wikipedia.org/wiki/Multilevel_Monte_Carlo_method) approach.
+- reducing the complexity of the numerical approximation of the time integral through a [multilevel Monte Carlo](https://en.wikipedia.org/wiki/Multilevel_Monte_Carlo_method) approach.
 
 The `MLP` algorithm overcomes the curse of dimensionality, with a computational complexity that grows polynomially in the number of dimension (see [M. Hutzenthaler et al. 2020](https://arxiv.org/abs/1807.01212v3)).
 
@@ -31,7 +35,7 @@ u_{l+1} = \phi(u_l),
 the [Banach fixed-point theorem](https://en.wikipedia.org/wiki/Banach_fixed-point_theorem) ensures that the sequence converges to the true solution $u$. Such a technique is known as [Picard iterations](https://en.wikipedia.org/wiki/Picard–Lindelöf_theorem).
 
 
-The time integral term is evaluated by a [Monte-Carlo integration](https:/en.wikipedia.org/wiki/Monte_Carlo_integration)
+The time integral term is evaluated by a [Monte-Carlo integration](https://en.wikipedia.org/wiki/Monte_Carlo_integration)
 
 ```math
 u_L  = \frac{1}{M}\sum_i^M \left[ f(X^{x,(i)}_{t - s_{(l, i)}}, u_{L-1}(T-s_i, X^{x,( i)}_{t - s_{(l, i)}})) + u(0, X^{x,(i)}_{t - s_{(l, i)}}) \right].
@@ -50,14 +54,14 @@ u_L = \phi(u_{L-1}) &= [\phi(u_{L-1}) - \phi(u_{L-2})] + [\phi(u_{L-2}) - \phi(u
 \end{aligned}
 ```
 
-As $l$ grows, the term $[\phi(u_{l-1}) - \phi(u_{l-2})]$ becomes smaller - and demands more calculations. The `MLP` algorithm uses this fact by evaluating the integral term at level $l$ with $M^{L-l}$ samples.
+As $l$ grows, the term $[\phi(u_{l-1}) - \phi(u_{l-2})]$ becomes smaller, and thus demands more calculations. The `MLP` algorithm uses this fact by evaluating the integral term at level $l$ with $M^{L-l}$ samples.
 
 
 !!! tip
     - `L` corresponds to the level of the approximation, i.e. $u \approx u_L$
-    - `M` characterises the number of samples for the monte carlo approximation of the time integral
+    - `M` characterizes the number of samples for the Monte Carlo approximation of the time integral
 
-Overall, `MLP` can be summarised by the following formula
+Overall, `MLP` can be summarized by the following formula
 ```math
 \begin{aligned}
 u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_i^{M^{L-l}} \left[ f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}})) + \mathbf{1}_\N(l) f(X^{x,(l, i)}_{t - s_{(l, i)}}, u(T-s_{(l, i)}, X^{x,(l, i)}_{t - s_{(l, i)}}))\right]
@@ -67,7 +71,7 @@ u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_i^{M^{L-l}} \left[ f(X^{x,(l, i)}_
 ```
 Note that the superscripts $(l, i)$ indicate the independence of the random variables $X$ across levels.
 
-## Nonlocal PDEs
+## Non-local PDEs
 `MLP` can solve for non-local reaction diffusion equations of the type
 ```math
 \partial_t u = \mu(t, x) \nabla_x u(t, x) + \frac{1}{2} \sigma^2(t, x) \Delta u(t, x) + \int_{\Omega}f(x, y, u(t,x), u(t,y))dy
@@ -84,9 +88,9 @@ u_L &= \sum_{l=1}^{L-1} \frac{1}{M^{L-l}}\sum_{i=1}^{M^{L-l}} \frac{1}{K}\sum_{j
 ```
 
 !!! tip
-    In practice, if you have a non-local model you need to provide the sampling method and the number $K$ of MC integration through the keywords `mc_sample` and `K`. 
-    - `K` characterises the number of samples for the Monte Carlo approximation of the last term.
-    - `mc_sample` characterises the distribution of the `Z` variables
+    In practice, if you have a non-local model, you need to provide the sampling method and the number $K$ of MC integration through the keywords `mc_sample` and `K`. 
+    - `K` characterizes the number of samples for the Monte Carlo approximation of the last term.
+    - `mc_sample` characterizes the distribution of the `Z` variables
 
 ## References
 - Boussange, V., Becker, S., Jentzen, A., Kuckuck, B., Pellissier, L., Deep learning approximations for non-local nonlinear PDEs with Neumann boundary conditions. [arXiv](https://arxiv.org/abs/2205.03672) (2022)

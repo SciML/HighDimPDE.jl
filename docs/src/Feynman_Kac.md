@@ -6,7 +6,7 @@ The Feynman Kac formula is generally stated for terminal condition problems (see
 ```
 with terminal condition $u(T, x) = g(x)$, and $u \colon \R^d \to \R$. 
 
-In this case the FK formula states that for all $t \in (0,T)$ it holds that
+In this case, the FK formula states that for all $t \in (0,T)$ it holds that
 
 ```math
 u(t, x) = \int_t^T \mathbb{E} \left[ f(X^x_{s-t}, u(s, X^x_{s-t}))ds \right] + \mathbb{E} \left[ u(0, X^x_{T-t}) \right] \tag{2}
@@ -19,15 +19,15 @@ and $B_t$ is a [Brownian motion](https://en.wikipedia.org/wiki/Wiener_process).
 
 ![Brownian motion - Wikipedia](https://upload.wikimedia.org/wikipedia/commons/f/f8/Wiener_process_3d.png)
 
-Intuitively, this formula is motivated by the fact that [the density of Brownian particles (motion) satisfes the diffusion equation](https://en.wikipedia.org/wiki/Brownian_motion#Einstein's_theory).
+Intuitively, this formula is motivated by the fact that [the density of Brownian particles (motion) satisfies the diffusion equation](https://en.wikipedia.org/wiki/Brownian_motion#Einstein's_theory).
 
 
-The equivalence between the average trajectory of particles and PDEs given by the Feynman-Kac formula allows to overcome the curse of dimensionality that standard numerical methods suffer from, because the expectations can be approximated [Monte Carlo integrations]((https://en.wikipedia.org/wiki/Monte_Carlo_integration)), which approximation error decreases as $1/\sqrt{N}$ and is therefore not dependent on the dimensions. On the other hand, the computational complexity of traditional deterministic techniques grows exponentially in the number of dimensions. 
+The equivalence between the average trajectory of particles and PDEs given by the Feynman-Kac formula allows overcoming the curse of dimensionality that standard numerical methods suffer from, because the expectations can be approximated [Monte Carlo integrations](https://en.wikipedia.org/wiki/Monte_Carlo_integration), which approximation error decreases as $1/\sqrt{N}$ and is therefore not dependent on the dimensions. On the other hand, the computational complexity of traditional deterministic techniques grows exponentially in the number of dimensions. 
 
 ## Forward non-linear Feynman-Kac
 > How to transform previous equation to an initial value problem?
 
-Define $v(\tau, x) = u(T-\tau, x)$. Observe that $v(0,x) = u(T,x)$. Further observe that by the chain rule
+Define $v(\tau, x) = u(T-\tau, x)$. Observe that $v(0,x) = u(T,x)$. Further, observe that by the chain rule
 ```math
 \begin{aligned}
 \partial_\tau v(\tau, x) &= \partial_\tau u(T-\tau,x)\\

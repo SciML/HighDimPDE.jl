@@ -1,5 +1,9 @@
 # [The `DeepSplitting` algorithm](@id deepsplitting)
 
+### Problems Supported:
+1. [`PIDEProblem`](@ref)
+2. [`ParabolicPDEProblem`](@ref)
+
 ```@autodocs
 Modules = [HighDimPDE]
 Pages   = ["DeepSplitting.jl"]
@@ -9,9 +13,9 @@ The `DeepSplitting` algorithm reformulates the PDE as a stochastic learning prob
 
 The algorithm relies on two main ideas:
 
-- the approximation of the solution $u$ by a parametric function $\bf u^\theta$. This function is generally chosen as a (Feedforward) Neural Network, as it is a [universal approximator](https://en.wikipedia.org/wiki/Universal_approximation_theorem).
+- The approximation of the solution $u$ by a parametric function $\bf u^\theta$. This function is generally chosen as a (Feedforward) Neural Network, as it is a [universal approximator](https://en.wikipedia.org/wiki/Universal_approximation_theorem).
 
-- the training of $\bf u^\theta$ by simulated stochastic trajectories of particles, through the link between linear PDEs and the expected trajectory of associated Stochastic Differential Equations (SDEs), explicitly stated by the [Feynman Kac formula](https://en.wikipedia.org/wiki/Feynman–Kac_formula).
+- The training of $\bf u^\theta$ by simulated stochastic trajectories of particles, through the link between linear PDEs and the expected trajectory of associated Stochastic Differential Equations (SDEs), explicitly stated by the [Feynman Kac formula](https://en.wikipedia.org/wiki/Feynman–Kac_formula).
 
 ## The general idea 💡
 Consider the PDE
@@ -40,36 +44,36 @@ For each time step $t_n$, the `DeepSplitting` algorithm
 
 1. Generates the particle trajectories $X^{x, (j)}$ satisfying [Eq. (2)](@ref feynmankac) over the whole interval $[0,T]$.
 
-2. Seeks ${\bf u}_{n+1}^{\theta}$  by minimising the loss function
+2. Seeks ${\bf u}_{n+1}^{\theta}$  by minimizing the loss function
 
 ```math
 L(\theta) = ||{\bf u}^\theta_{n+1}(X_{T - t_n}) - \left[ f(t, X_{T - t_{n-1}}, {\bf u}_{n-1}(X_{T - t_{n-1}}))(t_{n} - t_{n-1}) + {\bf u}_{n-1}(X_{T - t_{n-1}}) \right] ||
 ```
-This way the PDE approximation problem is decomposed into a sequence of separate learning problems.
+This way, the PDE approximation problem is decomposed into a sequence of separate learning problems.
 In `HighDimPDE.jl` the right parameter combination $\theta$ is found by iteratively minimizing $L$ using **stochastic gradient descent**.
 
 !!! tip
     To solve with `DeepSplitting`, one needs to provide to `solve`
     - `dt`
     - `batch_size`
-    - `maxiters`: the number of iterations for minimising the loss function
+    - `maxiters`: the number of iterations for minimizing the loss function
     - `abstol`: the absolute tolerance for the loss function
     - `use_cuda`: if you have a Nvidia GPU, recommended.
 
 ## Solving point-wise or on a hypercube
 
 ### Pointwise
-`DeepSplitting` allows to obtain $u(t,x)$ on a single point  $x \in \Omega$ with the keyword $x$.
+`DeepSplitting` allows obtaining $u(t,x)$ on a single point  $x \in \Omega$ with the keyword $x$.
 
 ```julia
-prob = PIDEProblem(g, f, μ, σ, x, tspan)
+prob = PIDEProblem(μ, σ, x, tspan, g, f,)
 ```
 
 ### Hypercube
-Yet more generally, one wants to solve Eq. (1) on a $d$-dimensional cube $[a,b]^d$. This is offered by `HighDimPDE.jl` with the keyworkd `x0_sample`.
+Yet more generally, one wants to solve Eq. (1) on a $d$-dimensional cube $[a,b]^d$. This is offered by `HighDimPDE.jl` with the keyword `x0_sample`.
 
 ```julia
-prob = PIDEProblem(g, f, μ, σ, x, tspan, x0_sample = x0_sample)
+prob = PIDEProblem(μ, σ, x, tspan, g, f; x0_sample = x0_sample)
 ```
 Internally, this is handled by assigning a random variable as the initial point of the particles, i.e.
 ```math
@@ -77,7 +81,7 @@ X_t^\xi = \int_0^t \mu(X_s^x)ds + \int_0^t\sigma(X_s^x)dB_s + \xi,
 ```
 where $\xi$ a random variable uniformly distributed over $[a,b]^d$. This way, the neural network is trained on the whole interval $[a,b]^d$ instead of a single point.
 
-## Nonlocal PDEs
+## Non-local PDEs
 `DeepSplitting` can solve for non-local reaction diffusion equations of the type
 ```math
 \partial_t u = \mu(x) \nabla_x u + \frac{1}{2} \sigma^2(x) \Delta u + \int_{\Omega}f(x,y, u(t,x), u(t,y))dy
@@ -90,7 +94,7 @@ u(t_{n+1}, X_{T - t_{n+1}}) \approx \sum_{j=1}^{\text{batch\_size}} \left[ u(t_{
 ```
 
 !!! tip 
-    In practice, if you have a non-local model you need to provide the sampling method and the number $K$ of MC integration through the keywords `mc_sample` and `K`. 
+    In practice, if you have a non-local model, you need to provide the sampling method and the number $K$ of MC integration through the keywords `mc_sample` and `K`. 
     ```julia
     alg = DeepSplitting(nn, opt = opt, mc_sample = mc_sample, K = 1)
     ```
@@ -99,4 +103,3 @@ u(t_{n+1}, X_{T - t_{n+1}}) \approx \sum_{j=1}^{\text{batch\_size}} \left[ u(t_{
 ## References
 - Boussange, V., Becker, S., Jentzen, A., Kuckuck, B., Pellissier, L., Deep learning approximations for non-local nonlinear PDEs with Neumann boundary conditions. [arXiv](https://arxiv.org/abs/2205.03672) (2022)
 - Beck, C., Becker, S., Cheridito, P., Jentzen, A., Neufeld, A., Deep splitting method for parabolic PDEs. [arXiv](https://arxiv.org/abs/1907.03452) (2019)
-- Han, J., Jentzen, A., E, W., Solving high-dimensional partial differential equations using deep learning. [arXiv](https://arxiv.org/abs/1707.02568) (2018)

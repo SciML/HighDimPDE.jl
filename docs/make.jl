@@ -1,15 +1,15 @@
 using Documenter, HighDimPDE
 
-makedocs(sitename="HighDimPDE.jl",
-        format = Documenter.HTML(prettyurls = false),
-        authors = "Victor Boussange",
-        pages = [
-            "Home" => "index.md",
-            "Getting started" => "getting_started.md",
-            "Solver Algorithms" => ["MLP.md", 
-                        "DeepSplitting.md", 
-                        ],
-            "Feynman Kac formula" => "Feynman_Kac.md",
-        ],)
+cp("./docs/Manifest.toml", "./docs/src/assets/Manifest.toml", force = true)
+cp("./docs/Project.toml", "./docs/src/assets/Project.toml", force = true)
 
-deploydocs(repo = "github.com/SciML/HighDimPDE.jl", devbranch="main")
+include("pages.jl")
+
+makedocs(sitename = "HighDimPDE.jl",
+    authors = "Victor Boussange",
+    pages = pages,
+    clean = true, doctest = false, linkcheck = true,
+    format = Documenter.HTML(assets = ["assets/favicon.ico"],
+        canonical = "https://docs.sciml.ai/HighDimPDE/stable/"))
+
+deploydocs(repo = "github.com/SciML/HighDimPDE.jl", devbranch = "main")
