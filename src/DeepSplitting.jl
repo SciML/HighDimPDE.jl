@@ -176,7 +176,7 @@ function solve(
      function sde_loop!(y0,y1,dWall)
         x0_sample!(y1) #initial condition
         randn!(dWall) #points normally distributed for brownian motion
-        t = ts[N::-1] #this is dt
+        t = ts[N+1:-1:1] #this is dt
         y0 .= y1
         y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW 
         prob = SDEProblem(y0 .+ μ(y0,p,t) .* dt,σ(y0,p,t) .* sqrt(dt),x0_sample!(y1),t) 
