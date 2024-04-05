@@ -154,23 +154,6 @@ function solve(
         return sum(u.^2) / batch_size
     end
     
-
-  # calculating the SDE trajectories - use the SDESolver - it works
-    #function sde_loop!(y0,y1,dWall)
-    #    x0_sample!(y1) #initial condition
-    #    randn!(dWall) #points normally distributed for brownian motion
-    #    for i in 1:size(dWall,3)
-    #        t = ts[N + 1 - i] #this is dt
-    #        dW = @view dWall[:,:,i]
-    #        y0 .= y1
-    #        #y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW 
-    #        prob = SDEProblem(y0 .+ μ(y0,p,t) .* dt,σ(y0,p,t) .* sqrt(dt),x0_sample!(y1),t) 
-    #        sol = solve(prob,EM(),dt=dt)
-    #        if !isnothing(neumann_bc)
-    #            y1 .= _reflect(y0, y1, neumann_bc[1], neumann_bc[2])
-    #        end
-    #    end
-    #end
      
     # calculating the SDE trajectories - use the SDESolver 
      function sde_loop!(y0,y1,dWall)
