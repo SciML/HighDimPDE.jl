@@ -180,7 +180,7 @@ function solve(
         y1 .= y0 .+ μ(y0,p,t) .* dt .+ σ(y0,p,t) .* sqrt(dt) .* dW 
         prob = SDEProblem(y0 .+ μ(y0,p,t) .* dt,σ(y0,p,t) .* sqrt(dt),x0_sample!(y1),t) 
         ensembleprob = EnsembleProblem(prob)
-        sol = solve(ensembleprob, EnsembleSerial(), trajectories = 10)
+        sol = solve(ensembleprob, EnsembleSerial(), trajectories = 3)
         if !isnothing(neumann_bc)
             y1 .= _reflect(y0, y1, neumann_bc[1], neumann_bc[2])
         end 
