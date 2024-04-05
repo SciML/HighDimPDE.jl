@@ -1,6 +1,6 @@
 # import package
-using DifferentialEquations
-using Flux
+#using DifferentialEquations
+#using Flux
 
 Base.copy(t::Tuple) = t # required for below
 function Base.copy(opt::O) where  O<:Flux.Optimise.AbstractOptimiser
