@@ -8,8 +8,8 @@
 \end{aligned}\]</p><p>where <span>$u \colon [0,T] \times \Omega \to \R$</span>, <span>$\Omega \subseteq \R^d$</span> is subject to initial and boundary conditions, and where <span>$d$</span> is large.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The difference between the two problems is that in Partial Integro Differential Equations, the integrand is integrated over <strong>x</strong>, while in Parabolic Integro Differential Equations, the function <code>f</code> is just evaluated for <code>x</code>.</p></div></div><p><strong>HighDimPDE.jl</strong> implements solver algorithms that break down the curse of dimensionality, including</p><ul><li><p>the <a href="DeepSplitting/#deepsplitting">Deep Splitting scheme</a></p></li><li><p>the <a href="MLP/#mlp">Multi-Level Picard iterations scheme</a></p></li><li><p>the Deep BSDE scheme (@ref deepbsde).</p></li></ul><p>To make the most out of <strong>HighDimPDE.jl</strong>, we advise to first have a look at the </p><ul><li><a href="Feynman_Kac/#feynmankac">documentation on the Feynman Kac formula</a>,</li></ul><p>as all solver algorithms heavily rely on it.</p><h2 id="Algorithm-overview"><a class="docs-heading-anchor" href="#Algorithm-overview">Algorithm overview</a><a id="Algorithm-overview-1"></a><a class="docs-heading-anchor-permalink" href="#Algorithm-overview" title="Permalink"></a></h2><hr/><table><tr><th style="text-align: right">Features</th><th style="text-align: center"><code>DeepSplitting</code></th><th style="text-align: center"><code>MLP</code></th><th style="text-align: center"><code>DeepBSDE</code></th></tr><tr><td style="text-align: right">Time discretization free</td><td style="text-align: center">❌</td><td style="text-align: center">✅</td><td style="text-align: center">❌</td></tr><tr><td style="text-align: right">Mesh-free</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td></tr><tr><td style="text-align: right">Single point <span>$x \in \R^d$</span> approximation</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td></tr><tr><td style="text-align: right"><span>$d$</span>-dimensional cube <span>$[a,b]^d$</span> approximation</td><td style="text-align: center">✅</td><td style="text-align: center">❌</td><td style="text-align: center">✔️</td></tr><tr><td style="text-align: right">GPU</td><td style="text-align: center">✅</td><td style="text-align: center">❌</td><td style="text-align: center">✅</td></tr><tr><td style="text-align: right">Gradient non-linearities</td><td style="text-align: center">✔️</td><td style="text-align: center">❌</td><td style="text-align: center">✅</td></tr></table><p>✔️ : will be supported in the future</p><h2 id="Reproducibility"><a class="docs-heading-anchor" href="#Reproducibility">Reproducibility</a><a id="Reproducibility-1"></a><a class="docs-heading-anchor-permalink" href="#Reproducibility" title="Permalink"></a></h2><details><summary>The documentation of this SciML package was built using these direct dependencies,</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Status `~/work/HighDimPDE.jl/HighDimPDE.jl/docs/Project.toml`
   [e30172f5] Documenter v1.4.1
   [587475ba] Flux v0.14.15
-  [57c578d5] HighDimPDE v2.0.0 `~/work/HighDimPDE.jl/HighDimPDE.jl`</code></pre></details><details><summary>and using this machine and Julia version.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Julia Version 1.10.3
-Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+  [57c578d5] HighDimPDE v2.0.0 `~/work/HighDimPDE.jl/HighDimPDE.jl`</code></pre></details><details><summary>and using this machine and Julia version.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Julia Version 1.10.4
+Commit 48d4fd48430 (2024-06-04 10:41 UTC)
 Build Info:
   Official https://julialang.org/ release
 Platform Info:
@@ -28,7 +28,7 @@ Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   [66dad0bd] AliasTables v1.1.3
   [dce04be8] ArgCheck v2.3.0
   [ec485272] ArnoldiMethod v0.4.0
-  [4fba245c] ArrayInterface v7.10.0
+  [4fba245c] ArrayInterface v7.11.0
   [4c555306] ArrayLayouts v1.9.3
   [a9b6321e] Atomix v0.1.0
   [ab4f0b2a] BFloat16s v0.5.0
@@ -41,8 +41,8 @@ Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   [1af6417a] CUDA_Runtime_Discovery v0.3.3
   [49dc2e85] Calculus v0.5.1
   [7057c7e9] Cassette v0.3.13
-  [082447d4] ChainRules v1.66.0
-  [d360d2e6] ChainRulesCore v1.23.0
+  [082447d4] ChainRules v1.68.0
+  [d360d2e6] ChainRulesCore v1.24.0
   [fb6a15b2] CloseOpenIntervals v0.1.12
   [944b1d66] CodecZlib v0.7.4
   [3da002f7] ColorTypes v0.11.5
@@ -75,13 +75,13 @@ Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   [fa6b7ba4] DualNumbers v0.6.8
   [da5c29d0] EllipsisNotation v1.8.0
   [4e289a0a] EnumX v1.0.4
-  [7da242da] Enzyme v0.12.9
+  [7da242da] Enzyme v0.12.10
   [f151be2c] EnzymeCore v0.7.3
   [d4d017d3] ExponentialUtilities v1.26.1
   [e2ba6199] ExprTools v0.1.10
   [cc61a311] FLoops v0.2.1
   [b9860ae5] FLoopsBase v0.1.1
-  [7034ab61] FastBroadcast v0.3.1
+  [7034ab61] FastBroadcast v0.3.2
   [9aa1b823] FastClosures v0.3.2
   [29a986be] FastLapackInterface v2.0.4
   [1a297f60] FillArrays v1.11.0
@@ -92,7 +92,7 @@ Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   [f62d2435] FunctionProperties v0.1.2
   [069b7b12] FunctionWrappers v1.1.3
   [77dc65aa] FunctionWrappersWrappers v0.1.3
-  [d9f16b24] Functors v0.4.10
+  [d9f16b24] Functors v0.4.11
   [0c68f7d7] GPUArrays v10.1.1
   [46192b85] GPUArraysCore v0.1.6
   [61eb1bfa] GPUCompiler v0.26.5
@@ -119,16 +119,16 @@ Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   [ef3ab10e] KLU v0.6.0
   [63c18a36] KernelAbstractions v0.9.19
   [ba0b0d4f] Krylov v0.9.6
-  [929cbde3] LLVM v7.1.0
+  [929cbde3] LLVM v7.2.1
   [8b046642] LLVMLoopInfo v1.0.0
   [b964fa9f] LaTeXStrings v1.3.1
   [10f19ff3] LayoutPointers v0.1.15
   [0e77f7df] LazilyInitializedFields v1.2.2
-  [5078a376] LazyArrays v2.0.2
+  [5078a376] LazyArrays v2.0.4
   [2d8b4e74] LevyArea v1.0.0
   [d3d80556] LineSearches v7.2.0
   [7ed4a6bd] LinearSolve v2.30.1
-  [2ab3a3ac] LogExpFunctions v0.3.27
+  [2ab3a3ac] LogExpFunctions v0.3.28
   [bdcacae8] LoopVectorization v0.12.170
   [d8e11817] MLStyle v0.4.17
   [f1d291b0] MLUtils v0.4.4
@@ -145,14 +145,14 @@ Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   [5da4648a] NVTX v0.3.4
   [77ba4419] NaNMath v1.0.2
   [71a1bf82] NameResolution v0.1.5
-  [8913a72c] NonlinearSolve v3.12.3
+  [8913a72c] NonlinearSolve v3.12.4
   [d8793406] ObjectFile v0.4.1
   [6fe1bfb0] OffsetArrays v1.14.0
   [0b1bfda6] OneHotArrays v0.2.5
   [429524aa] Optim v1.9.4
   [3bd65402] Optimisers v0.3.3
   [bac558e1] OrderedCollections v1.6.3
-  [1dea7af3] OrdinaryDiffEq v6.80.1
+  [1dea7af3] OrdinaryDiffEq v6.81.1
   [90014a1f] PDMats v0.11.31
   [65ce6f38] PackageExtensionCompat v1.0.2
   [d96e819e] Parameters v0.12.3
@@ -162,7 +162,7 @@ Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   [1d0040c9] PolyesterWeave v0.2.1
   [2dfb63ee] PooledArrays v1.4.3
   [85a6dd25] PositiveFactorizations v0.2.4
-  [d236fae5] PreallocationTools v0.4.21
+  [d236fae5] PreallocationTools v0.4.22
   [aea7be01] PrecompileTools v1.2.1
   [21216c6a] Preferences v1.4.3
   [8162dcfd] PrettyPrint v0.2.0
@@ -174,7 +174,7 @@ Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   [e6cf234a] RandomNumbers v1.5.3
   [c1ae055f] RealDot v0.1.0
   [3cdcf5f2] RecipesBase v1.3.4
-  [731186ca] RecursiveArrayTools v3.20.0
+  [731186ca] RecursiveArrayTools v3.22.0
   [f2c3362d] RecursiveFactorization v0.2.23
   [189a3867] Reexport v1.2.2
   [2792f1a3] RegistryInstances v0.1.0
@@ -185,7 +185,7 @@ Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   [7e49a35a] RuntimeGeneratedFunctions v0.5.13
   [94e857df] SIMDTypes v0.1.0
   [476501e8] SLEEFPirates v0.6.42
-  [0bca4576] SciMLBase v2.39.0
+  [0bca4576] SciMLBase v2.40.0
   [c0aeaf25] SciMLOperators v0.3.8
   [1ed8b502] SciMLSensitivity v7.60.1
   [53ae85a6] SciMLStructures v1.2.0
@@ -205,7 +205,7 @@ Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   [171d559e] SplittablesBase v0.1.15
   [aedffcd0] Static v0.8.10
   [0d7ed370] StaticArrayInterface v1.5.0
-  [90137ffa] StaticArrays v1.9.4
+  [90137ffa] StaticArrays v1.9.5
   [1e83bf80] StaticArraysCore v1.4.2
   [82ae8749] StatsAPI v1.7.0
   [2913bbd2] StatsBase v0.34.3
@@ -221,7 +221,7 @@ Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   [8290d209] ThreadingUtilities v0.5.2
   [a759f4b9] TimerOutputs v0.5.24
   [9f7883ad] Tracker v0.2.34
-  [3bb67fe8] TranscodingStreams v0.10.8
+  [3bb67fe8] TranscodingStreams v0.10.9
 ⌃ [28d57a85] Transducers v0.4.80
   [d5829a12] TriangularSolve v0.2.0
   [410a4b4d] Tricks v0.1.8
@@ -237,7 +237,7 @@ Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   [4ee394cb] CUDA_Driver_jll v0.9.0+0
   [76a88914] CUDA_Runtime_jll v0.14.0+1
 ⌅ [62b44479] CUDNN_jll v9.0.0+1
-  [7cc45869] Enzyme_jll v0.0.117+0
+  [7cc45869] Enzyme_jll v0.0.119+0
   [2e619515] Expat_jll v2.6.2+0
   [f8c6e375] Git_jll v2.44.0+2
   [1d5cc7b8] IntelOpenMP_jll v2024.1.0+0
@@ -298,4 +298,4 @@ Threads: 1 default, 0 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   [8e850b90] libblastrampoline_jll v5.8.0+1
   [8e850ede] nghttp2_jll v1.52.0+1
   [3f19e933] p7zip_jll v17.4.0+2
-Info Packages marked with ⌃ and ⌅ have new versions available. Those with ⌃ may be upgradable, but those with ⌅ are restricted by compatibility constraints from upgrading. To see why use `status --outdated -m`</code></pre></details><p>You can also download the <a href="https://github.com/SciML/HighDimPDE.jl/tree/gh-pages/v2.0.0/assets/Manifest.toml">manifest</a> file and the <a href="https://github.com/SciML/HighDimPDE.jl/tree/gh-pages/v2.0.0/assets/Project.toml">project</a> file.</p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="getting_started/">Getting started »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Friday 31 May 2024 01:24">Friday 31 May 2024</span>. Using Julia version 1.10.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Info Packages marked with ⌃ and ⌅ have new versions available. Those with ⌃ may be upgradable, but those with ⌅ are restricted by compatibility constraints from upgrading. To see why use `status --outdated -m`</code></pre></details><p>You can also download the <a href="https://github.com/SciML/HighDimPDE.jl/tree/gh-pages/v2.0.0/assets/Manifest.toml">manifest</a> file and the <a href="https://github.com/SciML/HighDimPDE.jl/tree/gh-pages/v2.0.0/assets/Project.toml">project</a> file.</p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="getting_started/">Getting started »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Friday 7 June 2024 01:25">Friday 7 June 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
