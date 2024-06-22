@@ -10,7 +10,7 @@ end
 Deep splitting algorithm.
 
 # Arguments
-* `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl).
+* `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/reference/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl).
 * `K`: the number of Monte Carlo integrations.
 * `opt`: optimizer to be used. By default, `Flux.Optimise.Adam(0.01)`.
 * `λs`: the learning rates, used sequentially. Defaults to a single value taken from `opt`.

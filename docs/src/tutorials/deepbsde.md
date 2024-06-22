@@ -5,33 +5,46 @@ Hamilton-Jacobi-Bellman equation that takes a few minutes on a laptop:
 
 ```@example deepbsde
 using HighDimPDE
-using Flux, OptimizationOptimisers
-using DifferentialEquations
+using Flux
+using StochasticDiffEq
 using LinearAlgebra
-d = 100 # number of dimensions
-X0 = fill(0.0f0, d) # initial value of stochastic control process
-tspan = (0.0f0, 1.0f0)
-λ = 1.0f0
 
-g(X) = log(0.5f0 + 0.5f0 * sum(X.^2))
-f(X,u,σᵀ∇u,p,t) = -λ * sum(σᵀ∇u.^2)
-μ_f(X,p,t) = zero(X)  # Vector d x 1 λ
-σ_f(X,p,t) = Diagonal(sqrt(2.0f0) * ones(Float32, d)) # Matrix d x d
-prob = PIDEProblem(μ_f, σ_f, X0, tspan, g, f)
-hls = 10 + d # hidden layer size
-opt = Optimisers.Adam(0.01)  # optimizer
-# sub-neural network approximating solutions at the desired point
+d = 100 # number of dimensions
+x0 = fill(0.0f0, d)
+tspan = (0.0f0, 1.0f0)
+dt = 0.2f0
+λ = 1.0f0
+#
+g(X) = log(0.5f0 + 0.5f0 * sum(X .^ 2))
+f(X, u, σᵀ∇u, p, t) = -λ * sum(σᵀ∇u .^ 2)
+μ_f(X, p, t) = zero(X)  #Vector d x 1 λ
+σ_f(X, p, t) = Diagonal(sqrt(2.0f0) * ones(Float32, d)) #Matrix d x d
+prob = ParabolicPDEProblem(μ_f, σ_f, x0, tspan; g, f)
+
+hls = 10 + d #hidden layer size
+opt = Flux.Optimise.Adam(0.1)  #optimizer
+#sub-neural network approximating solutions at the desired point
 u0 = Flux.Chain(Dense(d, hls, relu),
-                Dense(hls, hls, relu),
-                Dense(hls, 1))
+    Dense(hls, hls, relu),
+    Dense(hls, hls, relu),
+    Dense(hls, 1))
 # sub-neural network approximating the spatial gradients at time point
 σᵀ∇u = Flux.Chain(Dense(d + 1, hls, relu),
-                  Dense(hls, hls, relu),
-                  Dense(hls, hls, relu),
-                  Dense(hls, d))
-pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
-@time ans = solve(prob, pdealg, verbose=true, maxiters=100, trajectories=100,
-                            alg=EM(), dt=1.2, pabstol=1f-2)
+    Dense(hls, hls, relu),
+    Dense(hls, hls, relu),
+    Dense(hls, hls, relu),
+    Dense(hls, d))
+pdealg = DeepBSDE(u0, σᵀ∇u, opt = opt)
+
+@time sol = solve(prob,
+    pdealg,
+    StochasticDiffEq.EM(),
+    verbose = true,
+    maxiters = 150,
+    trajectories = 30,
+    dt = 1.2f0,
+    pabstol = 1.0f-4)
+
 ```
 
 Now, let's explain the details!
@@ -61,9 +74,14 @@ with terminating condition $g(x) = \log(1/2 + 1/2 \|x\|^2))$.
 
 #### Define the Problem
 
-To get the solution above using the `PIDEProblem`, we write:
+To get the solution above using the [`ParabolicPDEProblem`](@ref), we write:
 
 ```@example deepbsde2
+using HighDimPDE
+using Flux
+using StochasticDiffEq
+using LinearAlgebra
+
 d = 100 # number of dimensions
 X0 = fill(0.0f0,d) # initial value of stochastic control process
 tspan = (0.0f0, 1.0f0)
@@ -73,12 +91,12 @@ g(X) = log(0.5f0 + 0.5f0*sum(X.^2))
 f(X,u,σᵀ∇u,p,t) = -λ*sum(σᵀ∇u.^2)
 μ_f(X,p,t) = zero(X)  #Vector d x 1 λ
 σ_f(X,p,t) = Diagonal(sqrt(2.0f0)*ones(Float32,d)) #Matrix d x d
-prob = PIDEProblem(μ_f, σ_f, X0, tspan, g, f)
+prob = ParabolicPDEProblem(μ_f, σ_f, X0, tspan; g, f)
 ```
 
 #### Define the Solver Algorithm
 
-As described in the API docs, we now need to define our `NNPDENS` algorithm
+As described in the API docs, we now need to define our `DeepBSDE` algorithm
 by giving it the Flux.jl chains we want it to use for the neural networks.
 `u0` needs to be a `d` dimensional -> 1 dimensional chain, while `σᵀ∇u`
 needs to be `d+1` dimensional to `d` dimensions. Thus we define the following:
@@ -95,14 +113,13 @@ u0 = Flux.Chain(Dense(d,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,d))
-pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
+pdealg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 ```
 
 #### Solving with Neural Nets
 
 ```@example deepbsde2
-@time ans = solve(prob, pdealg, verbose=true, maxiters=100, trajectories=100,
-                            alg=EM(), dt=0.2, pabstol = 1f-2)
+@time ans = solve(prob, pdealg, EM(), verbose=true, maxiters=100, trajectories=100, dt=0.2f0, pabstol = 1f-2)
 
 ```
 
@@ -121,7 +138,7 @@ equation, which models uncertain volatility and interest rates derived from the
 Black-Scholes equation. This model results in a nonlinear PDE whose dimension
 is the number of assets in the portfolio.
 
-To solve it using the `PIDEProblem`, we write:
+To solve it using the `ParabolicPDEProblem`, we write:
 
 ```julia
 d = 100 # number of dimensions
@@ -133,7 +150,7 @@ f(X,u,σᵀ∇u,p,t) = r * (u - sum(X.*σᵀ∇u))
 g(X) = sum(X.^2)
 μ_f(X,p,t) = zero(X) #Vector d x 1
 σ_f(X,p,t) = Diagonal(sigma*X) #Matrix d x d
-prob = PIDEProblem(μ_f, σ_f, X0, tspan, g, f)
+prob = ParabolicPDEProblem(μ_f, σ_f, X0, tspan; g, f)
 ```
 
 As described in the API docs, we now need to define our `NNPDENS` algorithm
@@ -151,7 +168,7 @@ u0 = Flux.Chain(Dense(d,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,hls,relu),
                   Dense(hls,d))
-pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
+pdealg = DeepBSDE(u0, σᵀ∇u, opt=opt)
 ```
 
 And now we solve the PDE. Here, we say we want to solve the underlying neural
@@ -160,8 +177,7 @@ SDE using the Euler-Maruyama SDE solver with our chosen `dt=0.2`, do at most
 and stop if the loss ever goes below `1f-6`.
 
 ```julia
-ans = solve(prob, pdealg, verbose=true, maxiters=150, trajectories=100,
-                            alg=EM(), dt=0.2, pabstol = 1f-6)
+ans = solve(prob, pdealg, EM(), verbose=true, maxiters=150, trajectories=100, dt=0.2f0)
 ```
 
 ## References

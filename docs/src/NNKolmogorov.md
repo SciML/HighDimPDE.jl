@@ -1,4 +1,4 @@
-# [The `NNKolmogorov` algorithm](@id nn_komogorov)
+# [The `NNKolmogorov` algorithm](@id nn_kolmogorov)
 
 ### Problems Supported:
 1. [`ParabolicPDEProblem`](@ref)

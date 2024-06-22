@@ -6,7 +6,7 @@ cp("./docs/Project.toml", "./docs/src/assets/Project.toml", force = true)
 include("pages.jl")
 
 makedocs(sitename = "HighDimPDE.jl",
-    authors = "Victor Boussange",
+    authors = "#",
     pages = pages,
     clean = true, doctest = false, linkcheck = true,
     format = Documenter.HTML(assets = ["assets/favicon.ico"],
