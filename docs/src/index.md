@@ -3,7 +3,7 @@
 
 **HighDimPDE.jl** is a Julia package to **solve Highly Dimensional non-linear, non-local PDEs** of the forms: 
 
-1. Partial Integro Differential Equations: 
+### 1. Partial Integro Differential Equations: 
 ```math
 \begin{aligned}
     (\partial_t u)(t,x) &= \int_{\Omega} f\big(t,x,{\bf x}, u(t,x),u(t,{\bf x}), ( \nabla_x u )(t,x ),( \nabla_x u )(t,{\bf x} ) \big) \, d{\bf x} \\
@@ -11,9 +11,9 @@
 \end{aligned}
 ```
 
-where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subseteq \R^d$ is subject to initial and boundary conditions, and where $d$ is large.
+where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subseteq \R^d$ is subject to initial and boundary conditions, and where $d$ is large. These equations are defined using the [`PIDEProblem`](@ref)
 
-2. Parabolic Partial Differential Equations: 
+### 2. Parabolic Partial Differential Equations: 
 ```math
 \begin{aligned}
     (\partial_t u)(t,x) &=  f\big(t,x, u(t,x), ( \nabla_x u )(t,x )\big) 
@@ -21,7 +21,7 @@ where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subseteq \R^d$ is subject 
 \end{aligned}
 ```
 
-where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subseteq \R^d$ is subject to initial and boundary conditions, and where $d$ is large.
+where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subseteq \R^d$ is subject to initial and boundary conditions, and where $d$ is large. These equations are defined using the [`ParabolicPDEProblem`](@ref)
 
 !!! note
     The difference between the two problems is that in Partial Integro Differential Equations, the integrand is integrated over **x**, while in Parabolic Integro Differential Equations, the function `f` is just evaluated for `x`.
@@ -32,8 +32,11 @@ where $u \colon [0,T] \times \Omega \to \R$, $\Omega \subseteq \R^d$ is subject 
 
 * the [Multi-Level Picard iterations scheme](@ref mlp)
 
-* the Deep BSDE scheme (@ref deepbsde).
+* [the Deep BSDE scheme](@ref deepbsde).
 
+* [NNKolmogorov](@ref nn_kolmogorov) and [NNParamKolmogorov](@ref nn_paramkolmogorov) schemes for Kolmogorov PDEs.
+
+* [NNStopping] scheme for solving optimal stopping time problem.
 
 To make the most out of **HighDimPDE.jl**, we advise to first have a look at the 
 
