@@ -38,8 +38,8 @@ end
         Dense(hls, 1))
     # sub-neural network approximating the spatial gradients at time point
     σᵀ∇u = [Flux.Chain(Dense(d, hls, relu),
-        Dense(hls, hls, relu),
-        Dense(hls, d)) for i in 1:time_steps]
+                Dense(hls, hls, relu),
+                Dense(hls, d)) for i in 1:time_steps]
 
     alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
@@ -82,8 +82,8 @@ end
         Dense(hls, 1))
     # sub-neural network approximating the spatial gradients at time point
     σᵀ∇u = [Flux.Chain(Dense(d, hls, relu),
-        Dense(hls, hls, relu),
-        Dense(hls, d)) for i in 1:time_steps]
+                Dense(hls, hls, relu),
+                Dense(hls, d)) for i in 1:time_steps]
 
     alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
@@ -125,9 +125,9 @@ end
         Dense(hls, hls, relu),
         Dense(hls, 1))
     σᵀ∇u = [Flux.Chain(Dense(d, hls, relu),
-        Dense(hls, hls, relu),
-        Dense(hls, hls, relu),
-        Dense(hls, d)) for i in 1:time_steps]
+                Dense(hls, hls, relu),
+                Dense(hls, hls, relu),
+                Dense(hls, d)) for i in 1:time_steps]
 
     alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
@@ -170,8 +170,8 @@ end
 
     # sub-neural network approximating the spatial gradients at time point
     σᵀ∇u = [Flux.Chain(Dense(d, hls, relu),
-        Dense(hls, hls, relu),
-        Dense(hls, d)) for i in 1:time_steps]
+                Dense(hls, hls, relu),
+                Dense(hls, d)) for i in 1:time_steps]
 
     alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
@@ -216,9 +216,9 @@ end
 
     # sub-neural network approximating the spatial gradients at time point
     σᵀ∇u = [Flux.Chain(Dense(d, hls, relu),
-        Dense(hls, hls, relu),
-        Dense(hls, hls, relu),
-        Dense(hls, d)) for i in 1:time_steps]
+                Dense(hls, hls, relu),
+                Dense(hls, hls, relu),
+                Dense(hls, d)) for i in 1:time_steps]
 
     alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
@@ -235,7 +235,7 @@ end
     W() = randn(d, 1)
     u_analytical(x, t) = -(1 / λ) *
                          log(mean(exp(-λ * g(x .+ sqrt(2.0) * abs.(T - t) .* W()))
-                                  for _ in 1:MC))
+    for _ in 1:MC))
     analytical_sol = u_analytical(x0, tspan[1])
 
     error_l2 = rel_error_l2(sol.us, analytical_sol)
@@ -288,9 +288,9 @@ end
         Dense(hls, 1))
 
     σᵀ∇u = [Flux.Chain(Dense(d, hls, relu),
-        Dense(hls, hls, relu),
-        Dense(hls, hls, relu),
-        Dense(hls, d)) for i in 1:time_steps]
+                Dense(hls, hls, relu),
+                Dense(hls, hls, relu),
+                Dense(hls, d)) for i in 1:time_steps]
     alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
     sol = solve(prob,

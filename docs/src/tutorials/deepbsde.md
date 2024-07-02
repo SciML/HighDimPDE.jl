@@ -44,7 +44,6 @@ pdealg = DeepBSDE(u0, σᵀ∇u, opt = opt)
     trajectories = 30,
     dt = 1.2f0,
     pabstol = 1.0f-4)
-
 ```
 
 Now, let's explain the details!
@@ -62,6 +61,7 @@ Here, we choose to solve the classical Linear Quadratic Gaussian
 ```math
 d X_t = 2 \sqrt{\lambda} c_t dt + \sqrt{2}dW_t
 ```
+
 where $c_t$ is a control process. The solution to the optimal control is given by a PDE of the form:
 
 ```math
@@ -83,14 +83,14 @@ using StochasticDiffEq
 using LinearAlgebra
 
 d = 100 # number of dimensions
-X0 = fill(0.0f0,d) # initial value of stochastic control process
+X0 = fill(0.0f0, d) # initial value of stochastic control process
 tspan = (0.0f0, 1.0f0)
 λ = 1.0f0
 
-g(X) = log(0.5f0 + 0.5f0*sum(X.^2))
-f(X,u,σᵀ∇u,p,t) = -λ*sum(σᵀ∇u.^2)
-μ_f(X,p,t) = zero(X)  #Vector d x 1 λ
-σ_f(X,p,t) = Diagonal(sqrt(2.0f0)*ones(Float32,d)) #Matrix d x d
+g(X) = log(0.5f0 + 0.5f0 * sum(X .^ 2))
+f(X, u, σᵀ∇u, p, t) = -λ * sum(σᵀ∇u .^ 2)
+μ_f(X, p, t) = zero(X)  #Vector d x 1 λ
+σ_f(X, p, t) = Diagonal(sqrt(2.0f0) * ones(Float32, d)) #Matrix d x d
 prob = ParabolicPDEProblem(μ_f, σ_f, X0, tspan; g, f)
 ```
 
@@ -105,22 +105,22 @@ needs to be `d+1` dimensional to `d` dimensions. Thus we define the following:
 hls = 10 + d #hidden layer size
 opt = Flux.Optimise.Adam(0.01)  #optimizer
 #sub-neural network approximating solutions at the desired point
-u0 = Flux.Chain(Dense(d,hls,relu),
-                Dense(hls,hls,relu),
-                Dense(hls,1))
+u0 = Flux.Chain(Dense(d, hls, relu),
+    Dense(hls, hls, relu),
+    Dense(hls, 1))
 # sub-neural network approximating the spatial gradients at time point
-σᵀ∇u = Flux.Chain(Dense(d+1,hls,relu),
-                  Dense(hls,hls,relu),
-                  Dense(hls,hls,relu),
-                  Dense(hls,d))
+σᵀ∇u = Flux.Chain(Dense(d + 1, hls, relu),
+    Dense(hls, hls, relu),
+    Dense(hls, hls, relu),
+    Dense(hls, d))
 pdealg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 ```
 
 #### Solving with Neural Nets
 
 ```@example deepbsde2
-@time ans = solve(prob, pdealg, EM(), verbose=true, maxiters=100, trajectories=100, dt=0.2f0, pabstol = 1f-2)
-
+@time ans = solve(prob, pdealg, EM(), verbose = true, maxiters = 100,
+    trajectories = 100, dt = 0.2f0, pabstol = 1.0f-2)
 ```
 
 Here we want to solve the underlying neural
@@ -142,14 +142,14 @@ To solve it using the `ParabolicPDEProblem`, we write:
 
 ```julia
 d = 100 # number of dimensions
-X0 = repeat([1.0f0, 0.5f0], div(d,2)) # initial value of stochastic state
-tspan = (0.0f0,1.0f0)
+X0 = repeat([1.0f0, 0.5f0], div(d, 2)) # initial value of stochastic state
+tspan = (0.0f0, 1.0f0)
 r = 0.05f0
 sigma = 0.4f0
-f(X,u,σᵀ∇u,p,t) = r * (u - sum(X.*σᵀ∇u))
-g(X) = sum(X.^2)
-μ_f(X,p,t) = zero(X) #Vector d x 1
-σ_f(X,p,t) = Diagonal(sigma*X) #Matrix d x d
+f(X, u, σᵀ∇u, p, t) = r * (u - sum(X .* σᵀ∇u))
+g(X) = sum(X .^ 2)
+μ_f(X, p, t) = zero(X) #Vector d x 1
+σ_f(X, p, t) = Diagonal(sigma * X) #Matrix d x d
 prob = ParabolicPDEProblem(μ_f, σ_f, X0, tspan; g, f)
 ```
 
@@ -159,16 +159,16 @@ by giving it the Flux.jl chains we want it to use for the neural networks.
 needs to be `d+1`-dimensional to `d` dimensions. Thus we define the following:
 
 ```julia
-hls  = 10 + d #hide layer size
+hls = 10 + d #hide layer size
 opt = Flux.Optimise.Adam(0.001)
-u0 = Flux.Chain(Dense(d,hls,relu),
-                Dense(hls,hls,relu),
-                Dense(hls,1))
-σᵀ∇u = Flux.Chain(Dense(d+1,hls,relu),
-                  Dense(hls,hls,relu),
-                  Dense(hls,hls,relu),
-                  Dense(hls,d))
-pdealg = DeepBSDE(u0, σᵀ∇u, opt=opt)
+u0 = Flux.Chain(Dense(d, hls, relu),
+    Dense(hls, hls, relu),
+    Dense(hls, 1))
+σᵀ∇u = Flux.Chain(Dense(d + 1, hls, relu),
+    Dense(hls, hls, relu),
+    Dense(hls, hls, relu),
+    Dense(hls, d))
+pdealg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 ```
 
 And now we solve the PDE. Here, we say we want to solve the underlying neural
@@ -177,9 +177,10 @@ SDE using the Euler-Maruyama SDE solver with our chosen `dt=0.2`, do at most
 and stop if the loss ever goes below `1f-6`.
 
 ```julia
-ans = solve(prob, pdealg, EM(), verbose=true, maxiters=150, trajectories=100, dt=0.2f0)
+ans = solve(
+    prob, pdealg, EM(), verbose = true, maxiters = 150, trajectories = 100, dt = 0.2f0)
 ```
 
 ## References
 
-1. Shinde, A. S., and K. C. Takale. "Study of Black-Scholes model and its applications." Procedia Engineering 38 (2012): 270-279.
+ 1. Shinde, A. S., and K. C. Takale. "Study of Black-Scholes model and its applications." Procedia Engineering 38 (2012): 270-279.

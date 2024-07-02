@@ -5,7 +5,7 @@ pages = [
     "Solver Algorithms" => ["MLP.md",
         "DeepSplitting.md",
         "DeepBSDE.md",
-        "NNStopping.md", 
+        "NNStopping.md",
         "NNKolmogorov.md",
         "NNParamKolmogorov.md"],
     "Tutorials" => [
@@ -14,14 +14,13 @@ pages = [
         "tutorials/mlp.md",
         "tutorials/nnstopping.md",
         "tutorials/nnkolmogorov.md",
-        "tutorials/nnparamkolmogorov.md",
+        "tutorials/nnparamkolmogorov.md"
     ],
     "Extended Examples" => [
-        "examples/blackscholes.md",
+        "examples/blackscholes.md"
     ],
-    "Solver Algorithms" => 
-        ["MLP.md",
+    "Solver Algorithms" => ["MLP.md",
         "DeepSplitting.md",
         "DeepBSDE.md"],
-    "Feynman Kac formula" => "Feynman_Kac.md",
+    "Feynman Kac formula" => "Feynman_Kac.md"
 ]

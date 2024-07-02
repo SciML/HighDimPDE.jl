@@ -155,12 +155,12 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
     function neural_sde(init_cond)
         sde_prob = remake(sde_prob, u0 = init_cond)
         ensemble_prob = EnsembleProblem(sde_prob)
-        sol = solve(ensemble_prob, sdealg, EnsembleSerial(); 
-            u0 = init_cond, trajectories = trajectories, dt = dt, p = p3, 
-            sensealg = SciMLSensitivity.TrackerAdjoint(), 
+        sol = solve(ensemble_prob, sdealg, EnsembleSerial();
+            u0 = init_cond, trajectories = trajectories, dt = dt, p = p3,
+            sensealg = SciMLSensitivity.TrackerAdjoint(),
             save_everystep = false,
             kwargs...)
-        map(sol) do _sol 
+        map(sol) do _sol
             predict_ans = Array(_sol)
             (predict_ans[1:(end - 1), end], predict_ans[end, end])
         end
@@ -290,7 +290,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
                     f_matrix = give_f_matrix(X, u_domain, _σᵀ∇u, p, ts[i])
                     a_ = A[findmax(collect(A) .* u .-
                                    collect(legendre_transform(f_matrix, a, u_domain)
-                                           for a in A))[2]]
+                    for a in A))[2]]
                     I = I + a_ * dt
                     Q = Q + exp(I) * legendre_transform(f_matrix, a_, u_domain)
                 end

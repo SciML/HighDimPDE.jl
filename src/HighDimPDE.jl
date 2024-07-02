@@ -70,61 +70,58 @@ with `` u(x,0) = g(x)``.
 * `neumann_bc`: if provided, Neumann boundary conditions on the hypercube `neumann_bc[1] × neumann_bc[2]`.
 """
 function PIDEProblem(μ,
-    σ,
-    x0::Union{Nothing, AbstractArray},
-    tspan::TF,
-    g,
-    f;
-    p::Union{Nothing, AbstractVector} = nothing,
-    x0_sample::Union{Nothing, AbstractSampling} = NoSampling(),
-    neumann_bc::Union{Nothing, AbstractVector} = nothing,
-    kw...) where {TF <: Tuple{AbstractFloat, AbstractFloat}}
-
-
+        σ,
+        x0::Union{Nothing, AbstractArray},
+        tspan::TF,
+        g,
+        f;
+        p::Union{Nothing, AbstractVector} = nothing,
+        x0_sample::Union{Nothing, AbstractSampling} = NoSampling(),
+        neumann_bc::Union{Nothing, AbstractVector} = nothing,
+        kw...) where {TF <: Tuple{AbstractFloat, AbstractFloat}}
     isnothing(neumann_bc) ? nothing : @assert eltype(eltype(neumann_bc)) <: eltype(x0)
 
     @assert(eltype(f(x0, x0, g(x0), g(x0), x0, x0, p, tspan[1]))==eltype(x0),
-                "Type returned by non linear function `f` must match the type of `x0`")
+        "Type returned by non linear function `f` must match the type of `x0`")
 
     @assert eltype(g(x0))==eltype(x0) "Type of `g(x)` must match the Type of x"
 
     PIDEProblem{typeof(g(x0)),
-    typeof(g),
-    typeof(f),
-    typeof(μ),
-    typeof(σ),
-    typeof(x0),
-    eltype(tspan),
-    typeof(p),
-    typeof(x0_sample),
-    typeof(neumann_bc),
-    typeof(kw)}(g(x0),
-    g,
-    f,
-    μ,
-    σ,
-    x0,
-    tspan,
-    p,
-    x0_sample,
-    neumann_bc,
-    kw)
-
+        typeof(g),
+        typeof(f),
+        typeof(μ),
+        typeof(σ),
+        typeof(x0),
+        eltype(tspan),
+        typeof(p),
+        typeof(x0_sample),
+        typeof(neumann_bc),
+        typeof(kw)}(g(x0),
+        g,
+        f,
+        μ,
+        σ,
+        x0,
+        tspan,
+        p,
+        x0_sample,
+        neumann_bc,
+        kw)
 end
 
 struct ParabolicPDEProblem{uType, G, F, Mu, Sigma, xType, tType, P, UD, NBC, K} <:
-    DiffEqBase.AbstractODEProblem{uType, tType, false}
- u0::uType
- g::G # initial condition
- f::F # nonlinear part
- μ::Mu
- σ::Sigma
- x::xType
- tspan::Tuple{tType, tType}
- p::P
- x0_sample::UD # the domain of u to be solved
- neumann_bc::NBC # neumann boundary conditions
- kwargs::K
+       DiffEqBase.AbstractODEProblem{uType, tType, false}
+    u0::uType
+    g::G # initial condition
+    f::F # nonlinear part
+    μ::Mu
+    σ::Sigma
+    x::xType
+    tspan::Tuple{tType, tType}
+    p::P
+    x0_sample::UD # the domain of u to be solved
+    neumann_bc::NBC # neumann boundary conditions
+    kwargs::K
 end
 
 """
@@ -185,7 +182,7 @@ function ParabolicPDEProblem(μ,
     @assert !isnothing(x0)||!isnothing(xspan) "Either of `x0` or `xspan` must be provided."
 
     !isnothing(f) && @assert(eltype(f(x0, eltype(x0)(0.0), x0, p, tspan[1]))==eltype(x0),
-                    "Type of non linear function `f(x)` must type of x")
+        "Type of non linear function `f(x)` must type of x")
 
     # Wrap kwargs : 
     kw = NamedTuple(kw)
@@ -270,7 +267,8 @@ include("NNStopping.jl")
 include("NNKolmogorov.jl")
 include("NNParamKolmogorov.jl")
 
-export PIDEProblem, ParabolicPDEProblem, PIDESolution, DeepSplitting, DeepBSDE, MLP, NNStopping
+export PIDEProblem, ParabolicPDEProblem, PIDESolution, DeepSplitting, DeepBSDE, MLP,
+       NNStopping
 export NNKolmogorov, NNParamKolmogorov
 export NormalSampling, UniformSampling, NoSampling, solve
 end
