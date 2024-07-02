@@ -4,7 +4,7 @@ using Test
 using Flux
 using Statistics
 using CUDA
-using Random 
+using Random
 Random.seed!(100)
 
 if CUDA.functional()
@@ -376,7 +376,7 @@ if false
         W() = randn(d, 1)
         u_analytical(x, t) = -(1 / λ) *
                              log(mean(exp(-λ * g(x .+ sqrt(2.0f0) * abs.(T - t) .* W()))
-                                      for _ in 1:MC))
+        for _ in 1:MC))
 
         hls = d + 50 #hidden layer size
 

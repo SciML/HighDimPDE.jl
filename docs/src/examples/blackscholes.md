@@ -12,14 +12,14 @@ To solve it using the `PIDEProblem`, we write:
 
 ```julia
 d = 100 # number of dimensions
-X0 = repeat([1.0f0, 0.5f0], div(d,2)) # initial value of stochastic state
-tspan = (0.0f0,1.0f0)
+X0 = repeat([1.0f0, 0.5f0], div(d, 2)) # initial value of stochastic state
+tspan = (0.0f0, 1.0f0)
 r = 0.05f0
 sigma = 0.4f0
-f(X,u,σᵀ∇u,p,t) = r * (u - sum(X.*σᵀ∇u))
-g(X) = sum(X.^2)
-μ_f(X,p,t) = zero(X) #Vector d x 1
-σ_f(X,p,t) = Diagonal(sigma*X) #Matrix d x d
+f(X, u, σᵀ∇u, p, t) = r * (u - sum(X .* σᵀ∇u))
+g(X) = sum(X .^ 2)
+μ_f(X, p, t) = zero(X) #Vector d x 1
+σ_f(X, p, t) = Diagonal(sigma * X) #Matrix d x d
 prob = PIDEProblem(g, f, μ_f, σ_f, X0, tspan)
 ```
 
@@ -29,16 +29,16 @@ by giving it the Flux.jl chains we want it to use for the neural networks.
 needs to be `d+1`-dimensional to `d` dimensions. Thus we define the following:
 
 ```julia
-hls  = 10 + d #hide layer size
+hls = 10 + d #hide layer size
 opt = Flux.Optimise.Adam(0.001)
-u0 = Flux.Chain(Dense(d,hls,relu),
-                Dense(hls,hls,relu),
-                Dense(hls,1))
-σᵀ∇u = Flux.Chain(Dense(d+1,hls,relu),
-                  Dense(hls,hls,relu),
-                  Dense(hls,hls,relu),
-                  Dense(hls,d))
-pdealg = NNPDENS(u0, σᵀ∇u, opt=opt)
+u0 = Flux.Chain(Dense(d, hls, relu),
+    Dense(hls, hls, relu),
+    Dense(hls, 1))
+σᵀ∇u = Flux.Chain(Dense(d + 1, hls, relu),
+    Dense(hls, hls, relu),
+    Dense(hls, hls, relu),
+    Dense(hls, d))
+pdealg = NNPDENS(u0, σᵀ∇u, opt = opt)
 ```
 
 And now we solve the PDE. Here, we say we want to solve the underlying neural
@@ -47,10 +47,10 @@ SDE using the Euler-Maruyama SDE solver with our chosen `dt=0.2`, do at most
 and stop if the loss ever goes below `1f-6`.
 
 ```julia
-ans = solve(prob, pdealg, verbose=true, maxiters=150, trajectories=100,
-                            alg=EM(), dt=0.2, pabstol = 1f-6)
+ans = solve(prob, pdealg, verbose = true, maxiters = 150, trajectories = 100,
+    alg = EM(), dt = 0.2, pabstol = 1.0f-6)
 ```
 
 ## References
 
-1. Shinde, A. S., and K. C. Takale. "Study of Black-Scholes model and its applications." Procedia Engineering 38 (2012): 270-279.
+ 1. Shinde, A. S., and K. C. Takale. "Study of Black-Scholes model and its applications." Procedia Engineering 38 (2012): 270-279.

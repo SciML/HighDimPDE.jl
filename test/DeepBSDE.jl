@@ -25,7 +25,7 @@ end
 
     g(X) = sum(X .^ 2)   # terminal condition
     f(X, u, σᵀ∇u, p, t) = eltype(X)(0.0)
-    μ_f(X, p, t) = X*0.0f0 #Vector d x 1
+    μ_f(X, p, t) = X * 0.0f0 #Vector d x 1
     σ_f(X, p, t) = Diagonal(ones(eltype(X), d)) |> Matrix #Matrix d x d
     prob = ParabolicPDEProblem(μ_f, σ_f, x0, tspan; g, f)
 
@@ -227,7 +227,7 @@ end
     W() = randn(d, 1)
     u_analytical(x, t) = -(1 / λ) *
                          log(mean(exp(-λ * g(x .+ sqrt(2.0) * abs.(T - t) .* W()))
-                                  for _ in 1:MC))
+    for _ in 1:MC))
     analytical_sol = u_analytical(x0, tspan[1])
     error_l2 = rel_error_l2(sol.us, analytical_sol)
     println("error_l2 = ", error_l2, "\n")

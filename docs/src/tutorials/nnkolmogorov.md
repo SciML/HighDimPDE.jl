@@ -6,12 +6,12 @@
 using HighDimPDE, StochasticDiffEq, Flux, LinearAlgebra
 
 d = 10 # dims
-T = 1/12 
-sigma = 0.01 .+ 0.03.*Matrix(Diagonal(ones(d))) # volatility 
+T = 1 / 12
+sigma = 0.01 .+ 0.03 .* Matrix(Diagonal(ones(d))) # volatility 
 mu = 0.06 # interest rate
 K = 100.0 # strike price
 function μ_func(du, u, p, t)
-    du .= mu*u
+    du .= mu * u
 end
 
 function σ_func(du, u, p, t)
@@ -22,7 +22,7 @@ tspan = (0.0, T)
 # The range for initial stock price
 xspan = [(98.00, 102.00) for i in 1:d]
 
-g(x) = max(maximum(x) -K, 0)
+g(x) = max(maximum(x) - K, 0)
 
 sdealg = SRIW1()
 # provide `x0` as nothing to the problem since we are provinding a range for `x0`.

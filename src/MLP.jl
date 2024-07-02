@@ -32,7 +32,7 @@ Returns a `PIDESolution` object.
 function DiffEqBase.solve(prob::Union{PIDEProblem, ParabolicPDEProblem},
         alg::MLP;
         multithreading = true,
-        verbose = false,)
+        verbose = false)
 
     # unbin stuff
     x = prob.x
@@ -41,9 +41,9 @@ function DiffEqBase.solve(prob::Union{PIDEProblem, ParabolicPDEProblem},
     M = alg.M
     L = alg.L
     mc_sample! = alg.mc_sample!
-    g= prob.g 
+    g = prob.g
     f = if isa(prob, ParabolicPDEProblem)
-        (y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) -> prob.f(y, v_y, ∇v_y, p, t )
+        (y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) -> prob.f(y, v_y, ∇v_y, p, t)
     else
         prob.f
     end
@@ -197,7 +197,7 @@ function _ml_picard_mlt(M, # monte carlo integration
     # distributing tasks
     NUM_THREADS = Threads.nthreads()
     tasks = [Threads.@spawn(_ml_picard_call(M, L, K, x, s, t, mc_sample!, g, f, verbose,
-        NUM_THREADS, thread_id, prob, neumann_bc)) for thread_id in 1:NUM_THREADS]
+                 NUM_THREADS, thread_id, prob, neumann_bc)) for thread_id in 1:NUM_THREADS]
 
     # first level
     num = M^(L)

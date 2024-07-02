@@ -22,7 +22,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         limits = false,
         trajectories_upper = 1000,
         trajectories_lower = 1000,
-        maxiters_limits = 10,)
+        maxiters_limits = 10)
     X0 = prob.x
     ts = prob.tspan[1]:dt:prob.tspan[2]
     d = length(X0)
@@ -144,7 +144,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
                     f_matrix = give_f_matrix(X, u_domain, _σᵀ∇u, p, ts[i])
                     a_ = A[findmax(collect(A) .* u .-
                                    collect(legendre_transform(f_matrix, a, u_domain)
-                                           for a in A))[2]]
+                    for a in A))[2]]
                     I = I + a_ * dt
                     Q = Q + exp(I) * legendre_transform(f_matrix, a_, u_domain)
                 end

@@ -52,7 +52,8 @@ function analytical(x, t, y)
     return x .^ 2 .+ t .* (y .* y)
 end
 
-preds = map((i) -> sol.ufuns(x_test[:, :, i],
+preds = map(
+    (i) -> sol.ufuns(x_test[:, :, i],
         t_test[:, i],
         γ_sigma_test[:, :, :, i],
         nothing,
