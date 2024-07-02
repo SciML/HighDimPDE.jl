@@ -137,32 +137,32 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         u = h[end]
         X = h[1:(end - 1)].data
         t_ = eltype(X)(t)
-        _σᵀ∇u = σᵀ∇u([X; t_])' |> collect
-        _f = -f(X, u.data, _σᵀ∇u, p, t_)
-
+        _σᵀ∇u = re2(p)([X; t_])' |> collect
+        _f = -f(X, u.data, _σᵀ∇u, re3(p), t_)
         Tracker.TrackedArray(vcat(μ(X, p, t), [_f]))
     end
 
     function G(h::Tracker.TrackedArray, p, t)
         X = h[1:(end - 1)].data
         t_ = eltype(X)(t)
-        _σᵀ∇u = σᵀ∇u([X; t_])' |> collect
-        Tracker.TrackedArray(vcat(σ(X, p, t), _σᵀ∇u))
+        _σᵀ∇u = re2(p)([X; t_])' |> collect
+        Tracker.TrackedArray(vcat(σ(X, re3(p), t), _σᵀ∇u))
     end
 
     noise = zeros(Float32, d + 1, d)
-    prob = SDEProblem{false}(F, G, [x0; 0.0f0], tspan, p3, noise_rate_prototype = noise)
+    sde_prob = SDEProblem{false}(F, G, [x0; 0.0f0], tspan, p3, noise_rate_prototype = noise)
 
     function neural_sde(init_cond)
-        map(1:trajectories) do j #TODO add Ensemble Simulation
-            predict_ans = Array(solve(prob, sdealg;
-                dt = dt,
-                u0 = init_cond,
-                p = p3,
-                save_everystep = false,
-                sensealg = SciMLSensitivity.TrackerAdjoint(),
-                kwargs...))[:, end]
-            (X, u) = (predict_ans[1:(end - 1)], predict_ans[end])
+        sde_prob = remake(sde_prob, u0 = init_cond)
+        ensemble_prob = EnsembleProblem(sde_prob)
+        sol = solve(ensemble_prob, sdealg, EnsembleSerial();
+            u0 = init_cond, trajectories = trajectories, dt = dt, p = p3,
+            sensealg = SciMLSensitivity.TrackerAdjoint(),
+            save_everystep = false,
+            kwargs...)
+        map(sol) do _sol
+            predict_ans = Array(_sol)
+            (predict_ans[1:(end - 1), end], predict_ans[end, end])
         end
     end
 
@@ -185,7 +185,6 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         verbose && println("Current loss is: $l")
         l < pabstol && Flux.stop()
     end
-
     verbose && println("DeepBSDE")
     Flux.train!(loss_n_sde, ps, data, opt; cb = cb)
 
@@ -291,7 +290,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
                     f_matrix = give_f_matrix(X, u_domain, _σᵀ∇u, p, ts[i])
                     a_ = A[findmax(collect(A) .* u .-
                                    collect(legendre_transform(f_matrix, a, u_domain)
-                                           for a in A))[2]]
+                    for a in A))[2]]
                     I = I + a_ * dt
                     Q = Q + exp(I) * legendre_transform(f_matrix, a_, u_domain)
                 end
