@@ -39,6 +39,8 @@ prob = ParabolicPDEProblem(f, sigma, u0, tspan; payoff = g)
 ```
 
 !!! note
+    
+
 We provide the payoff function with a keyword argument `payoff`
 
 And now we define our models:
@@ -49,6 +51,8 @@ models = [Chain(Dense(d + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoi
 ```
 
 !!! note
+    
+
 The number of models should be equal to the time discritization.
 
 And finally we define our optimizer and algorithm, and call `solve`:

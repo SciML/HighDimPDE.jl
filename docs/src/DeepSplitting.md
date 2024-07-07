@@ -112,6 +112,8 @@ u(t_{n+1}, X_{T - t_{n+1}}) \approx \sum_{j=1}^{\text{batch\_size}} \left[ u(t_{
 ```
 
 !!! tip
+    
+
 In practice, if you have a non-local model, you need to provide the sampling method and the number $K$ of MC integration through the keywords `mc_sample` and `K`.
 `julia alg = DeepSplitting(nn, opt = opt, mc_sample = mc_sample, K = 1) `
 `mc_sample` can be whether `UniformSampling(a, b)` or ` NormalSampling(σ_sampling, shifted)`.
