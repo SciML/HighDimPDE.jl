@@ -1,0 +1,36 @@
+steps:
+  - label: "Julia 1"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1"
+      - JuliaCI/julia-test#v1:
+           coverage: false # 1000x slowdown
+    agents:
+      queue: "juliagpu"
+      cuda: "*"
+    env:
+      GROUP: 'GPU'
+    timeout_in_minutes: 60
+    # Don't run Buildkite if the commit message includes the text [skip tests]
+    if: build.message !~ /\[skip tests\]/
+
+  - label: "Documentation"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1"
+    command: |
+      julia --project=docs -e '
+        println("--- :julia: Instantiating project")
+        using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()
+        println("+++ :julia: Building documentation")
+        include("docs/make.jl")'
+    agents:
+      queue: "juliagpu"
+      cuda: "*"
+    if: build.message !~ /\[skip docs\]/ && !build.pull_request.draft
+    timeout_in_minutes: 1000
+    env:
+      SECRET_DOCUMENTER_KEY: "v/2iYv+rW3iCgDU5Cp4DN1P51xQvXkC4aTO28pDLysKaNTVopjzsQNNtgJaswckg5ahdusdnAmlDRd8oMEobmyPM7PY7wppGdr6MHfUhwakJ7AAWAyAEIb+e+fNFuu+EIHS43bU+vkgzCgKojFEGwa5AFSW69rucnuwROXzIrQQ6GgXF4LayvDMDbUgYPjjnS2zAgfkWOR1L5UJ2ODuy3zK+VESS5YVFRNSmhAnT0EdS2AsenBwa25IgHsYkGO1fR/CL+1epFg7yzSOA+bExDWD0L4WkjKzU8qTlMAI2BAw+clJLhcpZyy4MdUG8hLmic0vvYjBOdjgqtl1f9xtMwQ==;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"
+
+env:
+  JULIA_PKG_SERVER: "" # it often struggles with our large artifacts

@@ -1,7 +1,7 @@
 _copy(t::Tuple) = t
 _copy(t) = t
-function _copy(opt::O) where  O<:Flux.Optimise.AbstractOptimiser
-    return O([_copy(getfield(opt,f)) for f in fieldnames(typeof(opt))]...)
+function _copy(opt::O) where {O <: Flux.Optimise.AbstractOptimiser}
+    return O([_copy(getfield(opt, f)) for f in fieldnames(typeof(opt))]...)
 end
 
 """
@@ -10,7 +10,7 @@ end
 Deep splitting algorithm.
 
 # Arguments
-* `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl).
+* `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/reference/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl).
 * `K`: the number of Monte Carlo integrations.
 * `opt`: optimizer to be used. By default, `Flux.Optimise.Adam(0.01)`.
 * `λs`: the learning rates, used sequentially. Defaults to a single value taken from `opt`.
@@ -44,7 +44,7 @@ function DeepSplitting(nn;
         λs::L = nothing,
         mc_sample = NoSampling()) where {
         O <: Flux.Optimise.AbstractOptimiser,
-        L <: Union{Nothing, Vector{N}} where {N <: Number},
+        L <: Union{Nothing, Vector{N}} where {N <: Number}
 }
     isnothing(λs) ? λs = [opt.eta] : nothing
     DeepSplitting(nn, K, opt, λs, mc_sample)
@@ -101,7 +101,7 @@ function DiffEqBase.solve(prob::Union{PIDEProblem, ParabolicPDEProblem},
     g, μ, σ, p = prob.g, prob.μ, prob.σ, prob.p
 
     f = if isa(prob, ParabolicPDEProblem)
-        (y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) -> prob.f(y, v_y, ∇v_y, p, t )
+        (y, z, v_y, v_z, ∇v_y, ∇v_z, p, t) -> prob.f(y, v_y, ∇v_y, p, t)
     else
         prob.f
     end
