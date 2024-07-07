@@ -759,7 +759,7 @@ version = "1.11.2"
 
 [[deps.HighDimPDE]]
 deps = ["CUDA", "DiffEqBase", "DocStringExtensions", "Flux", "Functors", "LinearAlgebra", "Random", "Reexport", "SciMLBase", "SciMLSensitivity", "SparseArrays", "Statistics", "StochasticDiffEq", "Test", "Tracker", "Zygote", "cuDNN"]
-path = "/var/lib/buildkite-agent/builds/gpuci-10/julialang/highdimpde-dot-jl"
+path = "/home/runner/work/HighDimPDE.jl/HighDimPDE.jl"
 uuid = "57c578d5-59d4-4db8-a490-a9fc372d19d2"
 version = "2.0.0"
 
