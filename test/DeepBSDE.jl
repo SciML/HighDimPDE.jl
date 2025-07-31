@@ -225,8 +225,9 @@ end
     T = tspan[2]
     MC = 10^5
     W() = randn(d, 1)
-    u_analytical(x, t) = -(1 / λ) *
-                         log(mean(exp(-λ * g(x .+ sqrt(2.0) * abs.(T - t) .* W()))
+    u_analytical(x,
+        t) = -(1 / λ) *
+             log(mean(exp(-λ * g(x .+ sqrt(2.0) * abs.(T - t) .* W()))
     for _ in 1:MC))
     analytical_sol = u_analytical(x0, tspan[1])
     error_l2 = rel_error_l2(sol.us, analytical_sol)

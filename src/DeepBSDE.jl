@@ -289,7 +289,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
                     X = X .+ μ(X, p, t) * dt .+ σ(X, p, t) * dW
                     f_matrix = give_f_matrix(X, u_domain, _σᵀ∇u, p, ts[i])
                     a_ = A[findmax(collect(A) .* u .-
-                                   collect(legendre_transform(f_matrix, a, u_domain)
+                                     collect(legendre_transform(f_matrix, a, u_domain)
                     for a in A))[2]]
                     I = I + a_ * dt
                     Q = Q + exp(I) * legendre_transform(f_matrix, a_, u_domain)
