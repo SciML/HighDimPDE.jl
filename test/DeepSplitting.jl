@@ -342,7 +342,8 @@ if false
             # defining the problem
             prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
             # solving
-            @time xs, ts, sol = solve(prob,
+            @time xs, ts,
+            sol = solve(prob,
                 alg,
                 dt,
                 verbose = true,
@@ -374,8 +375,9 @@ if false
         T = tspan[2]
         MC = 10^5
         W() = randn(d, 1)
-        u_analytical(x, t) = -(1 / λ) *
-                             log(mean(exp(-λ * g(x .+ sqrt(2.0f0) * abs.(T - t) .* W()))
+        u_analytical(x,
+            t) = -(1 / λ) *
+                 log(mean(exp(-λ * g(x .+ sqrt(2.0f0) * abs.(T - t) .* W()))
         for _ in 1:MC))
 
         hls = d + 50 #hidden layer size

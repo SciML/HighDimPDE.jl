@@ -141,7 +141,8 @@ prob = PIDEProblem(μ, σ, tspan, g, f,
     x0_sample = x0_sample
 )
 # solving
-xgrid, ts, sol = solve(prob,
+xgrid, ts,
+sol = solve(prob,
     alg,
     dt,
     verbose = false,

@@ -79,7 +79,8 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
     xi = mapreduce(x -> rand(x, 1, trajectories), vcat, xs)
     ti = rand(ts, 1, trajectories)
 
-    ps_sigma, ps_mu, ps_phi = map(zip(p_domain,
+    ps_sigma, ps_mu,
+    ps_phi = map(zip(p_domain,
         p_prototype,
         dps)) do (domain, prototype, dp)
         # domain , prototype, dp = p_domain[key], p_prototype[key], dps[key]
@@ -105,7 +106,9 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
     ps_phi_iterator = !isnothing(ps_phi) ? eachslice(ps_phi, dims = length(size(ps_phi))) :
                       collect(Iterators.repeated(nothing, trajectories))
     # return xi, ti, ps_sigma_iterator[1]
-    prob_func = (prob, i, repeat) -> begin
+    prob_func = (prob,
+        i,
+        repeat) -> begin
         sigma_(dx, x, p, t) = sigma(dx, x, ps_sigma_iterator[i], t)
         mu_(dx, x, p, t) = mu(dx, x, ps_mu_iterator[i], t)
         SDEProblem(mu_,
@@ -150,7 +153,11 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         push!(losses, l)
     end
 
-    sol_func = (x0, t, _p_sigma, _p_mu, _p_phi) -> begin
+    sol_func = (x0,
+        t,
+        _p_sigma,
+        _p_mu,
+        _p_phi) -> begin
         ps = map(zip(p_prototype, (_p_sigma, _p_mu, _p_phi))) do (prototype, p)
             @assert typeof(prototype) == typeof(p)
             !isnothing(prototype) && return reshape(p, :, 1)
