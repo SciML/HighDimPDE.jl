@@ -5,11 +5,15 @@ cp("./docs/Project.toml", "./docs/src/assets/Project.toml", force = true)
 
 include("pages.jl")
 
-makedocs(sitename = "HighDimPDE.jl",
+makedocs(
+    sitename = "HighDimPDE.jl",
     authors = "#",
     pages = pages,
     clean = true, doctest = false, linkcheck = true,
-    format = Documenter.HTML(assets = ["assets/favicon.ico"],
-        canonical = "https://docs.sciml.ai/HighDimPDE/stable/"))
+    format = Documenter.HTML(
+        assets = ["assets/favicon.ico"],
+        canonical = "https://docs.sciml.ai/HighDimPDE/stable/"
+    )
+)
 
 deploydocs(repo = "github.com/SciML/HighDimPDE.jl", devbranch = "main")

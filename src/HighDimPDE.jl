@@ -25,13 +25,13 @@ Base.summary(prob::AbstractPDEProblem) = string(nameof(typeof(prob)))
 function Base.show(io::IO, A::AbstractPDEProblem)
     println(io, summary(A))
     print(io, "timespan: ")
-    show(io, A.tspan)
+    return show(io, A.tspan)
 end
 
 include("MCSample.jl")
 
 struct PIDEProblem{uType, G, F, Mu, Sigma, xType, tType, P, UD, NBC, K} <:
-       DiffEqBase.AbstractODEProblem{uType, tType, false}
+    DiffEqBase.AbstractODEProblem{uType, tType, false}
     u0::uType
     g::G # initial condition
     f::F # nonlinear part
@@ -69,7 +69,8 @@ with `` u(x,0) = g(x)``.
 * `x0_sample` : sampling method for `x0`. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default). If `NoSampling`, only solution at the single point `x` is evaluated.
 * `neumann_bc`: if provided, Neumann boundary conditions on the hypercube `neumann_bc[1] × neumann_bc[2]`.
 """
-function PIDEProblem(μ,
+function PIDEProblem(
+        μ,
         σ,
         x0::Union{Nothing, AbstractArray},
         tspan::TF,
@@ -78,15 +79,19 @@ function PIDEProblem(μ,
         p::Union{Nothing, AbstractVector} = nothing,
         x0_sample::Union{Nothing, AbstractSampling} = NoSampling(),
         neumann_bc::Union{Nothing, AbstractVector} = nothing,
-        kw...) where {TF <: Tuple{AbstractFloat, AbstractFloat}}
+        kw...
+    ) where {TF <: Tuple{AbstractFloat, AbstractFloat}}
     isnothing(neumann_bc) ? nothing : @assert eltype(eltype(neumann_bc)) <: eltype(x0)
 
-    @assert(eltype(f(x0, x0, g(x0), g(x0), x0, x0, p, tspan[1]))==eltype(x0),
-        "Type returned by non linear function `f` must match the type of `x0`")
+    @assert(
+        eltype(f(x0, x0, g(x0), g(x0), x0, x0, p, tspan[1])) == eltype(x0),
+        "Type returned by non linear function `f` must match the type of `x0`"
+    )
 
-    @assert eltype(g(x0))==eltype(x0) "Type of `g(x)` must match the Type of x"
+    @assert eltype(g(x0)) == eltype(x0) "Type of `g(x)` must match the Type of x"
 
-    PIDEProblem{typeof(g(x0)),
+    return PIDEProblem{
+        typeof(g(x0)),
         typeof(g),
         typeof(f),
         typeof(μ),
@@ -96,7 +101,9 @@ function PIDEProblem(μ,
         typeof(p),
         typeof(x0_sample),
         typeof(neumann_bc),
-        typeof(kw)}(g(x0),
+        typeof(kw),
+    }(
+        g(x0),
         g,
         f,
         μ,
@@ -106,11 +113,12 @@ function PIDEProblem(μ,
         p,
         x0_sample,
         neumann_bc,
-        kw)
+        kw
+    )
 end
 
 struct ParabolicPDEProblem{uType, G, F, Mu, Sigma, xType, tType, P, UD, NBC, K} <:
-       DiffEqBase.AbstractODEProblem{uType, tType, false}
+    DiffEqBase.AbstractODEProblem{uType, tType, false}
     u0::uType
     g::G # initial condition
     f::F # nonlinear part
@@ -161,7 +169,8 @@ Defines a Parabolic Partial Differential Equation of the form:
 * `xspan`: The domain of the independent variable `x`
 * `payoff`: The discounted payoff function. Required when solving for optimal stopping problem (Obstacle PDEs).
 """
-function ParabolicPDEProblem(μ,
+function ParabolicPDEProblem(
+        μ,
         σ,
         x0::Union{Nothing, AbstractArray},
         tspan::TF;
@@ -172,7 +181,8 @@ function ParabolicPDEProblem(μ,
         x0_sample::Union{Nothing, AbstractSampling} = NoSampling(),
         neumann_bc::Union{Nothing, AbstractVector} = nothing,
         payoff = nothing,
-        kw...) where {TF <: Tuple{AbstractFloat, AbstractFloat}}
+        kw...
+    ) where {TF <: Tuple{AbstractFloat, AbstractFloat}}
 
     # Check the Initial Condition Function returns correct types.
     isnothing(g) && @assert !isnothing(payoff) "Either of `g` or `payoff` must be provided."
@@ -181,10 +191,12 @@ function ParabolicPDEProblem(μ,
 
     @assert !isnothing(x0)||!isnothing(xspan) "Either of `x0` or `xspan` must be provided."
 
-    !isnothing(f) && @assert(eltype(f(x0, eltype(x0)(0.0), x0, p, tspan[1]))==eltype(x0),
-        "Type of non linear function `f(x)` must type of x")
+    !isnothing(f) && @assert(
+        eltype(f(x0, eltype(x0)(0.0), x0, p, tspan[1])) == eltype(x0),
+        "Type of non linear function `f(x)` must type of x"
+    )
 
-    # Wrap kwargs : 
+    # Wrap kwargs :
     kw = NamedTuple(kw)
     prob_kw = (xspan = xspan, payoff = payoff)
     kwargs = merge(prob_kw, kw)
@@ -195,15 +207,16 @@ function ParabolicPDEProblem(μ,
     # if `x0` is not provided, pick up the lower-bound of `xspan`.
     x0 = isnothing(x0) ? first.(xspan) : x0
 
-    # Initial Condition 
+    # Initial Condition
     u0 = if haskey(kw, :p_prototype)
         u0 = g(x0, kw.p_prototype.p_phi)
     else
         !isnothing(g) ? g(x0) : payoff(x0, 0.0)
     end
-    @assert eltype(u0)==eltype(x0) "Type of `g(x)` must match the Type of x"
+    @assert eltype(u0) == eltype(x0) "Type of `g(x)` must match the Type of x"
 
-    ParabolicPDEProblem{typeof(u0),
+    return ParabolicPDEProblem{
+        typeof(u0),
         typeof(g),
         typeof(f),
         typeof(μ),
@@ -213,7 +226,9 @@ function ParabolicPDEProblem(μ,
         typeof(p),
         typeof(x0_sample),
         typeof(neumann_bc),
-        typeof(kwargs)}(u0,
+        typeof(kwargs),
+    }(
+        u0,
         g,
         f,
         μ,
@@ -223,7 +238,8 @@ function ParabolicPDEProblem(μ,
         p,
         x0_sample,
         neumann_bc,
-        kwargs)
+        kwargs
+    )
 end
 
 struct PIDESolution{X0, Ts, L, Us, NNs, Ls}
@@ -234,17 +250,21 @@ struct PIDESolution{X0, Ts, L, Us, NNs, Ls}
     ufuns::NNs # array of parametric functions
     limits::Ls
     function PIDESolution(x0, ts, losses, usols, ufuns, limits = nothing)
-        new{typeof(x0),
+        return new{
+            typeof(x0),
             typeof(ts),
             typeof(losses),
             typeof(usols),
             typeof(ufuns),
-            typeof(limits)}(x0,
+            typeof(limits),
+        }(
+            x0,
             ts,
             losses,
             usols,
             ufuns,
-            limits)
+            limits
+        )
     end
 end
 
@@ -255,7 +275,7 @@ function Base.show(io::IO, A::PIDESolution)
     print(io, "timespan: ")
     show(io, A.ts)
     print(io, "\nu(x,t): ")
-    show(io, A.us)
+    return show(io, A.us)
 end
 
 include("reflect.jl")
@@ -268,7 +288,7 @@ include("NNKolmogorov.jl")
 include("NNParamKolmogorov.jl")
 
 export PIDEProblem, ParabolicPDEProblem, PIDESolution, DeepSplitting, DeepBSDE, MLP,
-       NNStopping
+    NNStopping
 export NNKolmogorov, NNParamKolmogorov
 export NormalSampling, UniformSampling, NoSampling, solve
 end

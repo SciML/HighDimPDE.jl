@@ -9,7 +9,7 @@ Random.seed!(100)
 
 #relative error l2
 function rel_error_l2(u, uanal)
-    if abs(uanal) >= 10 * eps(eltype(uanal))
+    return if abs(uanal) >= 10 * eps(eltype(uanal))
         sqrt((u - uanal)^2 / u^2)
     else # overflow
         abs(u - uanal)
@@ -32,24 +32,30 @@ end
     hls = 10 + d #hidden layer size
     opt = Flux.Optimise.Adam(0.05)  #optimizer
     #sub-neural network approximating solutions at the desired point
-    u0 = Flux.Chain(Dense(d, hls, relu),
+    u0 = Flux.Chain(
+        Dense(d, hls, relu),
         Dense(hls, hls, relu),
-        Dense(hls, 1))
+        Dense(hls, 1)
+    )
     # sub-neural network approximating the spatial gradients at time point
-    σᵀ∇u = Flux.Chain(Dense(d + 1, hls, relu),
+    σᵀ∇u = Flux.Chain(
+        Dense(d + 1, hls, relu),
         Dense(hls, hls, relu),
         Dense(hls, hls, relu),
-        Dense(hls, d))
+        Dense(hls, d)
+    )
     pdealg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-    res = solve(prob,
+    res = solve(
+        prob,
         pdealg,
         StochasticDiffEq.EM(),
         verbose = true,
         maxiters = 200,
         trajectories = m,
         dt = dt,
-        pabstol = 1.0f-6)
+        pabstol = 1.0f-6
+    )
 
     u_analytical(x, t) = sum(x .^ 2) .+ d * t
     analytical_sol = u_analytical(x0, tspan[end])
@@ -74,23 +80,29 @@ end
     hls = 10 + d #hidden layer size
     opt = Flux.Optimise.Adam(0.005)  #optimizer
     #sub-neural network approximating solutions at the desired point
-    u0 = Flux.Chain(Dense(d, hls, relu),
+    u0 = Flux.Chain(
+        Dense(d, hls, relu),
         Dense(hls, hls, relu),
-        Dense(hls, 1))
+        Dense(hls, 1)
+    )
     # sub-neural network approximating the spatial gradients at time point
-    σᵀ∇u = Flux.Chain(Dense(d + 1, hls, relu),
+    σᵀ∇u = Flux.Chain(
+        Dense(d + 1, hls, relu),
         Dense(hls, hls, relu),
-        Dense(hls, d))
+        Dense(hls, d)
+    )
     pdealg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-    sol = solve(prob,
+    sol = solve(
+        prob,
         pdealg,
         StochasticDiffEq.EM(),
         verbose = true,
         maxiters = 150,
         trajectories = m,
         dt = dt,
-        pabstol = 1.0f-6)
+        pabstol = 1.0f-6
+    )
 
     u_analytical(x, t) = sum(x .^ 2) .+ d * t
     analytical_sol = u_analytical(x0, tspan[end])
@@ -117,23 +129,29 @@ end
 
     hls = 10 + d #hide layer size
     opt = Flux.Optimise.Adam(0.001)
-    u0 = Flux.Chain(Dense(d, hls, relu),
+    u0 = Flux.Chain(
+        Dense(d, hls, relu),
         Dense(hls, hls, relu),
-        Dense(hls, 1))
-    σᵀ∇u = Flux.Chain(Dense(d + 1, hls, relu),
+        Dense(hls, 1)
+    )
+    σᵀ∇u = Flux.Chain(
+        Dense(d + 1, hls, relu),
         Dense(hls, hls, relu),
         Dense(hls, hls, relu),
-        Dense(hls, d))
+        Dense(hls, d)
+    )
     pdealg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-    sol = solve(prob,
+    sol = solve(
+        prob,
         pdealg,
         StochasticDiffEq.EM(),
         verbose = true,
         maxiters = 150,
         trajectories = m,
         dt = dt,
-        pabstol = 1.0f-6)
+        pabstol = 1.0f-6
+    )
 
     u_analytical(x, t) = exp((r + sigma^2) .* (tspan[end] .- tspan[1])) .* sum(x .^ 2)
     analytical_sol = u_analytical(x0, tspan[1])
@@ -158,24 +176,30 @@ end
     hls = 20 + d #hidden layer size
     opt = Flux.Optimise.Adam(5^-3)  #optimizer
     #sub-neural network approximating solutions at the desired point
-    u0 = Flux.Chain(Dense(d, hls, relu),
+    u0 = Flux.Chain(
+        Dense(d, hls, relu),
         Dense(hls, hls, relu),
-        Dense(hls, 1))
+        Dense(hls, 1)
+    )
 
     # sub-neural network approximating the spatial gradients at time point
-    σᵀ∇u = Flux.Chain(Dense(d + 1, hls, relu),
+    σᵀ∇u = Flux.Chain(
+        Dense(d + 1, hls, relu),
         Dense(hls, hls, relu),
-        Dense(hls, d))
+        Dense(hls, d)
+    )
     pdealg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-    sol = solve(prob,
+    sol = solve(
+        prob,
         pdealg,
         StochasticDiffEq.EM(),
         verbose = true,
         maxiters = 150,
         trajectories = m,
         dt = dt,
-        pabstol = 1.0f-6)
+        pabstol = 1.0f-6
+    )
 
     analytical_sol = 0.30879
     error_l2 = rel_error_l2(sol.us, analytical_sol)
@@ -201,34 +225,46 @@ end
     hls = 256 #hidden layer size
     opt = Flux.Optimise.Adam(0.1)  #optimizer
     #sub-neural network approximating solutions at the desired point
-    u0 = Flux.Chain(Dense(d, hls, relu),
+    u0 = Flux.Chain(
+        Dense(d, hls, relu),
         Dense(hls, hls, relu),
         Dense(hls, hls, relu),
-        Dense(hls, 1))
+        Dense(hls, 1)
+    )
     # sub-neural network approximating the spatial gradients at time point
-    σᵀ∇u = Flux.Chain(Dense(d + 1, hls, relu),
+    σᵀ∇u = Flux.Chain(
+        Dense(d + 1, hls, relu),
         Dense(hls, hls, relu),
         Dense(hls, hls, relu),
         Dense(hls, hls, relu),
-        Dense(hls, d))
+        Dense(hls, d)
+    )
     pdealg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-    @time sol = solve(prob,
+    @time sol = solve(
+        prob,
         pdealg,
         StochasticDiffEq.EM(),
         verbose = true,
         maxiters = 150,
         trajectories = m,
         dt = dt,
-        pabstol = 1.0f-4)
+        pabstol = 1.0f-4
+    )
 
     T = tspan[2]
     MC = 10^5
     W() = randn(d, 1)
-    u_analytical(x,
-        t) = -(1 / λ) *
-             log(mean(exp(-λ * g(x .+ sqrt(2.0) * abs.(T - t) .* W()))
-    for _ in 1:MC))
+    u_analytical(
+        x,
+        t
+    ) = -(1 / λ) *
+        log(
+        mean(
+            exp(-λ * g(x .+ sqrt(2.0) * abs.(T - t) .* W()))
+                for _ in 1:MC
+        )
+    )
     analytical_sol = u_analytical(x0, tspan[1])
     error_l2 = rel_error_l2(sol.us, analytical_sol)
     println("error_l2 = ", error_l2, "\n")
@@ -272,30 +308,36 @@ end
     hls = 256 #hidden layer size
     opt = Flux.Optimise.Adam(0.008)  #optimizer
     #sub-neural network approximating solutions at the desired point
-    u0 = Flux.Chain(Dense(d, hls, relu),
+    u0 = Flux.Chain(
+        Dense(d, hls, relu),
         Dense(hls, hls, relu),
-        Dense(hls, 1))
+        Dense(hls, 1)
+    )
 
     # sub-neural network approximating the spatial gradients at time point
-    σᵀ∇u = Flux.Chain(Dense(d + 1, hls, relu),
+    σᵀ∇u = Flux.Chain(
+        Dense(d + 1, hls, relu),
         Dense(hls, hls, relu),
         Dense(hls, hls, relu),
-        Dense(hls, d))
+        Dense(hls, d)
+    )
     pdealg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 
-    @time sol = solve(prob,
+    @time sol = solve(
+        prob,
         pdealg,
         StochasticDiffEq.EM(),
         verbose = true,
         maxiters = 100,
         trajectories = m,
         dt = dt,
-        pabstol = 1.0f-6) #TODO: fails
+        pabstol = 1.0f-6
+    ) #TODO: fails
 
     analytical_sol = 57.3
     error_l2 = rel_error_l2(sol.us, analytical_sol)
 
     println("error_l2 = ", error_l2, "\n")
-    @test error_l2 < 1.0 #TODO: this is a too large relative error 
+    @test error_l2 < 1.0 #TODO: this is a too large relative error
 end
 # TODO: implement a test with limits=true

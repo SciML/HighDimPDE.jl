@@ -38,16 +38,18 @@ struct DeepSplitting{NN, F, O, L, MCS} <: HighDimPDEAlgorithm
     mc_sample!::MCS # Monte Carlo sample
 end
 
-function DeepSplitting(nn;
+function DeepSplitting(
+        nn;
         K = 1,
         opt::O = Flux.Optimise.Adam(0.01),
         λs::L = nothing,
-        mc_sample = NoSampling()) where {
+        mc_sample = NoSampling()
+    ) where {
         O <: Flux.Optimise.AbstractOptimiser,
-        L <: Union{Nothing, Vector{N}} where {N <: Number}
-}
+        L <: Union{Nothing, Vector{N}} where {N <: Number},
+    }
     isnothing(λs) ? λs = [opt.eta] : nothing
-    DeepSplitting(nn, K, opt, λs, mc_sample)
+    return DeepSplitting(nn, K, opt, λs, mc_sample)
 end
 
 """
@@ -64,7 +66,8 @@ Returns a `PIDESolution` object.
 - `use_cuda` : set to `true` to use CUDA.
 - `cuda_device` : integer, to set the CUDA device used in the training, if `use_cuda == true`.
 """
-function DiffEqBase.solve(prob::Union{PIDEProblem, ParabolicPDEProblem},
+function DiffEqBase.solve(
+        prob::Union{PIDEProblem, ParabolicPDEProblem},
         alg::DeepSplitting,
         dt;
         batch_size = 1,
@@ -73,7 +76,8 @@ function DiffEqBase.solve(prob::Union{PIDEProblem, ParabolicPDEProblem},
         maxiters = 300,
         use_cuda = false,
         cuda_device = nothing,
-        verbose_rate = 100)
+        verbose_rate = 100
+    )
     if use_cuda
         if CUDA.functional()
             @info "Training on CUDA GPU"
@@ -133,7 +137,7 @@ function DiffEqBase.solve(prob::Union{PIDEProblem, ParabolicPDEProblem},
 
     # checking element types
     eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing :
-    error("Element type of `mc_sample` not the same as element type of `x`")
+        error("Element type of `mc_sample` not the same as element type of `x`")
 
     function splitting_model(y0, y1, z, t)
         # TODO: for now hardcoded because of a bug in Zygote differentiation rules for adjoints
@@ -162,6 +166,7 @@ function DiffEqBase.solve(prob::Union{PIDEProblem, ParabolicPDEProblem},
                 y1 .= _reflect(y0, y1, neumann_bc[1], neumann_bc[2])
             end
         end
+        return
     end
 
     for net in 1:N
