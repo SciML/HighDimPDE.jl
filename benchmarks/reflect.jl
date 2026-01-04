@@ -21,7 +21,7 @@ function imin2array()
     imin = argmin(y1, dims = 1) |> Array
     n = zeros(size(y1))
     n[imin] .= 1
-    n = b |> gpu
+    return n = b |> gpu
 end
 @btime imin2array()
 @btime CUDA.zeros(size(y1))
@@ -32,6 +32,6 @@ function imin_scalar()
     y1 = CUDA.randn(1000, 1000)
     imin = argmin(y1, dims = 1)
     n .= 0.0
-    n[imin] .= 1
+    return n[imin] .= 1
 end
 @btime imin_scalar()

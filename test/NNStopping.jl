@@ -17,23 +17,27 @@ sigma(du, u, p, t) = du .= beta * u
 tspan = (0.0, T)
 N = 9
 dt = T / (N)
-K = 100.00
+K = 100.0
 function g(x, t)
     return exp(-r * t) * (max(maximum(x) - K, 0))
 end
 
 prob = ParabolicPDEProblem(f, sigma, u0, tspan; payoff = g)
-models = [Chain(Dense(d + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoid)) |> f64
-          for i in 1:N]
+models = [
+    Chain(Dense(d + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoid)) |> f64
+        for i in 1:N
+]
 opt = Flux.Optimisers.Adam(0.01)
 alg = NNStopping(models, opt)
-sol = solve(prob,
+sol = solve(
+    prob,
     alg,
     SRIW1();
     dt = dt,
     trajectories = 1000,
     maxiters = 1000,
-    verbose = true)
+    verbose = true
+)
 analytical_sol = 11.278 # Ref [1]
 @test abs(analytical_sol - sol.payoff) < 0.7
 
@@ -47,30 +51,34 @@ delta = 0.1
 f(u, p, t) = (r - delta) * u
 
 function B(t, x)
-    x * 0.6 * exp(-0.05 * sqrt(t)) *
-    (1.2 - exp(-0.1 * t - 0.001 * (exp(-r * t * x - first(u0))^2)))
+    return x * 0.6 * exp(-0.05 * sqrt(t)) *
+        (1.2 - exp(-0.1 * t - 0.001 * (exp(-r * t * x - first(u0))^2)))
 end
 sigma(u, p, t) = B.(Ref(t), u)
 
 tspan = (0.0f0, T)
 N = 10
 dt = T / (N)
-K = 100.00
+K = 100.0
 function g(x, t)
     return exp(-r * t) * (max(K - mean(x), 0))
 end
 prob = ParabolicPDEProblem(f, sigma, u0, tspan; payoff = g)
-models = [Chain(Dense(d + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoid))
-          for i in 1:N]
+models = [
+    Chain(Dense(d + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoid))
+        for i in 1:N
+]
 opt = Flux.Optimisers.Adam(0.01)
 alg = NNStopping(models, opt)
-sol = solve(prob,
+sol = solve(
+    prob,
     alg,
     SRIW1();
     dt = dt,
     trajectories = 1000,
     maxiters = 500,
-    verbose = true)
+    verbose = true
+)
 analytical_sol = 6.301 # Ref [2]
 @test abs(analytical_sol - sol.payoff) < 0.5
 

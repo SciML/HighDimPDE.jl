@@ -51,7 +51,7 @@ Flux.@functor NNStoppingModelArray
 
 function (model::NNStoppingModelArray)(X, G)
     XG = cat(X, reshape(G, 1, size(G)...), dims = 1)
-    broadcast((x, m) -> m(x), eachslice(XG, dims = 2)[2:end], model.ms)
+    return broadcast((x, m) -> m(x), eachslice(XG, dims = 2)[2:end], model.ms)
 end
 
 """
@@ -70,7 +70,8 @@ Arguments:
 - `trajectories`: The number of trajectories simulated for training. Defaults to `100`
 - Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
 """
-function DiffEqBase.solve(prob::ParabolicPDEProblem,
+function DiffEqBase.solve(
+        prob::ParabolicPDEProblem,
         pdealg::NNStopping,
         sdealg;
         verbose = false,
@@ -78,16 +79,19 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         trajectories = 100,
         dt = eltype(prob.tspan)(0),
         ensemblealg = EnsembleThreads(),
-        kwargs...)
+        kwargs...
+    )
     g = prob.kwargs[:payoff]
 
     sde_prob = SDEProblem(prob.μ, prob.σ, prob.x, prob.tspan)
     ensemble_prob = EnsembleProblem(sde_prob)
-    sim = solve(ensemble_prob,
+    sim = solve(
+        ensemble_prob,
         sdealg,
         trajectories = trajectories,
         dt = dt,
-        adaptive = false)
+        adaptive = false
+    )
 
     m = NNStoppingModelArray(pdealg.m)
     opt = pdealg.opt

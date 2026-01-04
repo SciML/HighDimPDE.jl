@@ -10,7 +10,8 @@ Returns a `PIDESolution` object.
 
 To use [SDE Algorithms](https://diffeq.sciml.ai/stable/solvers/sde_solve/) use [`DeepBSDE`](@ref)
 """
-function DiffEqBase.solve(prob::ParabolicPDEProblem,
+function DiffEqBase.solve(
+        prob::ParabolicPDEProblem,
         alg::DeepBSDE;
         dt,
         abstol = 1.0f-6,
@@ -22,7 +23,8 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         limits = false,
         trajectories_upper = 1000,
         trajectories_lower = 1000,
-        maxiters_limits = 10)
+        maxiters_limits = 10
+    )
     X0 = prob.x
     ts = prob.tspan[1]:dt:prob.tspan[2]
     d = length(X0)
@@ -37,7 +39,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
     ps = Flux.params(u0, σᵀ∇u...)
 
     function sol()
-        map(1:trajectories) do j
+        return map(1:trajectories) do j
             u = u0(X0)[1]
             X = X0
             for i in 1:(length(ts) - 1)
@@ -52,7 +54,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
     end
 
     function loss()
-        mean(sum(abs2, g(X) - u) for (X, u) in sol())
+        return mean(sum(abs2, g(X) - u) for (X, u) in sol())
     end
 
     iters = eltype(X0)[]
@@ -63,7 +65,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         l = loss()
         push!(losses, l)
         verbose && println("Current loss is: $l")
-        l < abstol && Flux.stop()
+        return l < abstol && Flux.stop()
     end
 
     Flux.train!(loss, ps, data, opt; cb = callback)
@@ -82,14 +84,16 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         verbose && println("Upper limit")
         sdeProb = SDEProblem(μ, σ, X0, prob.tspan)
         ensembleprob = EnsembleProblem(sdeProb)
-        sim = solve(ensembleprob,
+        sim = solve(
+            ensembleprob,
             EM(),
             ensemblealg,
             dt = dt,
             trajectories = trajectories_upper,
-            prob.kwargs...)
+            prob.kwargs...
+        )
         function sol_high()
-            map(sim.u) do u
+            return map(sim.u) do u
                 xsde = u.u
                 U = g(xsde[end])
                 u = u0(X0)[1]
@@ -109,7 +113,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         callback = function ()
             l = loss_()
             verbose && println("Current loss is: $l")
-            l < abstol && Flux.stop()
+            return l < abstol && Flux.stop()
         end
         dataS = Iterators.repeated((), maxiters_limits)
         Flux.train!(loss_, ps, dataS, ADAM(0.01); cb = callback)
@@ -118,7 +122,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         verbose && println("Lower limit")
         # Function to precalculate the f values over the domain
         function give_f_matrix(X, urange, σᵀ∇u, p, t)
-            map(urange) do u
+            return map(urange) do u
                 f(X, u, σᵀ∇u, p, t)
             end
         end
@@ -130,7 +134,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         end
 
         function sol_low()
-            map(1:trajectories_lower) do j
+            return map(1:trajectories_lower) do j
                 u = u0(X0)[1]
                 X = X0
                 I = zero(eltype(u))
@@ -142,9 +146,15 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
                     u = u - f(X, u, _σᵀ∇u, p, t) * dt + _σᵀ∇u' * dW
                     X = X .+ μ(X, p, t) * dt .+ σ(X, p, t) * dW
                     f_matrix = give_f_matrix(X, u_domain, _σᵀ∇u, p, ts[i])
-                    a_ = A[findmax(collect(A) .* u .-
-                                     collect(legendre_transform(f_matrix, a, u_domain)
-                    for a in A))[2]]
+                    a_ = A[
+                        findmax(
+                            collect(A) .* u .-
+                                collect(
+                                legendre_transform(f_matrix, a, u_domain)
+                                    for a in A
+                            )
+                        )[2],
+                    ]
                     I = I + a_ * dt
                     Q = Q + exp(I) * legendre_transform(f_matrix, a_, u_domain)
                 end

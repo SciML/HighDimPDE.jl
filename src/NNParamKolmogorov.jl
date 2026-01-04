@@ -34,7 +34,8 @@ Returns a `PIDESolution` object.
 - `dps::NamedTuple`: The sampling interval for ranges of parameters. Should have keys : `p_sigma`, 'p_mu` and `p_phi`
 - Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
 """
-function DiffEqBase.solve(prob::ParabolicPDEProblem,
+function DiffEqBase.solve(
+        prob::ParabolicPDEProblem,
         pdealg::NNParamKolmogorov,
         sdealg = EM();
         ensemblealg = EnsembleThreads(),
@@ -47,7 +48,8 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         dps = (0.01,),
         dt,
         dx,
-        kwargs...)
+        kwargs...
+    )
     tspan = prob.tspan
     sigma = prob.σ
     mu = prob.μ
@@ -80,9 +82,13 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
     ti = rand(ts, 1, trajectories)
 
     ps_sigma, ps_mu,
-    ps_phi = map(zip(p_domain,
-        p_prototype,
-        dps)) do (domain, prototype, dp)
+        ps_phi = map(
+        zip(
+            p_domain,
+            p_prototype,
+            dps
+        )
+    ) do (domain, prototype, dp)
         # domain , prototype, dp = p_domain[key], p_prototype[key], dps[key]
         isnothing(domain) && return
         return rand(domain[1]:dp:domain[2], size(prototype)..., trajectories)
@@ -99,36 +105,44 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
     end
 
     ps_sigma_iterator = !isnothing(ps_sigma) ?
-                        eachslice(ps_sigma, dims = length(size(ps_sigma))) :
-                        collect(Iterators.repeated(nothing, trajectories))
+        eachslice(ps_sigma, dims = length(size(ps_sigma))) :
+        collect(Iterators.repeated(nothing, trajectories))
     ps_mu_iterator = !isnothing(ps_mu) ? eachslice(ps_mu, dims = length(size(ps_mu))) :
-                     collect(Iterators.repeated(nothing, trajectories))
+        collect(Iterators.repeated(nothing, trajectories))
     ps_phi_iterator = !isnothing(ps_phi) ? eachslice(ps_phi, dims = length(size(ps_phi))) :
-                      collect(Iterators.repeated(nothing, trajectories))
+        collect(Iterators.repeated(nothing, trajectories))
     # return xi, ti, ps_sigma_iterator[1]
-    prob_func = (prob,
+    prob_func = (
+        prob,
         i,
-        repeat) -> begin
+        repeat,
+    ) -> begin
         sigma_(dx, x, p, t) = sigma(dx, x, ps_sigma_iterator[i], t)
         mu_(dx, x, p, t) = mu(dx, x, ps_mu_iterator[i], t)
-        SDEProblem(mu_,
+        SDEProblem(
+            mu_,
             sigma_,
             xi[:, i],
             (tspan[1], ti[:, 1][1]),
-            noise_rate_prototype = noise_rate_prototype)
+            noise_rate_prototype = noise_rate_prototype
+        )
     end
 
     output_func = (sol, i) -> (sol.u[end], false)
 
-    sdeprob = SDEProblem(mu,
+    sdeprob = SDEProblem(
+        mu,
         sigma,
         xi[:, 1],
         tspan;
-        noise_rate_prototype = noise_rate_prototype)
+        noise_rate_prototype = noise_rate_prototype
+    )
 
-    ensembleprob = EnsembleProblem(sdeprob,
+    ensembleprob = EnsembleProblem(
+        sdeprob,
         prob_func = prob_func,
-        output_func = output_func)
+        output_func = output_func
+    )
     # return train_data , ps_sigma_iterator, ps_mu_iterator
     sol = solve(ensembleprob, sdealg, ensemblealg; trajectories = trajectories, dt = dt)
     # return train_data, sol
@@ -153,11 +167,13 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         push!(losses, l)
     end
 
-    sol_func = (x0,
+    sol_func = (
+        x0,
         t,
         _p_sigma,
         _p_mu,
-        _p_phi) -> begin
+        _p_phi,
+    ) -> begin
         ps = map(zip(p_prototype, (_p_sigma, _p_mu, _p_phi))) do (prototype, p)
             @assert typeof(prototype) == typeof(p)
             !isnothing(prototype) && return reshape(p, :, 1)
@@ -168,5 +184,5 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
     end
 
     train_out = chain(train_data)
-    PIDESolution(xi, ts, losses, train_out, sol_func, nothing)
+    return PIDESolution(xi, ts, losses, train_out, sol_func, nothing)
 end #solve

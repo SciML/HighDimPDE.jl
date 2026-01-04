@@ -77,7 +77,8 @@ Returns a `PIDESolution` object.
 - `trajectories`: The number of trajectories simulated for training. Defaults to `100`
 - Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
 """
-function DiffEqBase.solve(prob::ParabolicPDEProblem,
+function DiffEqBase.solve(
+        prob::ParabolicPDEProblem,
         pdealg::DeepBSDE,
         sdealg;
         verbose = false,
@@ -91,7 +92,8 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         trajectories_upper = 1000,
         trajectories_lower = 1000,
         maxiters_limits = 10,
-        kwargs...)
+        kwargs...
+    )
     x0 = prob.x
     tspan = prob.tspan
     d = length(x0)
@@ -121,7 +123,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         _σᵀ∇u = re2(p)([X; t_])'
         _p = re3(p)
         _f = -f(X, u, _σᵀ∇u, _p, t_)
-        vcat(μ(X, _p, t), [_f])
+        return vcat(μ(X, _p, t), [_f])
     end
 
     function G(h, p, t)
@@ -129,7 +131,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         _p = re3(p)
         t_ = eltype(X)(t)
         _σᵀ∇u = re2(p)([X; t_])'
-        vcat(σ(X, _p, t), _σᵀ∇u)
+        return vcat(σ(X, _p, t), _σᵀ∇u)
     end
 
     # used for AD
@@ -139,14 +141,14 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         t_ = eltype(X)(t)
         _σᵀ∇u = re2(p)([X; t_])' |> collect
         _f = -f(X, u.data, _σᵀ∇u, re3(p), t_)
-        Tracker.TrackedArray(vcat(μ(X, p, t), [_f]))
+        return Tracker.TrackedArray(vcat(μ(X, p, t), [_f]))
     end
 
     function G(h::Tracker.TrackedArray, p, t)
         X = h[1:(end - 1)].data
         t_ = eltype(X)(t)
         _σᵀ∇u = re2(p)([X; t_])' |> collect
-        Tracker.TrackedArray(vcat(σ(X, re3(p), t), _σᵀ∇u))
+        return Tracker.TrackedArray(vcat(σ(X, re3(p), t), _σᵀ∇u))
     end
 
     noise = zeros(Float32, d + 1, d)
@@ -155,12 +157,14 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
     function neural_sde(init_cond)
         sde_prob = remake(sde_prob, u0 = init_cond)
         ensemble_prob = EnsembleProblem(sde_prob)
-        sol = solve(ensemble_prob, sdealg, EnsembleSerial();
+        sol = solve(
+            ensemble_prob, sdealg, EnsembleSerial();
             u0 = init_cond, trajectories = trajectories, dt = dt, p = p3,
             sensealg = SciMLSensitivity.TrackerAdjoint(),
             save_everystep = false,
-            kwargs...)
-        map(sol) do _sol
+            kwargs...
+        )
+        return map(sol) do _sol
             predict_ans = Array(_sol)
             (predict_ans[1:(end - 1), end], predict_ans[end, end])
         end
@@ -169,11 +173,11 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
     function predict_n_sde()
         _u0 = re1(p3)(x0)
         init_cond = [x0; _u0]
-        neural_sde(init_cond)
+        return neural_sde(init_cond)
     end
 
     function loss_n_sde()
-        mean(sum(abs2, g(X) - u) for (X, u) in predict_n_sde())
+        return mean(sum(abs2, g(X) - u) for (X, u) in predict_n_sde())
     end
 
     iters = eltype(x0)[]
@@ -183,7 +187,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         l = loss_n_sde()
         push!(losses, l)
         verbose && println("Current loss is: $l")
-        l < pabstol && Flux.stop()
+        return l < pabstol && Flux.stop()
     end
     verbose && println("DeepBSDE")
     Flux.train!(loss_n_sde, ps, data, opt; cb = cb)
@@ -205,44 +209,54 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         sdeProb = SDEProblem(μ, σ, x0, tspan, noise_rate_prototype = zeros(Float32, d, d))
         output_func(sol, i) = (sol[end], false)
         ensembleprob = EnsembleProblem(sdeProb, output_func = output_func)
-        sim_f = solve(ensembleprob,
+        sim_f = solve(
+            ensembleprob,
             sdealg,
             ensemblealg,
             dt = dt,
-            trajectories = trajectories_upper)
+            trajectories = trajectories_upper
+        )
         Xn = reduce(vcat, sim_f.u)
         Un = collect(g(X) for X in Xn)
 
         tspan_rev = (tspan[2], tspan[1])
-        sdeProb2 = SDEProblem(F,
+        sdeProb2 = SDEProblem(
+            F,
             G,
             [Xn[1]; Un[1]],
             tspan_rev,
             p3,
-            noise_rate_prototype = noise)
+            noise_rate_prototype = noise
+        )
         function prob_func(prob, i, repeat)
-            SDEProblem(prob.f,
+            return SDEProblem(
+                prob.f,
                 prob.g,
                 [Xn[i]; Un[i]],
                 prob.tspan,
                 prob.p,
-                noise_rate_prototype = prob.noise_rate_prototype)
+                noise_rate_prototype = prob.noise_rate_prototype
+            )
         end
 
-        ensembleprob2 = EnsembleProblem(sdeProb2,
+        ensembleprob2 = EnsembleProblem(
+            sdeProb2,
             prob_func = prob_func,
-            output_func = output_func)
-        sim = solve(ensembleprob2,
+            output_func = output_func
+        )
+        sim = solve(
+            ensembleprob2,
             sdealg,
             ensemblealg,
             dt = dt,
             trajectories = trajectories_upper,
             output_func = output_func,
             save_everystep = false,
-            sensealg = TrackerAdjoint())
+            sensealg = TrackerAdjoint()
+        )
 
         function sol_high()
-            map(sim.u) do u
+            return map(sim.u) do u
                 u[2]
             end
         end
@@ -253,7 +267,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         cb = function ()
             l = loss_()
             true && println("Current loss is: $l")
-            l < 1e-6 && Flux.stop()
+            return l < 1.0e-6 && Flux.stop()
         end
         dataS = Iterators.repeated((), maxiters_upper)
         Flux.train!(loss_, ps, dataS, Flux.Optimise.Adam(0.01); cb = cb)
@@ -262,7 +276,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         verbose && println("Lower limit")
         # Function to precalculate the f values over the domain
         function give_f_matrix(X, urange, σᵀ∇u, p, t)
-            map(urange.urange) do u
+            return map(urange.urange) do u
                 f(X, u, σᵀ∇u, p, t)
             end
         end
@@ -276,7 +290,7 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         # lowe
         ts = tspan[1]:dt:tspan[2]
         function sol_low()
-            map(1:trajectories_lower) do j
+            return map(1:trajectories_lower) do j
                 u = u0(x0)[1]
                 X = x0
                 I = zero(eltype(u))
@@ -288,9 +302,15 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
                     u = u - f(X, u, _σᵀ∇u, p, t) * dt + _σᵀ∇u' * dW
                     X = X .+ μ(X, p, t) * dt .+ σ(X, p, t) * dW
                     f_matrix = give_f_matrix(X, u_domain, _σᵀ∇u, p, ts[i])
-                    a_ = A[findmax(collect(A) .* u .-
-                                     collect(legendre_transform(f_matrix, a, u_domain)
-                    for a in A))[2]]
+                    a_ = A[
+                        findmax(
+                            collect(A) .* u .-
+                                collect(
+                                legendre_transform(f_matrix, a, u_domain)
+                                    for a in A
+                            )
+                        )[2],
+                    ]
                     I = I + a_ * dt
                     Q = Q + exp(I) * legendre_transform(f_matrix, a_, u_domain)
                 end
@@ -299,19 +319,23 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         end
         u_low = sum(exp(I) * g(X) - Q for (I, Q, X) in sol_low()) / (trajectories_lower)
         if save_everystep
-            sol = PIDESolution(x0,
+            sol = PIDESolution(
+                x0,
                 tspan[1]:dt:tspan[2],
                 losses,
                 iters,
                 re1(p3),
-                (u_low, u_high))
+                (u_low, u_high)
+            )
         else
-            sol = PIDESolution(x0,
+            sol = PIDESolution(
+                x0,
                 tspan[1]:dt:tspan[2],
                 losses,
                 re1(p3)(x0)[1],
                 re1(p3),
-                (u_low, u_high))
+                (u_low, u_high)
+            )
         end
         return sol
     end

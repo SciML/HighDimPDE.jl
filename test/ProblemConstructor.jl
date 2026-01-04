@@ -107,7 +107,7 @@ end
         tspan = (0.0, T)
         N = 9
         dt = T / (N)
-        K = 100.00
+        K = 100.0
         function payoff(x, t)
             return exp(-r * t) * (max(maximum(x) - K, 0))
         end
@@ -163,25 +163,29 @@ end
         γ_sigma_prototype = zeros(d, d, 1)
         γ_phi_prototype = nothing
 
-        tspan = (0.00, 1.00)
-        xspan = d == 1 ? (0.00, 3.00) : [(0.00, 3.00) for _ in 1:d]
+        tspan = (0.0, 1.0)
+        xspan = d == 1 ? (0.0, 3.0) : [(0.0, 3.0) for _ in 1:d]
 
         function g(x, p_phi)
             x .^ 2
         end
 
         sigma(dx, x, p_sigma, t) = dx .= p_sigma[:, :, 1]
-        mu(dx, x, p_mu, t) = dx .= 0.00
+        mu(dx, x, p_mu, t) = dx .= 0.0
 
-        p_domain = (p_sigma = (0.00, 2.00), p_mu = nothing, p_phi = nothing)
-        p_prototype = (p_sigma = γ_sigma_prototype,
+        p_domain = (p_sigma = (0.0, 2.0), p_mu = nothing, p_phi = nothing)
+        p_prototype = (
+            p_sigma = γ_sigma_prototype,
             p_mu = γ_mu_prototype,
-            p_phi = γ_phi_prototype)
+            p_phi = γ_phi_prototype,
+        )
 
-        prob = ParabolicPDEProblem(mu, sigma, nothing, tspan; g,
+        prob = ParabolicPDEProblem(
+            mu, sigma, nothing, tspan; g,
             xspan,
             p_domain = p_domain,
-            p_prototype = p_prototype)
+            p_prototype = p_prototype
+        )
 
         @test prob.f == nothing
         @test prob.g == g

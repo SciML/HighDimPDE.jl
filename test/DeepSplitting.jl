@@ -18,7 +18,7 @@ end
 
 #relative error l2
 function rel_error_l2(u, uanal)
-    if abs(uanal) >= 10 * eps(eltype(uanal))
+    return if abs(uanal) >= 10 * eps(eltype(uanal))
         sqrt((u - uanal)^2 / u^2)
     else # overflow
         abs(u - uanal)
@@ -43,9 +43,11 @@ end
 
         hls = d + 10 #hidden layer size
 
-        nn = Flux.Chain(Dense(d, hls, relu),
+        nn = Flux.Chain(
+            Dense(d, hls, relu),
             Dense(hls, hls, relu),
-            Dense(hls, 1)) # Neural network used by the scheme
+            Dense(hls, 1)
+        ) # Neural network used by the scheme
 
         opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
@@ -55,12 +57,14 @@ end
         # defining the problem
         prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f)
         # solving
-        sol = solve(prob, alg, dt,
+        sol = solve(
+            prob, alg, dt,
             verbose = true,
             use_cuda = use_cuda,
             maxiters = 1000,
             batch_size = batch_size,
-            cuda_device = cuda_device)
+            cuda_device = cuda_device
+        )
         u1 = sol.us[end]
         u1_anal = u_anal(x0, tspan[end])
         e_l2 = rel_error_l2(u1, u1_anal)
@@ -87,9 +91,11 @@ end
 
         hls = d + 10 #hidden layer size
 
-        nn = Flux.Chain(Dense(d, hls, relu),
+        nn = Flux.Chain(
+            Dense(d, hls, relu),
             Dense(hls, hls, relu),
-            Dense(hls, 1)) # Neural network used by the scheme
+            Dense(hls, 1)
+        ) # Neural network used by the scheme
 
         opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
@@ -99,12 +105,14 @@ end
         # defining the problem
         prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f, x0_sample = x0_sample)
         # solving
-        sol = solve(prob, alg, dt,
+        sol = solve(
+            prob, alg, dt,
             verbose = false,
             use_cuda = use_cuda,
             maxiters = 1800,
             batch_size = batch_size,
-            cuda_device = cuda_device)
+            cuda_device = cuda_device
+        )
         xs = x0_sample(repeat(x0, 1, batch_size))
         u1 = [sol.ufuns[end](x)[] for x in eachcol(xs)]
         u1_anal = [u_anal(x, tspan[end]) for x in eachcol(xs)]
@@ -133,9 +141,11 @@ end
 
         hls = d + 10 #hidden layer size
 
-        nn = Flux.Chain(Dense(d, hls, relu),
+        nn = Flux.Chain(
+            Dense(d, hls, relu),
             Dense(hls, hls, relu),
-            Dense(hls, 1)) # Neural network used by the scheme
+            Dense(hls, 1)
+        ) # Neural network used by the scheme
 
         opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
@@ -143,16 +153,20 @@ end
         f(y, v_y, ∇v_y, p, t) = 0.0f0 .* v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f,
+        prob = ParabolicPDEProblem(
+            μ, σ, x0, tspan; g, f,
             x0_sample = x0_sample,
-            neumann_bc = [-∂, ∂])
+            neumann_bc = [-∂, ∂]
+        )
         # solving
-        sol = solve(prob, alg, dt,
+        sol = solve(
+            prob, alg, dt,
             verbose = false,
             use_cuda = use_cuda,
             maxiters = 1000,
             batch_size = batch_size,
-            cuda_device = cuda_device)
+            cuda_device = cuda_device
+        )
         push!(sols, sol)
     end
     xs = x0_sample(repeat(x0, 1, batch_size))
@@ -163,7 +177,7 @@ end
     @test e_l2 < 0.1
 
     # for fun: plotting
-    # close("all")    
+    # close("all")
     # fig, ax = plt.subplots()
     # xgrid = hcat([x[1:2] for x in xs]...)
     # #Deepsplitting sol
@@ -191,9 +205,11 @@ end
 
         hls = d + 50 #hidden layer size
 
-        nn = Flux.Chain(Dense(d, hls, relu),
+        nn = Flux.Chain(
+            Dense(d, hls, relu),
             Dense(hls, hls, relu),
-            Dense(hls, 1)) # Neural network used by the scheme
+            Dense(hls, 1)
+        ) # Neural network used by the scheme
 
         opt = Flux.Optimise.Adam(0.01) #optimiser
         alg = DeepSplitting(nn, opt = opt)
@@ -201,15 +217,19 @@ end
         f(y, v_y, ∇v_y, p, t) = r * v_y #TODO: this fix is not nice
 
         # defining the problem
-        prob = ParabolicPDEProblem(μ, σ, x0, tspan; g, f,
-            x0_sample = x0_sample)
+        prob = ParabolicPDEProblem(
+            μ, σ, x0, tspan; g, f,
+            x0_sample = x0_sample
+        )
         # solving
-        sol = solve(prob, alg, dt,
+        sol = solve(
+            prob, alg, dt,
             verbose = false,
             use_cuda = use_cuda,
             maxiters = 1000,
             batch_size = batch_size,
-            cuda_device = cuda_device)
+            cuda_device = cuda_device
+        )
 
         xs = x0_sample(repeat(x0, 1, batch_size))
         u1 = [sol.ufuns[end](x)[] for x in eachcol(xs)]
@@ -233,11 +253,13 @@ end
     for d in [10]
         hls = d + 50 #hidden layer size
 
-        nn = Flux.Chain(Dense(d, hls, tanh),
+        nn = Flux.Chain(
+            Dense(d, hls, tanh),
             Dense(hls, hls, tanh),
-            Dense(hls, 1)) # Neural network used by the scheme
+            Dense(hls, 1)
+        ) # Neural network used by the scheme
 
-        opt = Flux.Optimise.Adam(1e-3) #optimiser
+        opt = Flux.Optimise.Adam(1.0e-3) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
         X0 = fill(0.0f0, d)  # initial point
@@ -248,7 +270,8 @@ end
         # defining the problem
         prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
         # solving
-        @time sol = solve(prob,
+        @time sol = solve(
+            prob,
             alg,
             dt,
             verbose = false,
@@ -256,7 +279,8 @@ end
             use_cuda = use_cuda,
             maxiters = train_steps,
             batch_size = batch_size,
-            cuda_device = cuda_device)
+            cuda_device = cuda_device
+        )
         u1 = sol.us[end]
         # value coming from \cite{Beck2017a}
         e_l2 = rel_error_l2(u1, 0.30879)
@@ -280,11 +304,13 @@ end
 
         hls = d + 50 #hidden layer size
 
-        nn = Flux.Chain(Dense(d, hls, relu),
+        nn = Flux.Chain(
+            Dense(d, hls, relu),
             Dense(hls, hls, relu),
-            Dense(hls, 1)) # Neural network used by the scheme
+            Dense(hls, 1)
+        ) # Neural network used by the scheme
 
-        opt = Flux.Optimise.Adam(1e-2) #optimiser
+        opt = Flux.Optimise.Adam(1.0e-2) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
         X0 = fill(0.0f0, d)  # initial point
@@ -295,15 +321,17 @@ end
         # defining the problem
         prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f, neumann_bc = [-∂, ∂])
         # solving
-        @time sol = solve(prob,
+        @time sol = solve(
+            prob,
             alg,
             dt,
             verbose = false,
-            abstol = 1e-5,
+            abstol = 1.0e-5,
             use_cuda = use_cuda,
             maxiters = train_steps,
             batch_size = batch_size,
-            cuda_device = cuda_device)
+            cuda_device = cuda_device
+        )
         u1 = sol.us[end]
         @test !isnan(u1)
         println("d = $d, u1 = $(u1)")
@@ -328,11 +356,13 @@ if false
         for d in [30]
             hls = d + 50 #hidden layer size
 
-            nn = Flux.Chain(Dense(d, hls, tanh),
+            nn = Flux.Chain(
+                Dense(d, hls, tanh),
                 Dense(hls, hls, tanh),
-                Dense(hls, 1)) # Neural network used by the scheme
+                Dense(hls, 1)
+            ) # Neural network used by the scheme
 
-            opt = Flux.Optimise.Adam(1e-3) #optimiser
+            opt = Flux.Optimise.Adam(1.0e-3) #optimiser
             alg = DeepSplitting(nn, opt = opt)
 
             X0 = repeat([1.0f0, 0.5f0], div(d, 2))  # initial point
@@ -343,7 +373,8 @@ if false
             prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
             # solving
             @time xs, ts,
-            sol = solve(prob,
+                sol = solve(
+                prob,
                 alg,
                 dt,
                 verbose = true,
@@ -351,7 +382,8 @@ if false
                 use_cuda = use_cuda,
                 maxiters = train_steps,
                 batch_size = batch_size,
-                cuda_device = cuda_device)
+                cuda_device = cuda_device
+            )
             u1 = sol[end]
             @test !isnan(u1)
             println("d = $d, u1 = $(u1)")
@@ -375,18 +407,26 @@ if false
         T = tspan[2]
         MC = 10^5
         W() = randn(d, 1)
-        u_analytical(x,
-            t) = -(1 / λ) *
-                 log(mean(exp(-λ * g(x .+ sqrt(2.0f0) * abs.(T - t) .* W()))
-        for _ in 1:MC))
+        u_analytical(
+            x,
+            t
+        ) = -(1 / λ) *
+            log(
+            mean(
+                exp(-λ * g(x .+ sqrt(2.0f0) * abs.(T - t) .* W()))
+                    for _ in 1:MC
+            )
+        )
 
         hls = d + 50 #hidden layer size
 
-        nn = Flux.Chain(Dense(d, hls, tanh),
+        nn = Flux.Chain(
+            Dense(d, hls, tanh),
             Dense(hls, hls, tanh),
-            Dense(hls, 1)) # Neural network used by the scheme
+            Dense(hls, 1)
+        ) # Neural network used by the scheme
 
-        opt = Flux.Optimise.Adam(1e-3) #optimiser
+        opt = Flux.Optimise.Adam(1.0e-3) #optimiser
         alg = DeepSplitting(nn, opt = opt)
 
         X0 = fill(0.0f0, d)  # initial point
@@ -396,7 +436,8 @@ if false
         # defining the problem
         prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
         # solving
-        @time sol = solve(prob,
+        @time sol = solve(
+            prob,
             alg,
             dt,
             verbose = true,
@@ -404,7 +445,8 @@ if false
             use_cuda = false,
             maxiters = train_steps,
             batch_size = batch_size,
-            cuda_device = cuda_device)
+            cuda_device = cuda_device
+        )
 
         u1 = sol.us[end]
 
@@ -431,12 +473,14 @@ end
 
     hls = d + 50 #hidden layer size
 
-    nn = Flux.Chain(Dense(d, hls, tanh),
+    nn = Flux.Chain(
+        Dense(d, hls, tanh),
         Dense(hls, hls, tanh),
-        Dense(hls, 1)) # Neural network used by the scheme
+        Dense(hls, 1)
+    ) # Neural network used by the scheme
 
     opt = Flux.Optimise.Adam()
-    alg = DeepSplitting(nn, opt = opt, λs = [1e-2, 1e-3])
+    alg = DeepSplitting(nn, opt = opt, λs = [1.0e-2, 1.0e-3])
 
     X0 = fill(100.0f0, d)  # initial point
     g(X) = minimum(X, dims = 1) # initial condition
@@ -450,7 +494,7 @@ end
     γl = 0.02f0
 
     Q(u) = (u .< vh) .* γh .+ (u .>= vl) .* γl .+
-           ((u .>= vh) .* (u .< vl)) .* (((γh - γl) / (vh - vl)) * (u .- vh) .+ γh)
+        ((u .>= vh) .* (u .< vl)) .* (((γh - γl) / (vh - vl)) * (u .- vh) .+ γh)
 
     µc = 0.02f0
     σc = 0.2f0
@@ -460,7 +504,8 @@ end
     # defining the problem
     prob = ParabolicPDEProblem(μ, σ, X0, tspan; g, f)
     # solving
-    @time sol = solve(prob,
+    @time sol = solve(
+        prob,
         alg,
         dt,
         verbose = true,
@@ -468,7 +513,8 @@ end
         use_cuda = use_cuda,
         maxiters = train_steps,
         batch_size = batch_size,
-        cuda_device = cuda_device)
+        cuda_device = cuda_device
+    )
 
     u1 = sol.us[end]
     analytical_ans = 60.781
@@ -486,21 +532,23 @@ end
     dt = 5.0f-2 # time step
     μ(x, p, t) = 0.0f0 # advection coefficients
     σ(x, p, t) = 1.0f-1 #1f-1 # diffusion coefficients
-    ss0 = 5.0f-2#std g0
+    ss0 = 5.0f-2 #std g0
 
     # Analytic sol
     function _SS(x, t, p)
         d = length(x)
         MM = σ(x, p, t) * ones(d)
-        SSt = MM .* ((MM .* sinh.(MM * t) .+ ss0 .* cosh.(MM * t)) ./
-               (MM .* cosh.(MM * t) .+ ss0 .* sinh.(MM * t)))
+        SSt = MM .* (
+            (MM .* sinh.(MM * t) .+ ss0 .* cosh.(MM * t)) ./
+                (MM .* cosh.(MM * t) .+ ss0 .* sinh.(MM * t))
+        )
         return SSt
     end
 
     function uanal(x, t, p)
         d = length(x)
         return (2 * π)^(-d / 2) * prod(_SS(x, t, p) .^ (-1 / 2)) *
-               exp(-0.5 * sum(x .^ 2 ./ _SS(x, t, p)))
+            exp(-0.5 * sum(x .^ 2 ./ _SS(x, t, p)))
     end
 
     for d in [5]
@@ -522,14 +570,15 @@ end
             # BatchNorm(hls, affine = true, dim = 1),
             Dense(hls, hls, tanh),
             # BatchNorm(hls, affine = true, dim = 1),
-            Dense(hls, 1, x -> x^2)) # positive function
+            Dense(hls, 1, x -> x^2)
+        ) # positive function
 
-        opt = Flux.Optimise.Adam(1e-2)#optimiser
+        opt = Flux.Optimise.Adam(1.0e-2) #optimiser
         alg = DeepSplitting(nn_batch, K = K, opt = opt, mc_sample = x0_sample)
 
         function g(x)
             Float32((2 * π)^(-d / 2)) * ss0^(-Float32(d) * 5.0f-1) *
-            exp.(-5.0f-1 * sum(x .^ 2.0f0 / ss0, dims = 1))
+                exp.(-5.0f-1 * sum(x .^ 2.0f0 / ss0, dims = 1))
         end # initial condition
         m(x) = -5.0f-1 * sum(x .^ 2, dims = 1)
         vol = prod(2 * ∂)
@@ -538,10 +587,13 @@ end
         end # nonlocal nonlinear part of the
 
         # defining the problem
-        prob = PIDEProblem(μ, σ, x0, tspan, g, f;
-            x0_sample = x0_sample)
+        prob = PIDEProblem(
+            μ, σ, x0, tspan, g, f;
+            x0_sample = x0_sample
+        )
         # solving
-        sol = solve(prob,
+        sol = solve(
+            prob,
             alg,
             dt,
             verbose = false,
@@ -549,7 +601,8 @@ end
             maxiters = train_steps,
             batch_size = batch_size,
             use_cuda = use_cuda,
-            cuda_device = cuda_device)
+            cuda_device = cuda_device
+        )
         xs = x0_sample(repeat(x0, 1, batch_size))
         u1 = [sol.ufuns[end](x)[] for x in eachcol(xs)]
         u1_anal = [uanal(x, tspan[end], nothing) for x in eachcol(xs)]
@@ -576,11 +629,13 @@ end
             ∂ = fill(5.0f-1, d)
             hls = d + 50 #hidden layer size
 
-            nn = Flux.Chain(Dense(d, hls, tanh),
+            nn = Flux.Chain(
+                Dense(d, hls, tanh),
                 Dense(hls, hls, tanh),
-                Dense(hls, 1)) # Neural network used by the scheme
+                Dense(hls, 1)
+            ) # Neural network used by the scheme
 
-            opt = Flux.Optimise.Adam(1e-2) #optimiser
+            opt = Flux.Optimise.Adam(1.0e-2) #optimiser
             alg = DeepSplitting(nn, K = K, opt = opt, mc_sample = UniformSampling(-∂, ∂))
 
             x0 = fill(0.0f0, d)  # initial point
@@ -591,15 +646,17 @@ end
             # defining the problem
             prob = PIDEProblem(μ, σ, x0, tspan, g, f; neumann_bc = [-∂, ∂])
             # solving
-            @time sol = solve(prob,
+            @time sol = solve(
+                prob,
                 alg,
                 dt,
-                # verbose = true, 
+                # verbose = true,
                 # abstol=1e-5,
                 use_cuda = use_cuda,
                 cuda_device = cuda_device,
                 maxiters = train_steps,
-                batch_size = batch_size)
+                batch_size = batch_size
+            )
             push!(u1s, sol.us[end])
             println("d = $d, u1 = $(sol.us[end])")
         end

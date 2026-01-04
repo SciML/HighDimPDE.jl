@@ -32,7 +32,8 @@ Returns a `PIDESolution` object.
 - `trajectories`: The number of trajectories simulated for training. Defaults to `100`
 - Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
 """
-function DiffEqBase.solve(prob::ParabolicPDEProblem,
+function DiffEqBase.solve(
+        prob::ParabolicPDEProblem,
         pdealg::HighDimPDE.NNKolmogorov,
         sdealg;
         ensemblealg = EnsembleThreads(),
@@ -44,7 +45,8 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
         use_gpu = false,
         dt,
         dx,
-        kwargs...)
+        kwargs...
+    )
     tspan = prob.tspan
     sigma = prob.σ
     μ = prob.μ
@@ -70,28 +72,36 @@ function DiffEqBase.solve(prob::ParabolicPDEProblem,
     ps = Flux.params(chain)
     xi = mapreduce(x -> rand(x, 1, trajectories), vcat, xs)
     #Finding Solution to the SDE having initial condition xi. Y = Phi(S(X , T))
-    sdeproblem = SDEProblem(μ,
+    sdeproblem = SDEProblem(
+        μ,
         sigma,
         xi[:, 1],
         tspan,
-        noise_rate_prototype = noise_rate_prototype)
+        noise_rate_prototype = noise_rate_prototype
+    )
 
     function prob_func(prob, i, repeat)
-        SDEProblem(prob.f,
+        return SDEProblem(
+            prob.f,
             xi[:, i],
             prob.tspan,
-            noise_rate_prototype = prob.noise_rate_prototype)
+            noise_rate_prototype = prob.noise_rate_prototype
+        )
     end
     output_func(sol, i) = (sol.u[end], false)
-    ensembleprob = EnsembleProblem(sdeproblem,
+    ensembleprob = EnsembleProblem(
+        sdeproblem,
         prob_func = prob_func,
-        output_func = output_func)
-    sim = solve(ensembleprob,
+        output_func = output_func
+    )
+    sim = solve(
+        ensembleprob,
         sdealg,
         ensemblealg,
         dt = dt,
         trajectories = trajectories,
-        adaptive = false)
+        adaptive = false
+    )
 
     x_sde = Array(sim)
 

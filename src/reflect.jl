@@ -57,7 +57,7 @@ end
 # Used by `DeepSplitting` algorithm.
 function _reflect(a::T, b::T, s, e) where {T <: AbstractArray}
     @assert all((a .>= s) .& (a .<= e)) "a = $a not in hypercube"
-    @assert size(a)==size(b) "a not same dim as b"
+    @assert size(a) == size(b) "a not same dim as b"
     out1 = b .< s
     out2 = b .> e
     out = out1 .| out2
