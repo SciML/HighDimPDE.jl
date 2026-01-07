@@ -109,6 +109,8 @@ function _ml_picard(
 
     x2 = similar(x)
     _integrate(mc_sample!) ? x3 = similar(x) : x3 = nothing
+    # Pre-allocate temp buffer for in-place reflection when Neumann BC is used
+    x_temp = isnothing(neumann_bc) ? nothing : similar(x)
     p = prob.p
 
     a = zero(elxType)
@@ -119,7 +121,7 @@ function _ml_picard(
         for k in 1:num
             verbose && println("loop k")
             r = s + (t - s) * rand(tType)
-            _mlt_sde_loop!(x2, x, s, r, prob, neumann_bc)
+            _mlt_sde_loop!(x2, x, s, r, prob, neumann_bc, x_temp)
             b2 = _ml_picard(M, l, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann_bc)
             b3 = zero(elxType)
             # non local integration
@@ -144,7 +146,7 @@ function _ml_picard(
         num = M^(L - l)
         for k in 1:num
             r = s + (t - s) * rand(tType)
-            _mlt_sde_loop!(x2, x, s, r, prob, neumann_bc)
+            _mlt_sde_loop!(x2, x, s, r, prob, neumann_bc, x_temp)
             b2 = _ml_picard(M, l, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann_bc)
             b4 = _ml_picard(
                 M,
@@ -188,7 +190,7 @@ function _ml_picard(
     a2 = zero(elxType)
     for k in 1:num
         verbose && println("loop k3")
-        _mlt_sde_loop!(x2, x, s, t, prob, neumann_bc)
+        _mlt_sde_loop!(x2, x, s, t, prob, neumann_bc, x_temp)
         a2 += g(x2)
     end
     a2 /= num
@@ -234,10 +236,12 @@ function _ml_picard_mlt(
     # first level
     num = M^(L)
     x2 = similar(x)
+    # Pre-allocate temp buffer for in-place reflection when Neumann BC is used
+    x_temp = isnothing(neumann_bc) ? nothing : similar(x)
     a2 = zero(elxType)
     for k in 1:num
         verbose && println("loop k3")
-        _mlt_sde_loop!(x2, x, s, t, prob, neumann_bc)
+        _mlt_sde_loop!(x2, x, s, t, prob, neumann_bc, x_temp)
         a2 += g(x2)
     end
     a2 /= num
@@ -266,6 +270,8 @@ function _ml_picard_call(
     ) where {xType, tType}
     x2 = similar(x)
     _integrate(mc_sample!) ? x3 = similar(x) : x3 = nothing
+    # Pre-allocate temp buffer for in-place reflection when Neumann BC is used
+    x_temp = isnothing(neumann_bc) ? nothing : similar(x)
     p = prob.p
     elxType = eltype(xType)
 
@@ -277,7 +283,7 @@ function _ml_picard_call(
         for k in 1:loop_num
             verbose && println("loop k")
             r = s + (t - s) * rand(tType)
-            _mlt_sde_loop!(x2, x, s, r, prob, neumann_bc)
+            _mlt_sde_loop!(x2, x, s, r, prob, neumann_bc, x_temp)
             b2 = _ml_picard(M, l, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann_bc)
             b3 = zero(elxType)
             for h in 1:K # non local integration
@@ -302,7 +308,7 @@ function _ml_picard_call(
         loop_num = _get_loop_num(M, num, thread_id, NUM_THREADS)
         for k in 1:loop_num
             r = s + (t - s) * rand(tType)
-            _mlt_sde_loop!(x2, x, s, r, prob, neumann_bc)
+            _mlt_sde_loop!(x2, x, s, r, prob, neumann_bc, x_temp)
             b2 = _ml_picard(M, l, K, x2, r, t, mc_sample!, g, f, verbose, prob, neumann_bc)
             b4 = _ml_picard(
                 M,
@@ -398,13 +404,21 @@ function _mlt_sde_loop!(
         s,
         t,
         prob,
-        neumann_bc
+        neumann_bc,
+        x_temp = nothing
     )
     #randn! allows to save one allocation
     dt = t - s
     randn!(x2)
     x2 .= x + (prob.μ(x, prob.p, t) .* dt .+ prob.σ(x, prob.p, t) .* sqrt(dt) .* x2)
     return if !isnothing(neumann_bc)
-        x2 .= _reflect(x, x2, neumann_bc...)
+        if isnothing(x_temp)
+            # Non-mutating version when no temp buffer provided
+            x2 .= _reflect(x, x2, neumann_bc...)
+        else
+            # Use in-place version: x_temp is modified as temporary storage, x2 contains result
+            x_temp .= x
+            _reflect!(x_temp, x2, neumann_bc...)
+        end
     end
 end

@@ -1,52 +1,88 @@
 """
     _reflect(a,b,s,e)
 
-reflection of the Brownian motion `B` where `B_{t-1} = a` and  `B_{t} = b` 
+reflection of the Brownian motion `B` where `B_{t-1} = a` and  `B_{t} = b`
 on the hypercube `[s,e]^d` where `d = size(a,1)`.
 """
 # Used by `MLP` algorithm.
 function _reflect(a::T, b::T, s::T, e::T) where {T <: Vector}
-    r = 2
-    n = zeros(size(a))
-    # first checking if b is in the hypercube
-    all((a .>= s) .& (a .<= e)) ? nothing : error("a = $a not in hypercube")
-    size(a) == size(b) ? nothing : error("a not same dim as b")
-    for i in 1:length(a)
+    # Use copies to avoid mutating inputs
+    a_curr = copy(a)
+    b_curr = copy(b)
+    _reflect!(a_curr, b_curr, s, e)
+    return b_curr
+end
+
+"""
+    _reflect!(a, b, s, e)
+
+In-place version of `_reflect` that mutates both `a` and `b`.
+`a` is used as working storage and `b` contains the result.
+"""
+function _reflect!(a::T, b::T, s::T, e::T) where {T <: Vector}
+    elT = eltype(T)
+    r = elT(2)
+    n_idx = 0  # Track which index has the normal, 0 means no reflection needed
+    n_val = zero(elT)  # The normal value at that index (+1 or -1)
+
+    # first checking if a is in the hypercube
+    @inbounds for i in eachindex(a)
+        if a[i] < s[i] || a[i] > e[i]
+            error("a = $a not in hypercube")
+        end
+    end
+    length(a) == length(b) || error("a not same dim as b")
+
+    @inbounds for i in eachindex(a)
         if b[i] < s[i]
             rtemp = (a[i] - s[i]) / (a[i] - b[i])
             if rtemp < r
                 r = rtemp
-                n .= 0
-                n[i] = -1
+                n_idx = i
+                n_val = -one(elT)
             end
         elseif b[i] > e[i]
             rtemp = (e[i] - a[i]) / (b[i] - a[i])
             if rtemp < r
                 r = rtemp
-                n .= 0
-                n[i] = 1
+                n_idx = i
+                n_val = one(elT)
             end
         end
     end
+
     while r < 1
-        c = a + r * (b - a)
-        a = c
-        b = b - 2 * n * (dot(b - c, n))
-        r = 2
-        for i in 1:length(a)
+        # c = a + r * (b - a), but we'll compute in-place
+        # a = c
+        @inbounds for i in eachindex(a)
+            a[i] = a[i] + r * (b[i] - a[i])
+        end
+
+        # b = b - 2 * n * dot(b - c, n)
+        # Since n is a unit vector with only one non-zero element at n_idx,
+        # dot(b - c, n) = (b[n_idx] - c[n_idx]) * n_val = (b[n_idx] - a[n_idx]) * n_val
+        # (after c is stored in a)
+        dot_val = (b[n_idx] - a[n_idx]) * n_val
+        b[n_idx] = b[n_idx] - 2 * n_val * dot_val
+
+        r = elT(2)
+        n_idx = 0
+        n_val = zero(elT)
+
+        @inbounds for i in eachindex(a)
             if b[i] < s[i]
                 rtemp = (a[i] - s[i]) / (a[i] - b[i])
                 if rtemp < r
                     r = rtemp
-                    n .= 0
-                    n[i] = -1
+                    n_idx = i
+                    n_val = -one(elT)
                 end
             elseif b[i] > e[i]
                 rtemp = (e[i] - a[i]) / (b[i] - a[i])
                 if rtemp < r
                     r = rtemp
-                    n .= 0
-                    n[i] = 1
+                    n_idx = i
+                    n_val = one(elT)
                 end
             end
         end
