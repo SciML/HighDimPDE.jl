@@ -17,9 +17,15 @@ end
 
 function (mc_sample::UniformSampling{T})(x_mc, kwargs...) where {T}
     Tel = eltype(T)
+    a = mc_sample.a
+    b = mc_sample.b
     rand!(x_mc)
-    m = (mc_sample.b + mc_sample.a) ./ convert(Tel, 2)
-    return x_mc .= (x_mc .- convert(Tel, 0.5)) .* (mc_sample.b - mc_sample.a) .+ m
+    # Fuse all operations to avoid temporaries: x_mc = a + (b - a) * x_mc
+    # This is equivalent to uniform sampling in [a, b]
+    @inbounds for i in eachindex(x_mc)
+        x_mc[i] = a[i] + (b[i] - a[i]) * x_mc[i]
+    end
+    return x_mc
 end
 
 """
