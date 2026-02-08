@@ -1,7 +1,7 @@
 _copy(t::Tuple) = t
 _copy(t) = t
 function _copy(opt::O) where {O <: Flux.Optimise.AbstractOptimiser}
-    return O([_copy(getfield(opt, f)) for f in fieldnames(typeof(opt))]...)
+    return O([_copy(getfield(opt, fn)) for fn in fieldnames(typeof(opt))]...)
 end
 
 """

@@ -30,8 +30,6 @@ function DiffEqBase.solve(
     d = length(X0)
     g, f, μ, σ, p = prob.g, prob.f, prob.μ, prob.σ, prob.p
 
-    data = Iterators.repeated((), maxiters)
-
     #hidden layer
     opt = alg.opt
     u0 = alg.u0
@@ -60,15 +58,17 @@ function DiffEqBase.solve(
     iters = eltype(X0)[]
     losses = eltype(X0)[]
 
-    callback = function ()
+    for _ in 1:maxiters
+        gs = Flux.gradient(ps) do
+            loss()
+        end
+        Flux.Optimise.update!(opt, ps, gs)
         save_everystep && push!(iters, u0(X0)[1])
         l = loss()
         push!(losses, l)
         verbose && println("Current loss is: $l")
-        return l < abstol && Flux.stop()
+        l < abstol && break
     end
-
-    Flux.train!(loss, ps, data, opt; cb = callback)
 
     if limits == false
         if save_everystep
@@ -110,13 +110,16 @@ function DiffEqBase.solve(
         loss_() = sum(sol_high()) / trajectories_upper
 
         ps = Flux.params(u0, σᵀ∇u...)
-        callback = function ()
+        opt_limits = Flux.Optimise.Adam(0.01)
+        for _ in 1:maxiters_limits
+            gs = Flux.gradient(ps) do
+                loss_()
+            end
+            Flux.Optimise.update!(opt_limits, ps, gs)
             l = loss_()
             verbose && println("Current loss is: $l")
-            return l < abstol && Flux.stop()
+            l < abstol && break
         end
-        dataS = Iterators.repeated((), maxiters_limits)
-        Flux.train!(loss_, ps, dataS, ADAM(0.01); cb = callback)
         u_high = loss_()
 
         verbose && println("Lower limit")

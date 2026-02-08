@@ -101,7 +101,6 @@ function DiffEqBase.solve(
     p = prob.p isa AbstractArray ? prob.p : Float32[]
     A = haskey(kwargs, :A) ? prob.A : nothing
     u_domain = prob.x0_sample
-    data = Iterators.repeated((), maxiters)
 
     #hidden layer
     opt = pdealg.opt
@@ -182,15 +181,18 @@ function DiffEqBase.solve(
 
     iters = eltype(x0)[]
     losses = eltype(x0)[]
-    cb = function ()
+    verbose && println("DeepBSDE")
+    for _ in 1:maxiters
+        gs = Flux.gradient(ps) do
+            loss_n_sde()
+        end
+        Flux.Optimise.update!(opt, ps, gs)
         save_everystep && push!(iters, u0(x0)[1])
         l = loss_n_sde()
         push!(losses, l)
         verbose && println("Current loss is: $l")
-        return l < pabstol && Flux.stop()
+        l < pabstol && break
     end
-    verbose && println("DeepBSDE")
-    Flux.train!(loss_n_sde, ps, data, opt; cb = cb)
 
     if !limits
         # Returning iters or simply u0(x0) and the trained neural network approximation u0
@@ -264,13 +266,16 @@ function DiffEqBase.solve(
         loss_() = sum(sol_high()) / trajectories_upper
 
         ps = Flux.params(u0, σᵀ∇u...)
-        cb = function ()
+        opt_upper = Flux.Optimise.Adam(0.01)
+        for _ in 1:maxiters_limits
+            gs = Flux.gradient(ps) do
+                loss_()
+            end
+            Flux.Optimise.update!(opt_upper, ps, gs)
             l = loss_()
-            true && println("Current loss is: $l")
-            return l < 1.0e-6 && Flux.stop()
+            println("Current loss is: $l")
+            l < 1.0e-6 && break
         end
-        dataS = Iterators.repeated((), maxiters_upper)
-        Flux.train!(loss_, ps, dataS, Flux.Optimise.Adam(0.01); cb = cb)
         u_high = loss_()
 
         verbose && println("Lower limit")
