@@ -14,7 +14,7 @@ struct NNParamKolmogorov{C, O} <: HighDimPDEAlgorithm
     opt::O
 end
 
-NNParamKolmogorov(chain; opt = Flux.ADAM(0.1)) = NNParamKolmogorov(chain, opt)
+NNParamKolmogorov(chain; opt = Flux.Adam(0.1)) = NNParamKolmogorov(chain, opt)
 
 """
 $(TYPEDSIGNATURES)
@@ -75,7 +75,6 @@ function DiffEqBase.solve(
     dps = merge(p_defaults, dps)
 
     chain = pdealg.chain
-    ps = Flux.params(chain)
     opt = pdealg.opt
 
     xi = mapreduce(x -> rand(x, 1, trajectories), vcat, xs)

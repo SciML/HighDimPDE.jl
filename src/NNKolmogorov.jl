@@ -13,7 +13,7 @@ struct NNKolmogorov{C, O} <: HighDimPDEAlgorithm
     chain::C
     opt::O
 end
-NNKolmogorov(chain; opt = Flux.ADAM(0.1)) = NNKolmogorov(chain, opt)
+NNKolmogorov(chain; opt = Flux.Adam(0.1)) = NNKolmogorov(chain, opt)
 
 """
 $(TYPEDSIGNATURES)
@@ -69,7 +69,6 @@ function DiffEqBase.solve(
     #hidden layer
     chain = pdealg.chain
     opt = pdealg.opt
-    ps = Flux.params(chain)
     xi = mapreduce(x -> rand(x, 1, trajectories), vcat, xs)
     #Finding Solution to the SDE having initial condition xi. Y = Phi(S(X , T))
     sdeproblem = SDEProblem(
