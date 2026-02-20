@@ -165,7 +165,7 @@ function DiffEqBase.solve(
         )
         return map(sol) do _sol
             predict_ans = Array(_sol)
-            (predict_ans[1:(end - 1), end], predict_ans[end, end])
+            predict_ans[:, end]
         end
     end
 
@@ -176,7 +176,8 @@ function DiffEqBase.solve(
     end
 
     function loss_n_sde()
-        return mean(sum(abs2, g(X) - u) for (X, u) in predict_n_sde())
+        preds = predict_n_sde()
+        return mean(sum(abs2, g(pred[1:(end - 1)]) - pred[end]) for pred in preds)
     end
 
     iters = eltype(x0)[]

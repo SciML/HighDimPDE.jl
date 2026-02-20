@@ -47,7 +47,7 @@ struct NNStoppingModelArray{M}
     ms::M
 end
 
-Flux.@functor NNStoppingModelArray
+@functor NNStoppingModelArray
 
 function (model::NNStoppingModelArray)(X, G)
     XG = cat(X, reshape(G, 1, size(G)...), dims = 1)
