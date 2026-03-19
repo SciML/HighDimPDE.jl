@@ -48,30 +48,14 @@ struct DeepSplitting{NN, F, O, L, MCS} <: HighDimPDEAlgorithm
     mc_sample!::MCS # Monte Carlo sample
 end
 
-# Constructor for old-style Flux.Optimise optimizers
+# Single constructor that works with both Flux.Optimise and Optimisers.jl optimizers
 function DeepSplitting(
         nn;
         K = 1,
-        opt::O = Flux.Optimise.Adam(0.01),
+        opt = Flux.Optimise.Adam(0.01),
         λs::L = nothing,
         mc_sample = NoSampling()
     ) where {
-        O <: Flux.Optimise.AbstractOptimiser,
-        L <: Union{Nothing, Vector{N}} where {N <: Number},
-    }
-    isnothing(λs) ? λs = [_get_eta(opt)] : nothing
-    return DeepSplitting(nn, K, opt, λs, mc_sample)
-end
-
-# Constructor for new-style Optimisers.jl optimizers
-function DeepSplitting(
-        nn;
-        K = 1,
-        opt::O,
-        λs::L = nothing,
-        mc_sample = NoSampling()
-    ) where {
-        O <: Optimisers.AbstractRule,
         L <: Union{Nothing, Vector{N}} where {N <: Number},
     }
     isnothing(λs) ? λs = [_get_eta(opt)] : nothing
