@@ -1,8 +1,18 @@
+using Optimisers
+
 _copy(t::Tuple) = t
 _copy(t) = t
 function _copy(opt::O) where {O <: Flux.Optimise.AbstractOptimiser}
     return O([_copy(getfield(opt, fn)) for fn in fieldnames(typeof(opt))]...)
 end
+# Support for new-style Optimisers.jl optimizers
+function _copy(opt::O) where {O <: Optimisers.AbstractRule}
+    return O([_copy(getfield(opt, fn)) for fn in fieldnames(typeof(opt))]...)
+end
+
+# Helper to get learning rate from either optimizer type
+_get_eta(opt::Flux.Optimise.AbstractOptimiser) = opt.eta
+_get_eta(opt::Optimisers.AbstractRule) = opt.eta
 
 """
     DeepSplitting(nn, K=1, opt = Flux.Optimise.Adam(0.01), λs = nothing, mc_sample =  NoSampling())
@@ -38,6 +48,7 @@ struct DeepSplitting{NN, F, O, L, MCS} <: HighDimPDEAlgorithm
     mc_sample!::MCS # Monte Carlo sample
 end
 
+# Constructor for old-style Flux.Optimise optimizers
 function DeepSplitting(
         nn;
         K = 1,
@@ -48,7 +59,22 @@ function DeepSplitting(
         O <: Flux.Optimise.AbstractOptimiser,
         L <: Union{Nothing, Vector{N}} where {N <: Number},
     }
-    isnothing(λs) ? λs = [opt.eta] : nothing
+    isnothing(λs) ? λs = [_get_eta(opt)] : nothing
+    return DeepSplitting(nn, K, opt, λs, mc_sample)
+end
+
+# Constructor for new-style Optimisers.jl optimizers
+function DeepSplitting(
+        nn;
+        K = 1,
+        opt::O,
+        λs::L = nothing,
+        mc_sample = NoSampling()
+    ) where {
+        O <: Optimisers.AbstractRule,
+        L <: Union{Nothing, Vector{N}} where {N <: Number},
+    }
+    isnothing(λs) ? λs = [_get_eta(opt)] : nothing
     return DeepSplitting(nn, K, opt, λs, mc_sample)
 end
 
