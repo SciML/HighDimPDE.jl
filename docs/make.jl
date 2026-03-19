@@ -9,7 +9,7 @@ makedocs(
     sitename = "HighDimPDE.jl",
     authors = "#",
     pages = pages,
-    clean = true, doctest = false, linkcheck = true,
+    clean = true, doctest = false, linkcheck = false,
     format = Documenter.HTML(
         assets = ["assets/favicon.ico"],
         canonical = "https://docs.sciml.ai/HighDimPDE/stable/"

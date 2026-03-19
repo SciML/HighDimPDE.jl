@@ -39,7 +39,7 @@ nn = Flux.Chain(Dense(d, hls, tanh),
     Dense(hls, hls, tanh),
     Dense(hls, 1)) # neural network used by the scheme
 
-opt = ADAM(1e-2)
+opt = Flux.Optimise.Adam(1e-2)
 
 ## Definition of the algorithm
 alg = DeepSplitting(nn,
