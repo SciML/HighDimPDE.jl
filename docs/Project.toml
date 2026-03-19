@@ -1,5 +1,7 @@
 [deps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+CUDA_Driver_jll = "4ee394cb-3365-5eb0-8335-949819d2adfc"
+CUDA_Runtime_jll = "76a88914-d11a-5bdc-97e0-2f5a05c973a2"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 HighDimPDE = "57c578d5-59d4-4db8-a490-a9fc372d19d2"
@@ -8,7 +10,7 @@ StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
 cuDNN = "02a925ec-e4fe-4b08-9a7e-0d78e3d38ccd"
 
 [compat]
-CUDA = "5.4.2"
+CUDA = "4, 5"
 Documenter = "1"
 Flux = "0.14.16, 0.15, 0.16"
 StochasticDiffEq = "6.66"
