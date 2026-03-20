@@ -42,30 +42,30 @@ analytical_sol = 11.278 # Ref [1]
 @test abs(analytical_sol - sol.payoff) < 0.7
 
 # Put basket option in Dupire’s local volatility model
-d = 5
-r = 0.05
-beta = 0.2
-T = 1.0
-u0 = fill(100.0, d)
-delta = 0.1
-f(u, p, t) = (r - delta) * u
+d2 = 5
+r2 = 0.05
+beta2 = 0.2
+T2 = 1.0
+u0_2 = fill(100.0, d2)
+delta2 = 0.1
+f2(u, p, t) = (r2 - delta2) * u
 
-function B(t, x)
+function B2(t, x)
     return x * 0.6 * exp(-0.05 * sqrt(t)) *
-        (1.2 - exp(-0.1 * t - 0.001 * (exp(-r * t * x - first(u0))^2)))
+        (1.2 - exp(-0.1 * t - 0.001 * (exp(-r2 * t * x - first(u0_2))^2)))
 end
-sigma(u, p, t) = B.(Ref(t), u)
+sigma2(u, p, t) = B2.(Ref(t), u)
 
-tspan = (0.0f0, T)
+tspan2 = (0.0, T2)
 N = 10
-dt = T / (N)
-K = 100.0
-function g(x, t)
-    return exp(-r * t) * (max(K - mean(x), 0))
+dt = T2 / (N)
+K2 = 100.0
+function g2(x, t)
+    return exp(-r2 * t) * (max(K2 - mean(x), 0))
 end
-prob = ParabolicPDEProblem(f, sigma, u0, tspan; payoff = g)
+prob = ParabolicPDEProblem(f2, sigma2, u0_2, tspan2; payoff = g2)
 models = [
-    Chain(Dense(d + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoid))
+    Chain(Dense(d2 + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoid))
         for i in 1:N
 ]
 opt = Flux.Optimisers.Adam(0.01)
