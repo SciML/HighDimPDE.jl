@@ -90,7 +90,8 @@ function DiffEqBase.solve(
         sdealg,
         trajectories = trajectories,
         dt = dt,
-        adaptive = false
+        adaptive = false,
+        saveat = dt
     )
 
     m = NNStoppingModelArray(pdealg.m)
