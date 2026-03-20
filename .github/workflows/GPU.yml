@@ -40,8 +40,8 @@ jobs:
 
   gpu-docs:
     name: "Documentation"
-    runs-on: [self-hosted, gpu-v100]
-    timeout-minutes: 360
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
     if: github.event_name == 'push' || !github.event.pull_request.draft
     steps:
       - uses: actions/checkout@v6
@@ -60,4 +60,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
           DATADEPS_ALWAYS_ACCEPT: true
-          JULIA_CUDA_USE_COMPAT: "false"
