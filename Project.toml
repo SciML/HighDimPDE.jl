@@ -28,6 +28,8 @@ cuDNN = "02a925ec-e4fe-4b08-9a7e-0d78e3d38ccd"
 [compat]
 Aqua = "0.8"
 CUDA = "5.4.2"
+CUDA_Driver_jll = "0.9, 0.10, 0.11, 0.12, 0.13"
+CUDA_Runtime_jll = "0.11, 0.12, 0.13, 0.14, 0.15, 0.21"
 DiffEqBase = "6.151"
 Distributions = "v0.25.107"
 DocStringExtensions = "0.9.3"

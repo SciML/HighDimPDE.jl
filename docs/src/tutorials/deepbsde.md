@@ -22,7 +22,7 @@ f(X, u, σᵀ∇u, p, t) = -λ * sum(σᵀ∇u .^ 2)
 prob = ParabolicPDEProblem(μ_f, σ_f, x0, tspan; g, f)
 
 hls = 10 + d #hidden layer size
-opt = Flux.Optimise.Adam(0.1)  #optimizer
+opt = Flux.Adam(0.1)  #optimizer
 #sub-neural network approximating solutions at the desired point
 u0 = Flux.Chain(Dense(d, hls, relu),
     Dense(hls, hls, relu),
@@ -103,7 +103,7 @@ needs to be `d+1` dimensional to `d` dimensions. Thus we define the following:
 
 ```@example deepbsde2
 hls = 10 + d #hidden layer size
-opt = Flux.Optimise.Adam(0.01)  #optimizer
+opt = Flux.Adam(0.01)  #optimizer
 #sub-neural network approximating solutions at the desired point
 u0 = Flux.Chain(Dense(d, hls, relu),
     Dense(hls, hls, relu),
@@ -160,7 +160,7 @@ needs to be `d+1`-dimensional to `d` dimensions. Thus we define the following:
 
 ```julia
 hls = 10 + d #hide layer size
-opt = Flux.Optimise.Adam(0.001)
+opt = Flux.Adam(0.001)
 u0 = Flux.Chain(Dense(d, hls, relu),
     Dense(hls, hls, relu),
     Dense(hls, 1))
