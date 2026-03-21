@@ -3,7 +3,6 @@ using SafeTestsets, Test
     @time @safetestset "Quality Assurance" include("qa.jl")
     @time @safetestset "ProblemConstructors" include("ProblemConstructor.jl")
     @time @safetestset "reflect" include("reflect.jl")
-    @time @safetestset "reflect" include("reflect.jl")
     @time @safetestset "MLP" include("MLP.jl")
     @time @safetestset "Deep Splitting" include("DeepSplitting.jl")
     @time @safetestset "Deep Splitting" include("DeepBSDE.jl")
