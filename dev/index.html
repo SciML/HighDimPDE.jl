@@ -5,12 +5,12 @@
 \end{aligned}\]</p><p>where <span>$u \colon [0,T] \times \Omega \to \R$</span>, <span>$\Omega \subseteq \R^d$</span> is subject to initial and boundary conditions, and where <span>$d$</span> is large. These equations are defined using the <a href="problems/#HighDimPDE.PIDEProblem"><code>PIDEProblem</code></a></p><h3 id="2.-Parabolic-Partial-Differential-Equations:"><a class="docs-heading-anchor" href="#2.-Parabolic-Partial-Differential-Equations:">2. Parabolic Partial Differential Equations:</a><a id="2.-Parabolic-Partial-Differential-Equations:-1"></a><a class="docs-heading-anchor-permalink" href="#2.-Parabolic-Partial-Differential-Equations:" title="Permalink"></a></h3><p class="math-container">\[\begin{aligned}
     (\partial_t u)(t,x) &amp;=  f\big(t,x, u(t,x), ( \nabla_x u )(t,x )\big) 
     + \big\langle \mu(t,x), ( \nabla_x u )( t,x ) \big\rangle + \tfrac{1}{2} \text{Trace} \big(\sigma(t,x) [ \sigma(t,x) ]^* ( \text{Hess}_x u)(t, x ) \big).
-\end{aligned}\]</p><p>where <span>$u \colon [0,T] \times \Omega \to \R$</span>, <span>$\Omega \subseteq \R^d$</span> is subject to initial and boundary conditions, and where <span>$d$</span> is large. These equations are defined using the <a href="problems/#HighDimPDE.ParabolicPDEProblem"><code>ParabolicPDEProblem</code></a></p><div class="admonition is-info" id="Note-25028fb6dccaf59"><header class="admonition-header">Note<a class="admonition-anchor" href="#Note-25028fb6dccaf59" title="Permalink"></a></header><div class="admonition-body"><p>The difference between the two problems is that in Partial Integro Differential Equations, the integrand is integrated over <strong>x</strong>, while in Parabolic Integro Differential Equations, the function <code>f</code> is just evaluated for <code>x</code>.</p></div></div><p><strong>HighDimPDE.jl</strong> implements solver algorithms that break down the curse of dimensionality, including</p><ul><li><p>the <a href="DeepSplitting/#deepsplitting">Deep Splitting scheme</a></p></li><li><p>the <a href="MLP/#mlp">Multi-Level Picard iterations scheme</a></p></li><li><p><a href="DeepBSDE/#deepbsde">the Deep BSDE scheme</a>.</p></li><li><p><a href="NNKolmogorov/#nn_kolmogorov">NNKolmogorov</a> and <a href="NNParamKolmogorov/#nn_paramkolmogorov">NNParamKolmogorov</a> schemes for Kolmogorov PDEs.</p></li><li><p>[NNStopping] scheme for solving optimal stopping time problem.</p></li></ul><p>To make the most out of <strong>HighDimPDE.jl</strong>, we advise to first have a look at the</p><ul><li><a href="Feynman_Kac/#feynmankac">documentation on the Feynman Kac formula</a>,</li></ul><p>as all solver algorithms heavily rely on it.</p><h2 id="Algorithm-overview"><a class="docs-heading-anchor" href="#Algorithm-overview">Algorithm overview</a><a id="Algorithm-overview-1"></a><a class="docs-heading-anchor-permalink" href="#Algorithm-overview" title="Permalink"></a></h2><ul><li><ul><li><ul><li></li></ul></li></ul></li></ul><table><tr><th style="text-align: right">Features</th><th style="text-align: center"><code>DeepSplitting</code></th><th style="text-align: center"><code>MLP</code></th><th style="text-align: center"><code>DeepBSDE</code></th></tr><tr><td style="text-align: right">Time discretization free</td><td style="text-align: center">❌</td><td style="text-align: center">✅</td><td style="text-align: center">❌</td></tr><tr><td style="text-align: right">Mesh-free</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td></tr><tr><td style="text-align: right">Single point <span>$x \in \R^d$</span> approximation</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td></tr><tr><td style="text-align: right"><span>$d$</span>-dimensional cube <span>$[a,b]^d$</span> approximation</td><td style="text-align: center">✅</td><td style="text-align: center">❌</td><td style="text-align: center">✔️</td></tr><tr><td style="text-align: right">GPU</td><td style="text-align: center">✅</td><td style="text-align: center">❌</td><td style="text-align: center">✅</td></tr><tr><td style="text-align: right">Gradient non-linearities</td><td style="text-align: center">✔️</td><td style="text-align: center">❌</td><td style="text-align: center">✅</td></tr></table><p>✔️ : will be supported in the future</p><h2 id="Reproducibility"><a class="docs-heading-anchor" href="#Reproducibility">Reproducibility</a><a id="Reproducibility-1"></a><a class="docs-heading-anchor-permalink" href="#Reproducibility" title="Permalink"></a></h2><details><summary>The documentation of this SciML package was built using these direct dependencies,</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Status `~/github-runners/demeter4-4/_work/HighDimPDE.jl/HighDimPDE.jl/docs/Project.toml`
+\end{aligned}\]</p><p>where <span>$u \colon [0,T] \times \Omega \to \R$</span>, <span>$\Omega \subseteq \R^d$</span> is subject to initial and boundary conditions, and where <span>$d$</span> is large. These equations are defined using the <a href="problems/#HighDimPDE.ParabolicPDEProblem"><code>ParabolicPDEProblem</code></a></p><div class="admonition is-info" id="Note-25028fb6dccaf59"><header class="admonition-header">Note<a class="admonition-anchor" href="#Note-25028fb6dccaf59" title="Permalink"></a></header><div class="admonition-body"><p>The difference between the two problems is that in Partial Integro Differential Equations, the integrand is integrated over <strong>x</strong>, while in Parabolic Integro Differential Equations, the function <code>f</code> is just evaluated for <code>x</code>.</p></div></div><p><strong>HighDimPDE.jl</strong> implements solver algorithms that break down the curse of dimensionality, including</p><ul><li><p>the <a href="DeepSplitting/#deepsplitting">Deep Splitting scheme</a></p></li><li><p>the <a href="MLP/#mlp">Multi-Level Picard iterations scheme</a></p></li><li><p><a href="DeepBSDE/#deepbsde">the Deep BSDE scheme</a>.</p></li><li><p><a href="NNKolmogorov/#nn_kolmogorov">NNKolmogorov</a> and <a href="NNParamKolmogorov/#nn_paramkolmogorov">NNParamKolmogorov</a> schemes for Kolmogorov PDEs.</p></li><li><p>[NNStopping] scheme for solving optimal stopping time problem.</p></li></ul><p>To make the most out of <strong>HighDimPDE.jl</strong>, we advise to first have a look at the</p><ul><li><a href="Feynman_Kac/#feynmankac">documentation on the Feynman Kac formula</a>,</li></ul><p>as all solver algorithms heavily rely on it.</p><h2 id="Algorithm-overview"><a class="docs-heading-anchor" href="#Algorithm-overview">Algorithm overview</a><a id="Algorithm-overview-1"></a><a class="docs-heading-anchor-permalink" href="#Algorithm-overview" title="Permalink"></a></h2><ul><li><ul><li><ul><li></li></ul></li></ul></li></ul><table><tr><th style="text-align: right">Features</th><th style="text-align: center"><code>DeepSplitting</code></th><th style="text-align: center"><code>MLP</code></th><th style="text-align: center"><code>DeepBSDE</code></th></tr><tr><td style="text-align: right">Time discretization free</td><td style="text-align: center">❌</td><td style="text-align: center">✅</td><td style="text-align: center">❌</td></tr><tr><td style="text-align: right">Mesh-free</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td></tr><tr><td style="text-align: right">Single point <span>$x \in \R^d$</span> approximation</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td><td style="text-align: center">✅</td></tr><tr><td style="text-align: right"><span>$d$</span>-dimensional cube <span>$[a,b]^d$</span> approximation</td><td style="text-align: center">✅</td><td style="text-align: center">❌</td><td style="text-align: center">✔️</td></tr><tr><td style="text-align: right">GPU</td><td style="text-align: center">✅</td><td style="text-align: center">❌</td><td style="text-align: center">✅</td></tr><tr><td style="text-align: right">Gradient non-linearities</td><td style="text-align: center">✔️</td><td style="text-align: center">❌</td><td style="text-align: center">✅</td></tr></table><p>✔️ : will be supported in the future</p><h2 id="Reproducibility"><a class="docs-heading-anchor" href="#Reproducibility">Reproducibility</a><a id="Reproducibility-1"></a><a class="docs-heading-anchor-permalink" href="#Reproducibility" title="Permalink"></a></h2><details><summary>The documentation of this SciML package was built using these direct dependencies,</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Status `~/github-runners/demeter4-2/_work/HighDimPDE.jl/HighDimPDE.jl/docs/Project.toml`
   [052768ef] CUDA v5.11.0
   [e30172f5] Documenter v1.17.0
   [587475ba] Flux v0.16.9
-  [57c578d5] HighDimPDE v2.2.0 `~/github-runners/demeter4-4/_work/HighDimPDE.jl/HighDimPDE.jl`
-  [789caeaf] StochasticDiffEq v6.100.0
+  [57c578d5] HighDimPDE v2.2.0 `~/github-runners/demeter4-2/_work/HighDimPDE.jl/HighDimPDE.jl`
+  [789caeaf] StochasticDiffEq v6.101.0
   [02a925ec] cuDNN v1.4.7
   [37e2e46d] LinearAlgebra</code></pre></details><details><summary>and using this machine and Julia version.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Julia Version 1.10.11
 Commit a2b11907d7b (2026-03-09 14:59 UTC)
@@ -24,7 +24,7 @@ Platform Info:
   LLVM: libLLVM-15.0.7 (ORCJIT, znver3)
 Threads: 1 default, 0 interactive, 1 GC (on 64 virtual cores)
 Environment:
-  JULIA_DEPOT_PATH = /home/chrisrackauckas/github-runners/demeter4-4/.julia</code></pre></details><details><summary>A more complete overview of all dependencies and their versions is also provided.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Status `~/github-runners/demeter4-4/_work/HighDimPDE.jl/HighDimPDE.jl/docs/Manifest.toml`
+  JULIA_DEPOT_PATH = /home/chrisrackauckas/github-runners/demeter4-2/.julia</code></pre></details><details><summary>A more complete overview of all dependencies and their versions is also provided.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Status `~/github-runners/demeter4-2/_work/HighDimPDE.jl/HighDimPDE.jl/docs/Manifest.toml`
   [47edcb42] ADTypes v1.21.0
   [a4c015fc] ANSIColoredPrinters v0.0.1
   [621f4979] AbstractFFTs v1.5.0
@@ -40,14 +40,14 @@ Environment:
   [198e06fe] BangBang v0.4.9
   [9718e550] Baselet v0.1.1
   [62783981] BitTwiddlingConvenienceFunctions v0.1.6
-  [70df07ce] BracketingNonlinearSolve v1.11.0
+  [70df07ce] BracketingNonlinearSolve v1.12.0
   [fa961155] CEnum v0.5.0
   [2a0fbf3d] CPUSummary v0.2.7
   [052768ef] CUDA v5.11.0
   [1af6417a] CUDA_Runtime_Discovery v1.0.0
   [7057c7e9] Cassette v0.3.14
   [082447d4] ChainRules v1.73.0
-  [d360d2e6] ChainRulesCore v1.26.0
+  [d360d2e6] ChainRulesCore v1.26.1
   [fb6a15b2] CloseOpenIntervals v0.1.13
   [944b1d66] CodecZlib v0.7.8
   [38540f10] CommonSolve v0.2.6
@@ -61,13 +61,13 @@ Environment:
   [adafc99b] CpuId v0.3.1
   [a8cc5b0e] Crayons v4.1.1
   [9a962f9c] DataAPI v1.16.0
-  [864edb3b] DataStructures v0.19.3
+  [864edb3b] DataStructures v0.19.4
   [e2d170a0] DataValueInterfaces v1.0.0
   [244e2a9f] DefineSingletons v0.1.2
   [8bb1440f] DelimitedFiles v1.9.1
-  [2b5f629d] DiffEqBase v6.211.0
-  [459566f4] DiffEqCallbacks v4.12.0
-  [77a26b50] DiffEqNoiseProcess v5.27.0
+  [2b5f629d] DiffEqBase v6.214.1
+  [459566f4] DiffEqCallbacks v4.13.0
+  [77a26b50] DiffEqNoiseProcess v5.28.0
   [163ba53b] DiffResults v1.1.0
   [b552c78f] DiffRules v1.15.1
   [a0c0ee7d] DifferentiationInterface v0.7.16
@@ -75,13 +75,13 @@ Environment:
   [ffbed154] DocStringExtensions v0.9.5
   [e30172f5] Documenter v1.17.0
   [4e289a0a] EnumX v1.0.7
-  [7da242da] Enzyme v0.13.134
-  [f151be2c] EnzymeCore v0.8.18
+  [7da242da] Enzyme v0.13.138
+  [f151be2c] EnzymeCore v0.8.19
   [e2ba6199] ExprTools v0.1.10
   [55351af7] ExproniconLite v0.10.14
   [cc61a311] FLoops v0.2.2
   [b9860ae5] FLoopsBase v0.1.1
-  [7034ab61] FastBroadcast v0.3.5
+  [7034ab61] FastBroadcast v1.3.1
   [9aa1b823] FastClosures v0.3.2
   [a4df4552] FastPower v1.3.1
   [1a297f60] FillArrays v1.16.0
@@ -90,16 +90,16 @@ Environment:
   [f6369f11] ForwardDiff v1.3.3
   [f62d2435] FunctionProperties v0.1.2
   [069b7b12] FunctionWrappers v1.1.3
-  [77dc65aa] FunctionWrappersWrappers v0.1.3
+  [77dc65aa] FunctionWrappersWrappers v1.1.0
   [d9f16b24] Functors v0.5.2
   [0c68f7d7] GPUArrays v11.4.1
   [46192b85] GPUArraysCore v0.2.0
-  [61eb1bfa] GPUCompiler v1.8.2
+  [61eb1bfa] GPUCompiler v1.9.1
   [096a3bc2] GPUToolbox v1.1.1
   [d7ba0133] Git v1.5.0
   [86223c79] Graphs v1.14.0
   [076d061b] HashArrayMappedTries v0.2.0
-  [57c578d5] HighDimPDE v2.2.0 `~/github-runners/demeter4-4/_work/HighDimPDE.jl/HighDimPDE.jl`
+  [57c578d5] HighDimPDE v2.2.0 `~/github-runners/demeter4-2/_work/HighDimPDE.jl/HighDimPDE.jl`
   [34004b35] HypergeometricFunctions v0.3.28
   [b5f81e59] IOCapture v1.0.0
   [7869d1d1] IRTools v0.4.15
@@ -110,10 +110,10 @@ Environment:
   [92d709cd] IrrationalConstants v0.2.6
   [82899510] IteratorInterfaceExtensions v1.0.0
   [692b3bcd] JLLWrappers v1.7.1
-  [682c06a0] JSON v1.4.0
+  [682c06a0] JSON v1.5.0
   [ae98c720] Jieko v0.2.1
   [b14d175d] JuliaVariables v0.2.4
-  [ccbc3e58] JumpProcesses v9.23.2
+  [ccbc3e58] JumpProcesses v9.25.0
   [63c18a36] KernelAbstractions v0.9.41
   [ba0b0d4f] Krylov v0.10.6
   [929cbde3] LLVM v9.4.6
@@ -121,9 +121,8 @@ Environment:
   [b964fa9f] LaTeXStrings v1.4.0
   [10f19ff3] LayoutPointers v0.1.17
   [0e77f7df] LazilyInitializedFields v1.3.0
-  [2d8b4e74] LevyArea v1.0.0
   [87fe0de2] LineSearch v0.1.6
-  [7ed4a6bd] LinearSolve v3.68.0
+  [7ed4a6bd] LinearSolve v3.70.0
   [2ab3a3ac] LogExpFunctions v0.3.29
   [e6f89c97] LoggingExtras v1.2.0
   [c2834f40] MLCore v1.0.0
@@ -142,36 +141,36 @@ Environment:
   [5da4648a] NVTX v1.0.3
   [77ba4419] NaNMath v1.1.3
   [71a1bf82] NameResolution v0.1.5
-  [8913a72c] NonlinearSolve v4.16.0
-  [be0214bd] NonlinearSolveBase v2.16.0
-  [5959db7a] NonlinearSolveFirstOrder v2.0.0
-  [9a2c21bd] NonlinearSolveQuasiNewton v1.12.0
-  [26075421] NonlinearSolveSpectralMethods v1.6.0
+  [8913a72c] NonlinearSolve v4.17.0
+  [be0214bd] NonlinearSolveBase v2.22.0
+  [5959db7a] NonlinearSolveFirstOrder v2.1.0
+  [9a2c21bd] NonlinearSolveQuasiNewton v1.13.0
+  [26075421] NonlinearSolveSpectralMethods v1.7.0
   [d8793406] ObjectFile v0.5.0
   [0b1bfda6] OneHotArrays v0.2.10
   [3bd65402] Optimisers v0.4.7
   [bac558e1] OrderedCollections v1.8.1
-  [bbf590c4] OrdinaryDiffEqCore v3.22.0
-  [4302a76b] OrdinaryDiffEqDifferentiation v2.2.1
-  [127b3ac7] OrdinaryDiffEqNonlinearSolve v1.23.0
+  [bbf590c4] OrdinaryDiffEqCore v3.28.0
+  [4302a76b] OrdinaryDiffEqDifferentiation v2.7.0
+  [127b3ac7] OrdinaryDiffEqNonlinearSolve v1.26.0
   [90014a1f] PDMats v0.11.37
   [69de0a69] Parsers v2.8.3
   [e409e4f3] PoissonRandom v0.4.7
   [f517fe37] Polyester v0.7.19
   [1d0040c9] PolyesterWeave v0.2.2
-  [d236fae5] PreallocationTools v1.1.2
+  [d236fae5] PreallocationTools v1.2.0
 ⌅ [aea7be01] PrecompileTools v1.2.1
   [21216c6a] Preferences v1.5.2
   [8162dcfd] PrettyPrint v0.2.0
-  [08abe8d2] PrettyTables v3.3.1
+  [08abe8d2] PrettyTables v3.3.2
   [33c8b6b6] ProgressLogging v0.1.6
   [43287f4e] PtrArrays v1.4.0
-  [1fd47b50] QuadGK v2.11.2
+  [1fd47b50] QuadGK v2.11.3
   [74087812] Random123 v1.7.1
   [e6cf234a] RandomNumbers v1.6.0
   [c1ae055f] RealDot v0.1.0
   [3cdcf5f2] RecipesBase v1.3.4
-  [731186ca] RecursiveArrayTools v3.48.0
+⌅ [731186ca] RecursiveArrayTools v3.54.0
   [189a3867] Reexport v1.2.2
   [2792f1a3] RegistryInstances v0.1.0
   [ae029012] Requires v1.3.1
@@ -180,12 +179,12 @@ Environment:
   [79098fc4] Rmath v0.9.0
   [7e49a35a] RuntimeGeneratedFunctions v0.5.17
   [94e857df] SIMDTypes v0.1.0
-  [0bca4576] SciMLBase v2.152.1
+  [0bca4576] SciMLBase v2.154.0
   [19f34311] SciMLJacobianOperators v0.1.12
   [a6db7da4] SciMLLogging v1.9.1
-  [c0aeaf25] SciMLOperators v1.15.1
+  [c0aeaf25] SciMLOperators v1.16.0
   [431bcebd] SciMLPublic v1.0.1
-  [1ed8b502] SciMLSensitivity v7.99.0
+  [1ed8b502] SciMLSensitivity v7.102.0
   [53ae85a6] SciMLStructures v1.10.0
   [7e506255] ScopedValues v1.6.0
   [6c6a2e73] Scratch v1.3.0
@@ -196,7 +195,7 @@ Environment:
   [a2af1166] SortingAlgorithms v1.2.2
   [dc90abb0] SparseInverseSubset v0.1.2
   [0a514795] SparseMatrixColorings v0.4.26
-  [276daf66] SpecialFunctions v2.7.1
+  [276daf66] SpecialFunctions v2.7.2
   [171d559e] SplittablesBase v0.1.15
   [aedffcd0] Static v1.3.1
   [0d7ed370] StaticArrayInterface v1.9.0
@@ -205,10 +204,21 @@ Environment:
   [82ae8749] StatsAPI v1.8.0
   [2913bbd2] StatsBase v0.34.10
   [4c63d2b9] StatsFuns v1.5.2
-  [789caeaf] StochasticDiffEq v6.100.0
+  [789caeaf] StochasticDiffEq v6.101.0
+  [19c5a474] StochasticDiffEqCore v1.1.0
+  [0520c28c] StochasticDiffEqHighOrder v1.0.0
+  [ebf54054] StochasticDiffEqIIF v1.0.0
+  [5080b986] StochasticDiffEqImplicit v1.1.0
+  [aefaaa88] StochasticDiffEqLeaping v1.0.0
+  [90dbc90e] StochasticDiffEqLevyArea v1.0.0
+  [d15fe365] StochasticDiffEqLowOrder v1.0.0
+  [8c95a807] StochasticDiffEqMilstein v1.1.0
+  [db241ea8] StochasticDiffEqROCK v1.0.0
+  [49714585] StochasticDiffEqRODE v1.0.0
+  [af2a2fcd] StochasticDiffEqWeak v1.1.0
   [7792a7ef] StrideArraysCore v0.5.8
   [892a3eda] StringManipulation v0.4.4
-  [09ab397b] StructArrays v0.7.2
+  [09ab397b] StructArrays v0.7.3
   [53d494c1] StructIO v0.3.1
   [ec057cc2] StructUtils v2.7.1
   [2efcf032] SymbolicIndexingInterface v0.3.46
@@ -293,4 +303,4 @@ Environment:
   [8e850b90] libblastrampoline_jll v5.11.0+0
   [8e850ede] nghttp2_jll v1.52.0+1
   [3f19e933] p7zip_jll v17.6.1+0
-Info Packages marked with ⌅ have new versions available but compatibility constraints restrict them from upgrading. To see why use `status --outdated -m`</code></pre></details><p>You can also download the <a href="https://github.com/SciML/HighDimPDE.jl/tree/gh-pages/v2.2.0/assets/Manifest.toml">manifest</a> file and the <a href="https://github.com/SciML/HighDimPDE.jl/tree/gh-pages/v2.2.0/assets/Project.toml">project</a> file.</p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="getting_started/">Getting started »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 25 March 2026 13:04">Wednesday 25 March 2026</span>. Using Julia version 1.10.11.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Info Packages marked with ⌅ have new versions available but compatibility constraints restrict them from upgrading. To see why use `status --outdated -m`</code></pre></details><p>You can also download the <a href="https://github.com/SciML/HighDimPDE.jl/tree/gh-pages/v2.2.0/assets/Manifest.toml">manifest</a> file and the <a href="https://github.com/SciML/HighDimPDE.jl/tree/gh-pages/v2.2.0/assets/Project.toml">project</a> file.</p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="getting_started/">Getting started »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 7 April 2026 07:05">Tuesday 7 April 2026</span>. Using Julia version 1.10.11.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
