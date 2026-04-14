@@ -111,11 +111,8 @@ function DiffEqBase.solve(
     ps_phi_iterator = !isnothing(ps_phi) ? eachslice(ps_phi, dims = length(size(ps_phi))) :
         collect(Iterators.repeated(nothing, trajectories))
     # return xi, ti, ps_sigma_iterator[1]
-    prob_func = (
-        prob,
-        i,
-        repeat,
-    ) -> begin
+    prob_func = (prob, ctx) -> begin
+        i = ctx.sim_id
         sigma_(dx, x, p, t) = sigma(dx, x, ps_sigma_iterator[i], t)
         mu_(dx, x, p, t) = mu(dx, x, ps_mu_iterator[i], t)
         SDEProblem(
@@ -127,7 +124,7 @@ function DiffEqBase.solve(
         )
     end
 
-    output_func = (sol, i) -> (sol.u[end], false)
+    output_func = (sol, ctx) -> (sol.u[end], false)
 
     sdeprob = SDEProblem(
         mu,
