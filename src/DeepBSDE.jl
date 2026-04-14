@@ -210,7 +210,7 @@ function DiffEqBase.solve(
             error("dt choice is required for upper and lower bound calculation ")
         end
         sdeProb = SDEProblem(μ, σ, x0, tspan, noise_rate_prototype = zeros(Float32, d, d))
-        output_func(sol, i) = (sol.u[end], false)
+        output_func(sol, ctx) = (sol.u[end], false)
         ensembleprob = EnsembleProblem(sdeProb, output_func = output_func)
         sim_f = solve(
             ensembleprob,
@@ -231,7 +231,8 @@ function DiffEqBase.solve(
             p3,
             noise_rate_prototype = noise
         )
-        function prob_func(prob, i, repeat)
+        function prob_func(prob, ctx)
+            i = ctx.sim_id
             return SDEProblem(
                 prob.f,
                 prob.g,

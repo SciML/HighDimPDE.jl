@@ -79,15 +79,15 @@ function DiffEqBase.solve(
         noise_rate_prototype = noise_rate_prototype
     )
 
-    function prob_func(prob, i, repeat)
+    function prob_func(prob, ctx)
         return SDEProblem(
             prob.f,
-            xi[:, i],
+            xi[:, ctx.sim_id],
             prob.tspan,
             noise_rate_prototype = prob.noise_rate_prototype
         )
     end
-    output_func(sol, i) = (sol.u[end], false)
+    output_func(sol, ctx) = (sol.u[end], false)
     ensembleprob = EnsembleProblem(
         sdeproblem,
         prob_func = prob_func,
