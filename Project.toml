@@ -25,7 +25,7 @@ cuDNN = "02a925ec-e4fe-4b08-9a7e-0d78e3d38ccd"
 [compat]
 Aqua = "0.8"
 CUDA = "6"
-DiffEqBase = "6.151"
+DiffEqBase = "6.151, 7.0"
 Distributions = "v0.25.107"
 DocStringExtensions = "0.9.3"
 Flux = "0.14.16, 0.15, 0.16"
