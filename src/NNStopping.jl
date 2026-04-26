@@ -100,7 +100,7 @@ function DiffEqBase.solve(
     ts = tspan[1]:dt:tspan[2]
     N = length(ts) - 1
 
-    G = reduce(hcat, map(u -> map(i -> g(u.u[i], u.t[i]), 1:(N + 1)), sim))
+    G = reduce(hcat, map(u -> map(i -> g(u.u[i], u.t[i]), 1:(N + 1)), sim.u))
 
     function nn_loss(m)
         preds = m(Array(sim), G)
@@ -149,6 +149,6 @@ function DiffEqBase.solve(
     end
 
     tss = getindex.(Ref(ts), ns .+ 1)
-    payoff = mean(map((t, u) -> g(u(t), t), tss, sim))
+    payoff = mean(map((t, u) -> g(u(t), t), tss, sim.u))
     return (payoff = payoff, stopping_time = tss)
 end
