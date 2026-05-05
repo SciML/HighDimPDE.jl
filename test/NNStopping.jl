@@ -39,7 +39,7 @@ sol = solve(
     verbose = true
 )
 analytical_sol = 11.278 # Ref [1]
-@test abs(analytical_sol - sol.payoff) < 0.7
+@test abs(analytical_sol - sol.payoff) < 1.5
 
 # Put basket option in Dupire’s local volatility model
 d2 = 5

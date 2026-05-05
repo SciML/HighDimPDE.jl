@@ -163,7 +163,7 @@ function DiffEqBase.solve(
             save_everystep = false,
             kwargs...
         )
-        return map(sol) do _sol
+        return map(sol.u) do _sol
             predict_ans = Array(_sol)
             predict_ans[:, end]
         end
