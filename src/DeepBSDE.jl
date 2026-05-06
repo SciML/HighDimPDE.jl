@@ -163,10 +163,16 @@ function DiffEqBase.solve(
             save_everystep = false,
             kwargs...
         )
-        return map(sol) do _sol
-            predict_ans = Array(_sol)
-            predict_ans[:, end]
-        end
+        # Materialize the EnsembleSolution as a plain 3D `Array{Float32, 3}`
+        # before slicing. Under RecursiveArrayTools v4, EnsembleSolution
+        # subclasses AbstractArray, and Zygote's pullback through `sol.u`
+        # collapses the cotangent to a `Float32` scalar, which then breaks
+        # `SciMLSensitivity.tracker_adjoint_backpass` at the
+        # `eltype(ybar) <: Number && u0 isa Array` branch
+        # (concrete_solve.jl:2099). Going through `Array(sol)` keeps the
+        # cotangent as a 3-D `Array{Float32}` end-to-end.
+        arr = Array(sol)
+        return [arr[:, end, i] for i in axes(arr, 3)]
     end
 
     function predict_n_sde()
