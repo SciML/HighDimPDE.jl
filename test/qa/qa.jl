@@ -1,8 +1,15 @@
 using SciMLTesting, HighDimPDE, Test
+using NNlib: fast_act
 
 run_qa(
     HighDimPDE;
     explicit_imports = true,
+    # `NNlib.fast_act(::typeof(tanh), ::CuArray) = tanh` (in src/HighDimPDE.jl) is
+    # intentional type piracy: a CUDA-side opt-out of NNlib's `tanh_fast` substitution
+    # that works around an `InvalidIRError` when broadcasting `ComposedFunction{tanh_fast,
+    # +}` on the GPU. This is exactly the per-array-type override NNlib's `fast_act` API
+    # was built for. See FluxML/Flux.jl#2633 for the analogous Metal report.
+    aqua_kwargs = (; piracies = (; treat_as_own = [fast_act])),
     # `@reexport using DiffEqBase` re-exports du_cache/u_cache/user_cache (owned by
     # SciMLBase, only re-exported by DiffEqBase). On Julia <=1.11 these resolve fine,
     # but Julia 1.12's binding-partition change makes the double-reexported names
@@ -23,6 +30,12 @@ run_qa(
                 :AbstractOptimiser,  # Flux.Optimise
                 :Optimise,           # Flux
                 :params,             # Flux
+                # `NNlib.fast_act` is NNlib's per-array-type activation opt-out hook;
+                # HighDimPDE adds `fast_act(::typeof(tanh), ::CuArray) = tanh` to work
+                # around a GPU broadcast `InvalidIRError` (see FluxML/Flux.jl#2633).
+                # NNlib exposes it as a public override point but has not declared it
+                # `public`, so the public-API check flags the qualified access.
+                :fast_act,           # NNlib
             ),
         ),
     )
