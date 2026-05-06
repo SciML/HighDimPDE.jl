@@ -16,6 +16,17 @@ using Tracker
 using CUDA, cuDNN
 using Random
 using SparseArrays
+using NNlib
+
+# Disable NNlib's `tanh_fast` substitution on CuArrays. Inside
+# `NNlib.bias_act!`, the activation is wrapped into a `ComposedFunction
+# (σ, +)` that is broadcast on GPU. With the polynomial `tanh_fast`,
+# GPU compilation of the resulting `Broadcasted{ComposedFunction{...}}`
+# kernel hits an unsupported dynamic dispatch through the
+# `ComposedFunction` kwsorter, while the device intrinsic `tanh`
+# compiles cleanly. Same fix as suggested for Metal in
+# https://github.com/FluxML/Flux.jl/issues/2633.
+NNlib.fast_act(::typeof(tanh), ::CuArray) = tanh
 
 abstract type HighDimPDEAlgorithm <: SciMLBase.AbstractODEAlgorithm end
 abstract type AbstractPDEProblem <: SciMLBase.AbstractSciMLProblem end
