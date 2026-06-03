@@ -53,7 +53,7 @@ models = [Chain(Dense(d + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoi
 !!! note
     
 
-The number of models should be equal to the time discritization.
+The number of models should be equal to the time discretization.
 
 And finally we define our optimizer and algorithm, and call `solve`:
 
