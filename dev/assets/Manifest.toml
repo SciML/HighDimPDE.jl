@@ -2,7 +2,7 @@
 
 julia_version = "1.10.11"
 manifest_format = "2.0"
-project_hash = "7aab9f95cb6724e3504d81589d024dae68f89baf"
+project_hash = "2f0d7ed6bf7496799742ec88041b40bb24e660dd"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "bbc22a9a08a0ef6460041086d8a7b27940ed4ffd"
@@ -828,7 +828,7 @@ version = "0.2.0"
 
 [[deps.HighDimPDE]]
 deps = ["CUDA", "DiffEqBase", "DocStringExtensions", "Flux", "Functors", "LinearAlgebra", "Random", "Reexport", "SciMLBase", "SciMLSensitivity", "SparseArrays", "Statistics", "StochasticDiffEq", "Test", "Tracker", "Zygote", "cuDNN"]
-path = "/home/chrisrackauckas/github-runners/demeter3-3/_work/HighDimPDE.jl/HighDimPDE.jl"
+path = "/home/chrisrackauckas/github-runners/demeter4-3/_work/HighDimPDE.jl/HighDimPDE.jl"
 uuid = "57c578d5-59d4-4db8-a490-a9fc372d19d2"
 version = "2.5.0"
 
