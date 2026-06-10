@@ -1,0 +1,12 @@
+[deps]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+HighDimPDE = "57c578d5-59d4-4db8-a490-a9fc372d19d2"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[sources]
+HighDimPDE = {path = "../.."}
+
+[compat]
+Aqua = "0.8"
+Test = "1"
+julia = "1.10"
