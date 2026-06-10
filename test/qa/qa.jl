@@ -1,6 +1,6 @@
 using HighDimPDE, Aqua
 @testset "Aqua" begin
-    Aqua.find_persistent_tasks_deps(HighDimPDE)
+    Aqua.test_persistent_tasks(HighDimPDE)
     Aqua.test_ambiguities(HighDimPDE, recursive = false)
     Aqua.test_deps_compat(HighDimPDE)
     Aqua.test_piracies(HighDimPDE)
