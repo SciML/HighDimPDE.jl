@@ -17,7 +17,7 @@ using CUDA, cuDNN
 using Random
 using SparseArrays
 
-abstract type HighDimPDEAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
+abstract type HighDimPDEAlgorithm <: SciMLBase.AbstractODEAlgorithm end
 abstract type AbstractPDEProblem <: SciMLBase.AbstractSciMLProblem end
 
 Base.summary(prob::AbstractPDEProblem) = string(nameof(typeof(prob)))
@@ -31,7 +31,7 @@ end
 include("MCSample.jl")
 
 struct PIDEProblem{uType, G, F, Mu, Sigma, xType, tType, P, UD, NBC, K} <:
-    DiffEqBase.AbstractODEProblem{uType, tType, false}
+    SciMLBase.AbstractODEProblem{uType, tType, false}
     u0::uType
     g::G # initial condition
     f::F # nonlinear part
@@ -118,7 +118,7 @@ function PIDEProblem(
 end
 
 struct ParabolicPDEProblem{uType, G, F, Mu, Sigma, xType, tType, P, UD, NBC, K} <:
-    DiffEqBase.AbstractODEProblem{uType, tType, false}
+    SciMLBase.AbstractODEProblem{uType, tType, false}
     u0::uType
     g::G # initial condition
     f::F # nonlinear part
