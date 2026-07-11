@@ -50,6 +50,12 @@ function (mc_sample::NormalSampling)(x_mc, x)
     return mc_sample.shifted ? x_mc .+= x : nothing
 end
 
+"""
+    NoSampling()
+
+Sampling strategy that disables Monte Carlo integration and evaluates the PDE at the
+provided state only.
+"""
 struct NoSampling <: AbstractSampling{Nothing} end
 
 (mc_sample::NoSampling)(x...) = nothing

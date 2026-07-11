@@ -242,6 +242,12 @@ function ParabolicPDEProblem(
     )
 end
 
+"""
+    PIDESolution(x0, ts, losses, usols, ufuns[, limits])
+
+Solution container storing the evaluated states, learned solution functions, training
+losses, and optional domain limits produced by HighDimPDE solvers.
+"""
 struct PIDESolution{X0, Ts, L, Us, NNs, Ls}
     x0::X0
     ts::Ts
