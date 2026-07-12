@@ -3,6 +3,10 @@ using SciMLTesting, HighDimPDE, Test
 run_qa(
     HighDimPDE;
     explicit_imports = true,
+    api_docs_kwargs = (;
+        rendered = true,
+        ignore = (:AllObserved, :SciMLBase, :du_cache, :u_cache, :user_cache),
+    ),
     # `@reexport using DiffEqBase` re-exports du_cache/u_cache/user_cache (owned by
     # SciMLBase, only re-exported by DiffEqBase). On Julia <=1.11 these resolve fine,
     # but Julia 1.12's binding-partition change makes the double-reexported names
