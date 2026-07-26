@@ -1,12 +1,19 @@
 """
 Algorithm for solving Kolmogorov Equations.
 
+# Fields
+- `chain`: neural network trained to approximate the terminal-value expectation.
+- `opt`: Flux optimizer rule used to train `chain`.
+
+ # Arguments
+- `chain`: neural network with a d-dimensional output.
+- `opt`: optimizer used to train the neural network.
+
+# Examples
 ```julia
-HighDimPDE.NNKolmogorov(chain, opt)
+alg = NNKolmogorov(Flux.Chain(Flux.Dense(2, 1)))
 ```
-Arguments:
-- `chain`: A Chain neural network with a d-dimensional output.
-- `opt`: The optimizer to train the neural network. Defaults to `ADAM(0.1)`.
+
 [1]Beck, Christian, et al. "Solving stochastic differential equations and Kolmogorov equations by means of deep learning." arXiv preprint arXiv:1806.00421 (2018).
 """
 struct NNKolmogorov{C, O} <: HighDimPDEAlgorithm
@@ -32,7 +39,7 @@ Returns a `PIDESolution` object.
 - `trajectories`: The number of trajectories simulated for training. Defaults to `100`
 - Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
 """
-function DiffEqBase.solve(
+function solve(
         prob::ParabolicPDEProblem,
         pdealg::HighDimPDE.NNKolmogorov,
         sdealg;

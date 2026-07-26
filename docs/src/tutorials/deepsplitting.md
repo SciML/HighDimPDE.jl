@@ -12,6 +12,7 @@ Let's solve Eq. (1) with the [`DeepSplitting`](@ref deepsplitting) solver.
 
 ```@example deepsplitting
 using HighDimPDE, Flux
+using SciMLBase: solve
 
 ## Definition of the problem
 d = 10 # dimension of the problem
@@ -39,7 +40,7 @@ nn = Flux.Chain(Dense(d, hls, tanh),
     Dense(hls, hls, tanh),
     Dense(hls, 1)) # neural network used by the scheme
 
-opt = Flux.Optimise.Adam(1e-2)
+opt = Flux.Adam(1e-2)
 
 ## Definition of the algorithm
 alg = DeepSplitting(nn,
@@ -74,6 +75,7 @@ sol = solve(prob,
 
 ```@example deepsplitting2
 using HighDimPDE, Flux, StochasticDiffEq
+using SciMLBase: solve
 batch_size = 1000
 train_steps = 1000
 
@@ -92,7 +94,7 @@ nn = Flux.Chain(Dense(d, hls, relu),
     Dense(hls, hls, relu),
     Dense(hls, 1)) # Neural network used by the scheme
 
-opt = Flux.Optimise.Adam(1e-2) #optimiser
+opt = Flux.Adam(1e-2) #optimiser
 alg = DeepSplitting(nn, opt = opt)
 
 X0 = fill(0.0f0, d)  # initial point

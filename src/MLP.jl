@@ -3,12 +3,23 @@ $(SIGNATURES)
 
 Multi level Picard algorithm.
 
+# Fields
+- `M`: number of Monte Carlo integrations at each Picard level.
+- `L`: number of Picard levels.
+- `K`: number of samples used for the nonlocal term at each integration.
+- `mc_sample!`: Monte Carlo sampling strategy for the nonlocal term.
+
 # Arguments
 * `L`: number of Picard iterations (Level),
 * `M`: number of Monte Carlo integrations (at each level `l`, `M^(L-l)`integrations),
 * `K`: number of Monte Carlo integrations for the non-local term
 * `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non local term.
 Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling)`, or `NoSampling` (by default).
+
+# Examples
+```julia
+alg = MLP(M = 2, L = 2, K = 1)
+```
 """
 struct MLP{T, MCS} <: HighDimPDEAlgorithm where {T <: Int, MCS <: MCSampling}
     M::T # nb of MC integrations
@@ -29,7 +40,7 @@ Returns a `PIDESolution` object.
 * `multithreading` : if `true`, distributes the job over all the threads available.
 * `verbose`: print information over the iterations.
 """
-function DiffEqBase.solve(
+function solve(
         prob::Union{PIDEProblem, ParabolicPDEProblem},
         alg::MLP;
         multithreading = true,

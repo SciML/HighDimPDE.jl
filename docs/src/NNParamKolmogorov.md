@@ -4,11 +4,6 @@
 
  1. [`ParabolicPDEProblem`](@ref)
 
-```@autodocs
-Modules = [HighDimPDE]
-Pages   = ["NNParamKolmogorov.jl"]
-```
-
 `NNParamKolmogorov` obtains a
 
   - terminal solution for parametric families of Forward Kolmogorov Equations of the form:

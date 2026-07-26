@@ -1,33 +1,33 @@
-_copy(t::Tuple) = t
-_copy(t) = t
-function _copy(opt::O) where {O <: Flux.Optimise.AbstractOptimiser}
-    return O([_copy(getfield(opt, fn)) for fn in fieldnames(typeof(opt))]...)
-end
-
 """
-    DeepSplitting(nn, K=1, opt = Flux.Optimise.Adam(0.01), λs = nothing, mc_sample =  NoSampling())
+    DeepSplitting(nn; K = 1, opt = Flux.Adam(0.01), λs = nothing, mc_sample = NoSampling())
 
 Deep splitting algorithm.
+
+# Fields
+- `nn`: trainable neural-network approximation for one splitting step.
+- `K`: number of Monte Carlo samples used for the nonlocal contribution.
+- `opt`: Flux optimizer rule used for each training phase.
+- `λs`: optional learning rates applied in sequence; `nothing` retains the optimizer rule's rate.
+- `mc_sample!`: Monte Carlo sampling strategy for the nonlocal term.
 
 # Arguments
 * `nn`: a [Flux.Chain](https://fluxml.ai/Flux.jl/stable/reference/models/layers/#Flux.Chain), or more generally a [functor](https://github.com/FluxML/Functors.jl).
 * `K`: the number of Monte Carlo integrations.
-* `opt`: optimizer to be used. By default, `Flux.Optimise.Adam(0.01)`.
+* `opt`: optimizer to be used. By default, `Flux.Adam(0.01)`.
 * `λs`: the learning rates, used sequentially. Defaults to a single value taken from `opt`.
 * `mc_sample::MCSampling` : sampling method for Monte Carlo integrations of the non-local term. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default).
 
-# Example
+# Examples
 ```julia
-hls = d + 50 # hidden layer size
 d = 10 # size of the sample
+hls = d + 50 # hidden layer size
 
 # Neural network used by the scheme
-nn = Flux.Chain(Dense(d, hls, tanh),
-                Dense(hls,hls,tanh),
-                Dense(hls, 1, x->x^2))
+nn = Flux.Chain(Flux.Dense(d, hls, tanh),
+    Flux.Dense(hls, hls, tanh), Flux.Dense(hls, 1, x -> x^2))
 
-alg = DeepSplitting(nn, K=10, opt = Flux.Optimise.Adam(), λs = [5e-3,1e-3],
-                    mc_sample = UniformSampling(zeros(d), ones(d)) )
+alg = DeepSplitting(nn; K = 10, opt = Flux.Adam(), λs = [5e-3, 1e-3],
+    mc_sample = UniformSampling(zeros(d), ones(d)))
 ```
 """
 struct DeepSplitting{NN, F, O, L, MCS} <: HighDimPDEAlgorithm
@@ -41,14 +41,10 @@ end
 function DeepSplitting(
         nn;
         K = 1,
-        opt::O = Flux.Optimise.Adam(0.01),
-        λs::L = nothing,
+        opt = Flux.Adam(0.01),
+        λs = nothing,
         mc_sample = NoSampling()
-    ) where {
-        O <: Flux.Optimise.AbstractOptimiser,
-        L <: Union{Nothing, Vector{N}} where {N <: Number},
-    }
-    isnothing(λs) ? λs = [opt.eta] : nothing
+    )
     return DeepSplitting(nn, K, opt, λs, mc_sample)
 end
 
@@ -66,7 +62,7 @@ Returns a `PIDESolution` object.
 - `use_cuda` : set to `true` to use CUDA.
 - `cuda_device` : integer, to set the CUDA device used in the training, if `use_cuda == true`.
 """
-function DiffEqBase.solve(
+function solve(
         prob::Union{PIDEProblem, ParabolicPDEProblem},
         alg::DeepSplitting,
         dt;
@@ -119,7 +115,7 @@ function DiffEqBase.solve(
         x isa AbstractArray && return copy(x)
         x
     end
-    ps = Flux.params(vj)
+    θ, re = Flux.destructure(vj)
 
     dt = convert(T, dt)
     ts = prob.tspan[1]:(dt - eps(T)):prob.tspan[2]
@@ -139,17 +135,17 @@ function DiffEqBase.solve(
     eltype(mc_sample!) == T || !_integrate(mc_sample!) ? nothing :
         error("Element type of `mc_sample` not the same as element type of `x`")
 
-    function splitting_model(y0, y1, z, t)
+    function splitting_model(θ, y0, y1, z, t)
         # TODO: for now hardcoded because of a bug in Zygote differentiation rules for adjoints
         # vi_y1, ∇vi = Zygote.pullback(vi, y1)
         # _int = reshape(sum(f(y1, z, vi_y1, vi(z), ∇vi(y1)[1], ∇vi(z)[1], p, t), dims = 3), 1, :)
         ∇vi(x) = [0.0f0]
         _int = reshape(sum(f(y1, z, vi(y1), vi(z), ∇vi(y1), ∇vi(z), p, t), dims = 3), 1, :)
-        return vj(y0) - (vi(y1) + dt * _int / K)
+        return re(θ)(y0) - (vi(y1) + dt * _int / K)
     end
 
-    function loss(y0, y1, z, t)
-        u = splitting_model(y0, y1, z, t)
+    function loss(θ, y0, y1, z, t)
+        u = splitting_model(θ, y0, y1, z, t)
         return sum(u .^ 2) / batch_size
     end
 
@@ -178,11 +174,10 @@ function DiffEqBase.solve(
         # first of maxiters used for first nn, second used for the other nn
         _maxiters = length(maxiters) > 1 ? maxiters[min(net, 2)] : maxiters[]
 
-        for λ in λs
-            opt_net = _copy(opt) # starting with a new optimiser state at each time step
-            opt_net.eta = λ
-            verbose &&
-                println("Training started with ", typeof(opt_net), " and λ :", opt_net.eta)
+        for λ in (isnothing(λs) ? (nothing,) : λs)
+            opt_net = Flux.setup(opt, θ)
+            !isnothing(λ) && Flux.adjust!(opt_net, λ)
+            verbose && println("Training started with ", typeof(opt), " and λ :", λ)
             for epoch in 1:_maxiters
                 y1 .= x0_batch
                 # generating sdes
@@ -194,14 +189,14 @@ function DiffEqBase.solve(
                 end
 
                 # training
-                gs = Flux.gradient(ps) do
-                    loss(y0, y1, z, t)
+                gs = Flux.gradient(θ) do θ_
+                    loss(θ_, y0, y1, z, t)
                 end
-                Flux.Optimise.update!(opt_net, ps, gs) # update parameters
+                Flux.update!(opt_net, θ, gs[1])
 
                 # report on training
                 if epoch % verbose_rate == 1
-                    l = loss(y0, y1, z, t) # explicitly computing loss every verbose_rate
+                    l = loss(θ, y0, y1, z, t) # explicitly computing loss every verbose_rate
                     verbose && println("Current loss is: $l")
                     push!(losses[net], l)
                     if l < abstol
@@ -209,7 +204,7 @@ function DiffEqBase.solve(
                     end
                 end
                 if epoch == maxiters
-                    l = loss(y0, y1, z, t)
+                    l = loss(θ, y0, y1, z, t)
                     push!(losses[net + 1], l)
                     verbose && println("Final loss for step $(net) / $(N) is: $l")
                 end
@@ -217,12 +212,12 @@ function DiffEqBase.solve(
         end
         # saving
         # fix for deepcopy
+        vj = re(θ)
         vi = Flux.fmap(vj) do x
             x isa AbstractArray && return copy(x)
             x
         end
         # vj = deepcopy(nn)
-        # ps = Flux.params(vj)
         push!(usol, cpu(vi(reshape(x0, d, 1)))[])
         push!(nns, vi |> cpu)
     end

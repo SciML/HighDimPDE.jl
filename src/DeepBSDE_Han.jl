@@ -10,7 +10,7 @@ Returns a `PIDESolution` object.
 
 To use [SDE Algorithms](https://diffeq.sciml.ai/stable/solvers/sde_solve/) use [`DeepBSDE`](@ref)
 """
-function DiffEqBase.solve(
+function solve(
         prob::ParabolicPDEProblem,
         alg::DeepBSDE;
         dt,
@@ -34,9 +34,10 @@ function DiffEqBase.solve(
     opt = alg.opt
     u0 = alg.u0
     σᵀ∇u = alg.σᵀ∇u
-    ps = Flux.params(u0, σᵀ∇u...)
+    model = (u0, σᵀ∇u)
 
-    function sol()
+    function sol(model)
+        u0, σᵀ∇u = model
         return map(1:trajectories) do j
             u = u0(X0)[1]
             X = X0
@@ -51,20 +52,21 @@ function DiffEqBase.solve(
         end
     end
 
-    function loss()
-        return mean(sum(abs2, g(X) - u) for (X, u) in sol())
+    function loss(model)
+        return mean(sum(abs2, g(X) - u) for (X, u) in sol(model))
     end
 
     iters = eltype(X0)[]
     losses = eltype(X0)[]
 
+    opt_state = Flux.setup(opt, model)
     for _ in 1:maxiters
-        gs = Flux.gradient(ps) do
-            loss()
+        gs = Flux.gradient(model) do model_
+            loss(model_)
         end
-        Flux.Optimise.update!(opt, ps, gs)
+        Flux.update!(opt_state, model, gs[1])
         save_everystep && push!(iters, u0(X0)[1])
-        l = loss()
+        l = loss(model)
         push!(losses, l)
         verbose && println("Current loss is: $l")
         l < abstol && break
@@ -92,7 +94,8 @@ function DiffEqBase.solve(
             trajectories = trajectories_upper,
             prob.kwargs...
         )
-        function sol_high()
+        function sol_high(model)
+            u0, σᵀ∇u = model
             return map(sim.u) do u
                 xsde = u.u
                 U = g(xsde[end])
@@ -107,20 +110,19 @@ function DiffEqBase.solve(
             end
         end
 
-        loss_() = sum(sol_high()) / trajectories_upper
+        loss_(model) = sum(sol_high(model)) / trajectories_upper
 
-        ps = Flux.params(u0, σᵀ∇u...)
-        opt_limits = Flux.Optimise.Adam(0.01)
+        opt_state_limits = Flux.setup(Flux.Adam(0.01), model)
         for _ in 1:maxiters_limits
-            gs = Flux.gradient(ps) do
-                loss_()
+            gs = Flux.gradient(model) do model_
+                loss_(model_)
             end
-            Flux.Optimise.update!(opt_limits, ps, gs)
-            l = loss_()
+            Flux.update!(opt_state_limits, model, gs[1])
+            l = loss_(model)
             verbose && println("Current loss is: $l")
             l < abstol && break
         end
-        u_high = loss_()
+        u_high = loss_(model)
 
         verbose && println("Lower limit")
         # Function to precalculate the f values over the domain

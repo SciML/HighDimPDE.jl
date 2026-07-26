@@ -1,6 +1,7 @@
 using Test, Flux, StochasticDiffEq, LinearAlgebra
 println("Optimal Stopping Time Test")
 using HighDimPDE
+using SciMLBase: solve
 using Statistics
 
 using Random

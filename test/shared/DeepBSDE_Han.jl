@@ -2,6 +2,7 @@ using Flux, Zygote, LinearAlgebra, Statistics
 println("DeepBSDE_tests")
 using Test, StochasticDiffEq
 using HighDimPDE
+using SciMLBase: solve
 
 using Random
 Random.seed!(100)
