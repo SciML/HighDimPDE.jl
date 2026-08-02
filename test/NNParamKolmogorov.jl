@@ -2,6 +2,7 @@ using Test, Flux
 using StochasticDiffEq
 using LinearAlgebra
 using HighDimPDE
+using SciMLBase: solve
 using Random
 Random.seed!(100)
 

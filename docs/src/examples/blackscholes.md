@@ -30,7 +30,7 @@ needs to be `d+1`-dimensional to `d` dimensions. Thus we define the following:
 
 ```julia
 hls = 10 + d #hide layer size
-opt = Flux.Optimise.Adam(0.001)
+opt = Flux.Adam(0.001)
 u0 = Flux.Chain(Dense(d, hls, relu),
     Dense(hls, hls, relu),
     Dense(hls, 1))

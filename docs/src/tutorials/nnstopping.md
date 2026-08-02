@@ -13,6 +13,7 @@ We define the parameters, drift function and the diffusion function for the dyna
 
 ```@example nnstopping
 using HighDimPDE, Flux, StochasticDiffEq
+using SciMLBase: solve
 d = 3 # Number of assets in the stock
 r = 0.05 # interest rate
 beta = 0.2 # volatility
@@ -58,7 +59,7 @@ The number of models should be equal to the time discretization.
 And finally we define our optimizer and algorithm, and call `solve`:
 
 ```@example nnstopping
-opt = Flux.Optimisers.Adam(0.01)
+opt = Flux.Adam(0.01)
 alg = NNStopping(models, opt)
 
 sol = solve(

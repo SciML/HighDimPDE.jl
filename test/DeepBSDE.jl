@@ -3,6 +3,7 @@ import StochasticDiffEq
 using LinearAlgebra, Statistics
 println("DeepBSDE_tests")
 using Test, HighDimPDE
+using SciMLBase: solve
 
 using Random
 Random.seed!(100)

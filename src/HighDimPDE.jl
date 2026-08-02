@@ -2,23 +2,24 @@
 $(DocStringExtensions.README)
 """
 module HighDimPDE
-using DocStringExtensions # for $(SIGNATURES)
-using Reexport
-using DocStringExtensions
-@reexport using DiffEqBase
-using SciMLSensitivity
-using StochasticDiffEq
-using Statistics
-using Flux, Zygote, LinearAlgebra
-using Functors
-# using ProgressMeter: @showprogress
-using Tracker
-using CUDA, cuDNN
-using Random
-using SparseArrays
+import DocStringExtensions
+using DocStringExtensions: SIGNATURES, TYPEDSIGNATURES
+using SciMLBase: AbstractODEAlgorithm, AbstractODEProblem, AbstractSciMLProblem,
+    EnsembleProblem, EnsembleSerial, EnsembleThreads, SDEProblem
+import SciMLBase: remake, solve
+import SciMLSensitivity
+using StochasticDiffEq: EM
+using Statistics: mean
+import Flux
+using Flux: cpu, gpu
+using LinearAlgebra: dot
+using Functors: @functor
+import Tracker
+import CUDA
+using Random: rand!, randn!
 
-abstract type HighDimPDEAlgorithm <: SciMLBase.AbstractODEAlgorithm end
-abstract type AbstractPDEProblem <: SciMLBase.AbstractSciMLProblem end
+abstract type HighDimPDEAlgorithm <: AbstractODEAlgorithm end
+abstract type AbstractPDEProblem <: AbstractSciMLProblem end
 
 Base.summary(prob::AbstractPDEProblem) = string(nameof(typeof(prob)))
 
@@ -30,8 +31,26 @@ end
 
 include("MCSample.jl")
 
+"""
+    PIDEProblem
+
+Problem definition for a partial integro-differential equation solved by HighDimPDE.
+
+# Fields
+- `u0`: initial PDE state evaluated at `x`.
+- `g`: terminal or initial condition function.
+- `f`: nonlinear local or nonlocal PDE contribution.
+- `μ`: drift function.
+- `σ`: diffusion function.
+- `x`: PDE evaluation point.
+- `tspan`: start and end times.
+- `p`: user-supplied model parameters.
+- `x0_sample`: strategy used to sample initial states.
+- `neumann_bc`: optional lower and upper Neumann boundary vectors.
+- `kwargs`: additional solver-specific problem metadata.
+"""
 struct PIDEProblem{uType, G, F, Mu, Sigma, xType, tType, P, UD, NBC, K} <:
-    SciMLBase.AbstractODEProblem{uType, tType, false}
+    AbstractODEProblem{uType, tType, false}
     u0::uType
     g::G # initial condition
     f::F # nonlinear part
@@ -46,9 +65,9 @@ struct PIDEProblem{uType, G, F, Mu, Sigma, xType, tType, P, UD, NBC, K} <:
 end
 
 """
-$(SIGNATURES)
+    PIDEProblem(μ, σ, x0, tspan, g, f; p = nothing, x0_sample = NoSampling(), neumann_bc = nothing, kwargs...)
 
-Defines a Partial Integro Differential Problem, of the form
+Define a partial integro-differential equation problem of the form
 ```math
 \\begin{aligned}
     \\frac{du}{dt} &= \\tfrac{1}{2} \\text{Tr}(\\sigma \\sigma^T) \\Delta u(x, t) + \\mu \\nabla u(x, t) \\\\
@@ -67,7 +86,18 @@ with `` u(x,0) = g(x)``.
 * `tspan`: timespan of the problem.
 * `p`: the parameter vector.
 * `x0_sample` : sampling method for `x0`. Can be `UniformSampling(a,b)`, `NormalSampling(σ_sampling, shifted)`, or `NoSampling` (by default). If `NoSampling`, only solution at the single point `x` is evaluated.
-* `neumann_bc`: if provided, Neumann boundary conditions on the hypercube `neumann_bc[1] × neumann_bc[2]`.
+* `neumann_bc`: Neumann boundary conditions on the hypercube `neumann_bc[1] × neumann_bc[2]`.
+
+# Examples
+```julia
+using LinearAlgebra: I
+
+μ(x, p, t) = zero(x)
+σ(x, p, t) = I
+g(x) = sum(abs2, x)
+f(x, y, ux, uy, dux, duy, p, t) = zero(x)
+prob = PIDEProblem(μ, σ, zeros(2), (0.0, 1.0), g, f)
+```
 """
 function PIDEProblem(
         μ,
@@ -117,8 +147,26 @@ function PIDEProblem(
     )
 end
 
+"""
+    ParabolicPDEProblem
+
+Problem definition for a semilinear parabolic PDE solved by HighDimPDE.
+
+# Fields
+- `u0`: initial PDE state evaluated at `x`.
+- `g`: terminal or initial condition function, or `nothing` for payoff problems.
+- `f`: nonlinear PDE contribution, or `nothing` for linear equations.
+- `μ`: drift function.
+- `σ`: diffusion function.
+- `x`: PDE evaluation point.
+- `tspan`: start and end times.
+- `p`: user-supplied model parameters.
+- `x0_sample`: strategy used to sample initial states.
+- `neumann_bc`: optional lower and upper Neumann boundary vectors.
+- `kwargs`: additional problem metadata such as `xspan`, `payoff`, and parameter domains.
+"""
 struct ParabolicPDEProblem{uType, G, F, Mu, Sigma, xType, tType, P, UD, NBC, K} <:
-    SciMLBase.AbstractODEProblem{uType, tType, false}
+    AbstractODEProblem{uType, tType, false}
     u0::uType
     g::G # initial condition
     f::F # nonlinear part
@@ -133,9 +181,9 @@ struct ParabolicPDEProblem{uType, G, F, Mu, Sigma, xType, tType, P, UD, NBC, K} 
 end
 
 """
-$(SIGNATURES)
+    ParabolicPDEProblem(μ, σ, x0, tspan; g = nothing, f = nothing, p = nothing, kwargs...)
 
-Defines a Parabolic Partial Differential Equation of the form:
+Define a semilinear parabolic PDE problem of the form
 ```math
 \\begin{aligned}
     \\frac{du}{dt} &= \\tfrac{1}{2} \\text{Tr}(\\sigma \\sigma^T) \\Delta u(x, t) + \\mu \\nabla u(x, t) \\\\
@@ -168,6 +216,17 @@ Defines a Parabolic Partial Differential Equation of the form:
 * `neumann_bc`: if provided, Neumann boundary conditions on the hypercube `neumann_bc[1] × neumann_bc[2]`.
 * `xspan`: The domain of the independent variable `x`
 * `payoff`: The discounted payoff function. Required when solving for optimal stopping problem (Obstacle PDEs).
+
+# Examples
+```julia
+using LinearAlgebra: I
+
+μ(x, p, t) = zero(x)
+σ(x, p, t) = I
+g(x) = sum(abs2, x)
+f(x, u, du, p, t) = zero(u)
+prob = ParabolicPDEProblem(μ, σ, zeros(2), (0.0, 1.0); g, f)
+```
 """
 function ParabolicPDEProblem(
         μ,
@@ -242,11 +301,86 @@ function ParabolicPDEProblem(
     )
 end
 
+function remake(
+        prob::PIDEProblem;
+        u0 = missing,
+        g = missing,
+        f = missing,
+        μ = missing,
+        σ = missing,
+        x = missing,
+        tspan = missing,
+        p = missing,
+        x0_sample = missing,
+        neumann_bc = missing,
+        kwargs = missing,
+        interpret_symbolicmap = true,
+        use_defaults = false
+    )
+    return PIDEProblem(
+        ismissing(u0) ? prob.u0 : u0,
+        ismissing(g) ? prob.g : g,
+        ismissing(f) ? prob.f : f,
+        ismissing(μ) ? prob.μ : μ,
+        ismissing(σ) ? prob.σ : σ,
+        ismissing(x) ? prob.x : x,
+        ismissing(tspan) ? prob.tspan : tspan,
+        ismissing(p) ? prob.p : p,
+        ismissing(x0_sample) ? prob.x0_sample : x0_sample,
+        ismissing(neumann_bc) ? prob.neumann_bc : neumann_bc,
+        ismissing(kwargs) ? prob.kwargs : kwargs,
+    )
+end
+
+function remake(
+        prob::ParabolicPDEProblem;
+        u0 = missing,
+        g = missing,
+        f = missing,
+        μ = missing,
+        σ = missing,
+        x = missing,
+        tspan = missing,
+        p = missing,
+        x0_sample = missing,
+        neumann_bc = missing,
+        kwargs = missing,
+        interpret_symbolicmap = true,
+        use_defaults = false
+    )
+    return ParabolicPDEProblem(
+        ismissing(u0) ? prob.u0 : u0,
+        ismissing(g) ? prob.g : g,
+        ismissing(f) ? prob.f : f,
+        ismissing(μ) ? prob.μ : μ,
+        ismissing(σ) ? prob.σ : σ,
+        ismissing(x) ? prob.x : x,
+        ismissing(tspan) ? prob.tspan : tspan,
+        ismissing(p) ? prob.p : p,
+        ismissing(x0_sample) ? prob.x0_sample : x0_sample,
+        ismissing(neumann_bc) ? prob.neumann_bc : neumann_bc,
+        ismissing(kwargs) ? prob.kwargs : kwargs,
+    )
+end
+
 """
     PIDESolution(x0, ts, losses, usols, ufuns[, limits])
 
 Solution container storing the evaluated states, learned solution functions, training
 losses, and optional domain limits produced by HighDimPDE solvers.
+
+# Fields
+- `x0`: points at which the solution is evaluated.
+- `ts`: saved time points.
+- `losses`: training-loss history.
+- `us`: solution values evaluated at `x0`.
+- `ufuns`: learned solution functions or neural networks.
+- `limits`: optional lower and upper bounds produced by limit computations.
+
+# Examples
+```julia
+sol = PIDESolution(zeros(2), [0.0, 1.0], [1.0], [0.0, 1.0], nothing)
+```
 """
 struct PIDESolution{X0, Ts, L, Us, NNs, Ls}
     x0::X0
@@ -296,5 +430,5 @@ include("NNParamKolmogorov.jl")
 export PIDEProblem, ParabolicPDEProblem, PIDESolution, DeepSplitting, DeepBSDE, MLP,
     NNStopping
 export NNKolmogorov, NNParamKolmogorov
-export NormalSampling, UniformSampling, NoSampling, solve
+export NormalSampling, UniformSampling, NoSampling
 end

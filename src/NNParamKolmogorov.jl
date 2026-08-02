@@ -1,12 +1,19 @@
 """
 Algorithm for solving paramateric families of Kolmogorov Equations.
 
+# Fields
+- `chain`: neural network trained over state, time, and sampled PDE parameters.
+- `opt`: Flux optimizer rule used to train `chain`.
+
+# Arguments
+- `chain`: neural network with a d-dimensional output.
+- `opt`: optimizer used to train the neural network.
+
+# Examples
 ```julia
-HighDimPDE.NNKolmogorov(chain, opt)
+alg = NNParamKolmogorov(Flux.Chain(Flux.Dense(5, 1)))
 ```
-Arguments:
-- `chain`: A Chain neural network with a d-dimensional output.
-- `opt`: The optimizer to train the neural network. Defaults to `ADAM(0.1)`.
+
 [1] Berner Julius et al. "Numerically solving parametric families of high-dimensional Kolmogorov partial differential equations via deep learning."
 """
 struct NNParamKolmogorov{C, O} <: HighDimPDEAlgorithm
@@ -34,7 +41,7 @@ Returns a `PIDESolution` object.
 - `dps::NamedTuple`: The sampling interval for ranges of parameters. Should have keys : `p_sigma`, 'p_mu` and `p_phi`
 - Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
 """
-function DiffEqBase.solve(
+function solve(
         prob::ParabolicPDEProblem,
         pdealg::NNParamKolmogorov,
         sdealg = EM();

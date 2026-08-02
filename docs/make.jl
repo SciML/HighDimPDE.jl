@@ -1,15 +1,15 @@
 using Documenter, HighDimPDE
 
-cp("./docs/Manifest.toml", "./docs/src/assets/Manifest.toml", force = true)
-cp("./docs/Project.toml", "./docs/src/assets/Project.toml", force = true)
-
 include("pages.jl")
 
 makedocs(
     sitename = "HighDimPDE.jl",
     authors = "#",
     pages = pages,
-    clean = true, doctest = false, linkcheck = false,
+    clean = true,
+    doctest = true,
+    checkdocs = :exports,
+    linkcheck = true,
     format = Documenter.HTML(
         assets = ["assets/favicon.ico"],
         canonical = "https://docs.sciml.ai/HighDimPDE/stable/"

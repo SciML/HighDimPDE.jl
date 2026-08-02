@@ -8,6 +8,7 @@ Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) 
 
 ```@example mlp
 using HighDimPDE
+using SciMLBase: solve
 
 ## Definition of the problem
 d = 10 # dimension of the problem
@@ -38,6 +39,7 @@ where $\Omega = [-1/2, 1/2]^d$, and let's assume Neumann Boundary condition on $
 
 ```@example mlp2
 using HighDimPDE
+using SciMLBase: solve
 
 ## Definition of the problem
 d = 10 # dimension of the problem
