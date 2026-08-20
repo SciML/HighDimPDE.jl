@@ -14,6 +14,7 @@ import Flux
 using Flux: cpu, gpu
 using LinearAlgebra: dot
 using Functors: @functor
+using PrecompileTools: @compile_workload, @setup_workload
 import Tracker
 import CUDA
 using Random: rand!, randn!
@@ -431,4 +432,5 @@ export PIDEProblem, ParabolicPDEProblem, PIDESolution, DeepSplitting, DeepBSDE, 
     NNStopping
 export NNKolmogorov, NNParamKolmogorov
 export NormalSampling, UniformSampling, NoSampling
+include("precompile.jl")
 end
