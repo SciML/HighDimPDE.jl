@@ -41,7 +41,7 @@ if CUDA.functional()
         @testset "testing equivalence cpu gpu" begin
             batch_size = 1000
             a = repeat(X0[:], 1, batch_size)
-            b = a + 2f0 .* randn(Float32, size(a))
+            b = a + 2.0f0 .* randn(Float32, size(a))
             a = hcat(X0, a) |> gpu
             b = hcat(X1, b) |> gpu
             s = -1.0f0
