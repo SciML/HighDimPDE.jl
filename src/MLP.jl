@@ -235,11 +235,11 @@ function _ml_picard_mlt(
     NUM_THREADS = Threads.nthreads()
     tasks = [
         Threads.@spawn(
-                _ml_picard_call(
-                    M, L, K, x, s, t, mc_sample!, g, f, verbose,
-                    NUM_THREADS, thread_id, prob, neumann_bc
-                )
-            ) for thread_id in 1:NUM_THREADS
+            _ml_picard_call(
+                M, L, K, x, s, t, mc_sample!, g, f, verbose,
+                NUM_THREADS, thread_id, prob, neumann_bc
+            )
+        ) for thread_id in 1:NUM_THREADS
     ]
 
     # first level
