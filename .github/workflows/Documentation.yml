@@ -1,0 +1,40 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main
+    tags: ['*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # Skip intermediate builds: always.
+  # Cancel intermediate builds: only if it is a pull request build.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
+jobs:
+  build:
+    # Runs on a GitHub-hosted CPU runner (not the self-hosted GPU box).
+    # All executed `@example` blocks use `use_cuda = false`, so no GPU is
+    # required; the previous GPU-runner build segfaulted (exit 139) during
+    # example evaluation, which blocked every v2.x docs deploy.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1'
+      - uses: julia-actions/cache@v2
+      - name: Install dependencies
+        shell: julia --color=yes --project=docs/ {0}
+        run: |
+          using Pkg
+          Pkg.develop(PackageSpec(path=pwd()))
+          Pkg.instantiate()
+      - name: Build and deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # For authentication with GitHub Actions token
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # For authentication with SSH deploy key
+        run: julia --color=yes --project=docs/ docs/make.jl
