@@ -2,6 +2,8 @@ pages = [
     "Home" => "index.md",
     "Getting started" => "getting_started.md",
     "Problems" => "problems.md",
+    "SciMLBase Interface" => "interfaces.md",
+    "Public API" => "api.md",
     "Solver Algorithms" => [
         "MLP.md",
         "DeepSplitting.md",

@@ -1,7 +1,5 @@
-```@docs
-PIDEProblem
-ParabolicPDEProblem
-```
+Problem constructors and their complete argument documentation are listed on the
+[Public API](@ref) page.
 
 !!! note
     

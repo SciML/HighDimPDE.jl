@@ -1,4 +1,24 @@
 using HighDimPDE
+using SciMLBase
+using LinearAlgebra: I
+
+@testset "SciMLBase problem interface" begin
+    μ(x, p, t) = zero(x)
+    σ(x, p, t) = I
+    g(x) = sum(abs2, x)
+    f(x, u, du, p, t) = zero(u)
+    f_pide(x, y, ux, uy, dux, duy, p, t) = zero(ux)
+
+    parabolic = ParabolicPDEProblem(μ, σ, zeros(2), (0.0, 1.0); g, f)
+    pide = PIDEProblem(μ, σ, zeros(2), (0.0, 1.0), g, f_pide)
+
+    for prob in (parabolic, pide)
+        @test prob isa SciMLBase.AbstractSciMLProblem
+        @test !SciMLBase.isinplace(prob)
+        @test SciMLBase.remake(prob; p = [1.0]) isa SciMLBase.AbstractSciMLProblem
+        @test SciMLBase.remake(prob; u0 = ones(2)) isa SciMLBase.AbstractSciMLProblem
+    end
+end
 
 @testset "PIDEs" begin
     for d in [1, 10]

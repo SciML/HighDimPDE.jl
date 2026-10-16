@@ -5,11 +5,6 @@
  1. [`PIDEProblem`](@ref)
  2. [`ParabolicPDEProblem`](@ref)
 
-```@autodocs
-Modules = [HighDimPDE]
-Pages   = ["DeepSplitting.jl"]
-```
-
 The `DeepSplitting` algorithm reformulates the PDE as a stochastic learning problem.
 
 The algorithm relies on two main ideas:

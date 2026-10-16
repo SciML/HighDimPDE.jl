@@ -1,0 +1,11 @@
+[Core]
+versions = ["lts", "1", "pre"]
+os = ["ubuntu-latest", "macos-latest", "windows-latest"]
+
+[QA]
+versions = ["lts", "1"]
+
+[GPU]
+versions = ["lts"]
+os = ["ubuntu-latest"]
+in_all = false

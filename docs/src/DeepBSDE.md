@@ -4,11 +4,6 @@
 
  1. [`ParabolicPDEProblem`](@ref)
 
-```@autodocs
-Modules = [HighDimPDE]
-Pages   = ["DeepBSDE.jl", "DeepBSDE_Han.jl"]
-```
-
 ## The general idea 💡
 
 The `DeepBSDE` algorithm is similar in essence to the `DeepSplitting` algorithm, with the difference that

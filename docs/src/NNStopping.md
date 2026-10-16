@@ -4,11 +4,6 @@
 
  1. [`ParabolicPDEProblem`](@ref)
 
-```@autodocs
-Modules = [HighDimPDE]
-Pages   = ["NNStopping.jl"]
-```
-
 ## The general idea 💡
 
 Similar to DeepSplitting and DeepBSDE, NNStopping evaluates the PDE as a Stochastic Differential Equation. Consider an Obstacle PDE of the form:

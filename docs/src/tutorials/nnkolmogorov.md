@@ -4,6 +4,7 @@
 
 ```@example nnkolmogorov
 using HighDimPDE, StochasticDiffEq, Flux, LinearAlgebra
+using SciMLBase: solve
 
 d = 10 # dims
 T = 1 / 12
@@ -27,7 +28,7 @@ g(x) = max(maximum(x) - K, 0)
 sdealg = SRIW1()
 # provide `x0` as nothing to the problem since we are provinding a range for `x0`.
 prob = ParabolicPDEProblem(μ_func, σ_func, nothing, tspan, g = g, xspan = xspan)
-opt = Flux.Optimisers.Adam(0.01)
+opt = Flux.Adam(0.01)
 m = Chain(Dense(d, 16, elu), Dense(16, 32, elu), Dense(32, 16, elu), Dense(16, 1))
 alg = NNKolmogorov(m, opt)
 sol = solve(prob, alg, sdealg, verbose = true, dt = 0.01,

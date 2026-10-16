@@ -5,11 +5,6 @@
  1. [`PIDEProblem`](@ref)
  2. [`ParabolicPDEProblem`](@ref)
 
-```@autodocs
-Modules = [HighDimPDE]
-Pages   = ["MLP.jl"]
-```
-
 The `MLP`, for Multi-Level Picard iterations, reformulates the PDE problem as a fixed point equation through the Feynman Kac formula.
 
   - It relies on [Picard iterations](https://en.wikipedia.org/wiki/Picard%E2%80%93Lindel%C3%B6f_theorem) to find the fixed point,

@@ -2,6 +2,7 @@ using Flux, Zygote, LinearAlgebra, Statistics
 println("DeepBSDE_tests")
 using Test, StochasticDiffEq
 using HighDimPDE
+using SciMLBase: solve
 
 using Random
 Random.seed!(100)
@@ -41,10 +42,10 @@ end
     # sub-neural network approximating the spatial gradients at time point
     σᵀ∇u = [
         Flux.Chain(
-                Dense(d, hls, relu),
-                Dense(hls, hls, relu),
-                Dense(hls, d)
-            ) for i in 1:time_steps
+            Dense(d, hls, relu),
+            Dense(hls, hls, relu),
+            Dense(hls, d)
+        ) for i in 1:time_steps
     ]
 
     alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
@@ -93,10 +94,10 @@ end
     # sub-neural network approximating the spatial gradients at time point
     σᵀ∇u = [
         Flux.Chain(
-                Dense(d, hls, relu),
-                Dense(hls, hls, relu),
-                Dense(hls, d)
-            ) for i in 1:time_steps
+            Dense(d, hls, relu),
+            Dense(hls, hls, relu),
+            Dense(hls, d)
+        ) for i in 1:time_steps
     ]
 
     alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
@@ -144,11 +145,11 @@ end
     )
     σᵀ∇u = [
         Flux.Chain(
-                Dense(d, hls, relu),
-                Dense(hls, hls, relu),
-                Dense(hls, hls, relu),
-                Dense(hls, d)
-            ) for i in 1:time_steps
+            Dense(d, hls, relu),
+            Dense(hls, hls, relu),
+            Dense(hls, hls, relu),
+            Dense(hls, d)
+        ) for i in 1:time_steps
     ]
 
     alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
@@ -197,10 +198,10 @@ end
     # sub-neural network approximating the spatial gradients at time point
     σᵀ∇u = [
         Flux.Chain(
-                Dense(d, hls, relu),
-                Dense(hls, hls, relu),
-                Dense(hls, d)
-            ) for i in 1:time_steps
+            Dense(d, hls, relu),
+            Dense(hls, hls, relu),
+            Dense(hls, d)
+        ) for i in 1:time_steps
     ]
 
     alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
@@ -251,11 +252,11 @@ end
     # sub-neural network approximating the spatial gradients at time point
     σᵀ∇u = [
         Flux.Chain(
-                Dense(d, hls, relu),
-                Dense(hls, hls, relu),
-                Dense(hls, hls, relu),
-                Dense(hls, d)
-            ) for i in 1:time_steps
+            Dense(d, hls, relu),
+            Dense(hls, hls, relu),
+            Dense(hls, hls, relu),
+            Dense(hls, d)
+        ) for i in 1:time_steps
     ]
 
     alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
@@ -338,11 +339,11 @@ end
 
     σᵀ∇u = [
         Flux.Chain(
-                Dense(d, hls, relu),
-                Dense(hls, hls, relu),
-                Dense(hls, hls, relu),
-                Dense(hls, d)
-            ) for i in 1:time_steps
+            Dense(d, hls, relu),
+            Dense(hls, hls, relu),
+            Dense(hls, hls, relu),
+            Dense(hls, d)
+        ) for i in 1:time_steps
     ]
     alg = DeepBSDE(u0, σᵀ∇u, opt = opt)
 

@@ -8,6 +8,16 @@ abstract type MCSampling{T} <: AbstractSampling{T} end
     UniformSampling(a, b)
 
 Uniform sampling for the Monte Carlo integration, in the hypercube `[a, b]^2`.
+
+# Fields
+- `a`: lower bounds of the sampling hypercube.
+- `b`: upper bounds of the sampling hypercube.
+
+# Examples
+```julia
+sampler = UniformSampling(fill(-1.0, 2), fill(1.0, 2))
+samples = sampler(zeros(2))
+```
 """
 struct UniformSampling{A} <: MCSampling{A}
     a::A
@@ -28,9 +38,19 @@ end
 
 Normal sampling method for the Monte Carlo integration.
 
+# Fields
+- `σ`: standard deviation applied to each normally distributed sample.
+- `shifted::Bool`: whether sampling adds the evaluation point after drawing a sample.
+
 # Arguments
 * `σ`: the standard deviation of the sampling
 * `shifted` : if true, the integration is shifted by `x`. Defaults to false.
+
+# Examples
+```julia
+sampler = NormalSampling(0.1)
+samples = sampler(zeros(2))
+```
 """
 struct NormalSampling{T} <: MCSampling{T}
     σ::T
@@ -50,6 +70,17 @@ function (mc_sample::NormalSampling)(x_mc, x)
     return mc_sample.shifted ? x_mc .+= x : nothing
 end
 
+"""
+    NoSampling()
+
+Sampling strategy that disables Monte Carlo integration and evaluates the PDE at the
+provided state only.
+
+# Examples
+```julia
+NoSampling()(zeros(2)) === nothing
+```
+"""
 struct NoSampling <: AbstractSampling{Nothing} end
 
 (mc_sample::NoSampling)(x...) = nothing

@@ -1,14 +1,19 @@
 """
 ```julia
-DeepBSDE(u0,σᵀ∇u;opt=Flux.Optimise.Adam(0.1))
+DeepBSDE(u0, σᵀ∇u; opt = Flux.Adam(0.1))
 ```
 
 [DeepBSDE algorithm](https://arxiv.org/abs/1707.02568), from J. Han, A. Jentzen and Weinan E. 
 
+# Fields
+- `u0`: neural network approximating the initial value of the backward SDE.
+- `σᵀ∇u`: neural network approximating the diffusion-weighted solution gradient.
+- `opt`: Flux optimizer rule used to train both networks.
+
 ## Arguments
 - `u0`: a Flux.jl `Chain` with a d-dimensional input and a 1-dimensional output for the solytion guess.
 - `σᵀ∇u`: a Flux.jl `Chain` for the BSDE value guess.
-- `opt`: the optimization algorithm to be used to optimize the neural networks. Defaults to `Flux.Optimise.Adam(0.1)`.
+- `opt`: the optimization algorithm to be used to optimize the neural networks. Defaults to `Flux.Adam(0.1)`.
 
 ## Example
 Black-Scholes-Barenblatt equation
@@ -29,15 +34,11 @@ g(X) = sum(X.^2)
 prob = PIDEProblem(μ_f, σ_f, x0, tspan, g, f)
 
 hls  = 10 + d #hidden layer size
-opt = Flux.Optimise.Adam(0.001)
-u0 = Flux.Chain(Dense(d,hls,relu),
-                Dense(hls,hls,relu),
-                Dense(hls,1))
-σᵀ∇u = Flux.Chain(Dense(d+1,hls,relu),
-                  Dense(hls,hls,relu),
-                  Dense(hls,hls,relu),
-                  Dense(hls,d))
-pdealg = DeepBSDE(u0, σᵀ∇u, opt=opt)
+opt = Flux.Adam(0.001)
+u0 = Flux.Chain(Flux.Dense(d, hls, relu), Flux.Dense(hls, hls, relu), Flux.Dense(hls, 1))
+σᵀ∇u = Flux.Chain(Flux.Dense(d + 1, hls, relu), Flux.Dense(hls, hls, relu),
+    Flux.Dense(hls, hls, relu), Flux.Dense(hls, d))
+pdealg = DeepBSDE(u0, σᵀ∇u; opt = opt)
 
 solve(prob, 
     pdealg, 
@@ -56,7 +57,7 @@ struct DeepBSDE{C1, C2, O} <: HighDimPDEAlgorithm
     opt::O
 end
 
-DeepBSDE(u0, σᵀ∇u; opt = Flux.Optimise.Adam(0.1)) = DeepBSDE(u0, σᵀ∇u, opt)
+DeepBSDE(u0, σᵀ∇u; opt = Flux.Adam(0.1)) = DeepBSDE(u0, σᵀ∇u, opt)
 
 """
 $(TYPEDSIGNATURES)
@@ -77,7 +78,7 @@ Returns a `PIDESolution` object.
 - `trajectories`: The number of trajectories simulated for training. Defaults to `100`
 - Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
 """
-function DiffEqBase.solve(
+function solve(
         prob::ParabolicPDEProblem,
         pdealg::DeepBSDE,
         sdealg;
@@ -109,7 +110,7 @@ function DiffEqBase.solve(
     p1, _re1 = Flux.destructure(u0)
     p2, _re2 = Flux.destructure(σᵀ∇u)
     p3 = [p1; p2; p]
-    ps = Flux.params(p3)
+    opt_state = Flux.setup(opt, p3)
 
     re1 = p -> _re1(p[1:length(p1)])
     re2 = p -> _re2(p[(length(p1) + 1):(length(p1) + length(p2))])
@@ -153,12 +154,12 @@ function DiffEqBase.solve(
     noise = zeros(Float32, d + 1, d)
     sde_prob = SDEProblem{false}(F, G, [x0; 0.0f0], tspan, p3, noise_rate_prototype = noise)
 
-    function neural_sde(init_cond)
+    function neural_sde(init_cond, p)
         sde_prob = remake(sde_prob, u0 = init_cond)
         ensemble_prob = EnsembleProblem(sde_prob)
         sol = solve(
             ensemble_prob, sdealg, EnsembleSerial();
-            u0 = init_cond, trajectories = trajectories, dt = dt, p = p3,
+            u0 = init_cond, trajectories = trajectories, dt = dt, p = p,
             sensealg = SciMLSensitivity.TrackerAdjoint(),
             save_everystep = false,
             kwargs...
@@ -175,14 +176,14 @@ function DiffEqBase.solve(
         return [arr[:, end, i] for i in axes(arr, 3)]
     end
 
-    function predict_n_sde()
-        _u0 = re1(p3)(x0)
+    function predict_n_sde(p)
+        _u0 = re1(p)(x0)
         init_cond = [x0; _u0]
-        return neural_sde(init_cond)
+        return neural_sde(init_cond, p)
     end
 
-    function loss_n_sde()
-        preds = predict_n_sde()
+    function loss_n_sde(p)
+        preds = predict_n_sde(p)
         return mean(sum(abs2, g(pred[1:(end - 1)]) - pred[end]) for pred in preds)
     end
 
@@ -190,12 +191,10 @@ function DiffEqBase.solve(
     losses = eltype(x0)[]
     verbose && println("DeepBSDE")
     for _ in 1:maxiters
-        gs = Flux.gradient(ps) do
-            loss_n_sde()
-        end
-        Flux.Optimise.update!(opt, ps, gs)
+        gs = Flux.gradient(loss_n_sde, p3)
+        Flux.update!(opt_state, p3, gs[1])
         save_everystep && push!(iters, u0(x0)[1])
-        l = loss_n_sde()
+        l = loss_n_sde(p3)
         push!(losses, l)
         verbose && println("Current loss is: $l")
         l < pabstol && break
@@ -262,29 +261,31 @@ function DiffEqBase.solve(
             trajectories = trajectories_upper,
             output_func = output_func,
             save_everystep = false,
-            sensealg = TrackerAdjoint()
+            sensealg = SciMLSensitivity.TrackerAdjoint()
         )
 
-        function sol_high()
+        model = (u0, σᵀ∇u)
+
+        function sol_high(model)
+            u0, σᵀ∇u = model
             return map(sim.u) do u
                 u[2]
             end
         end
 
-        loss_() = sum(sol_high()) / trajectories_upper
+        loss_(model) = sum(sol_high(model)) / trajectories_upper
 
-        ps = Flux.params(u0, σᵀ∇u...)
-        opt_upper = Flux.Optimise.Adam(0.01)
+        opt_state_upper = Flux.setup(Flux.Adam(0.01), model)
         for _ in 1:maxiters_limits
-            gs = Flux.gradient(ps) do
-                loss_()
+            gs = Flux.gradient(model) do model_
+                loss_(model_)
             end
-            Flux.Optimise.update!(opt_upper, ps, gs)
-            l = loss_()
+            Flux.update!(opt_state_upper, model, gs[1])
+            l = loss_(model)
             println("Current loss is: $l")
             l < 1.0e-6 && break
         end
-        u_high = loss_()
+        u_high = loss_(model)
 
         verbose && println("Lower limit")
         # Function to precalculate the f values over the domain

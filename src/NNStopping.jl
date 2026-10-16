@@ -5,6 +5,10 @@ NNStopping(models, opt)
 
 [Deep Optimal Stopping](https://arxiv.org/pdf/1908.01602.pdf), S Becker, P Cheridito, A Jentzen3, and T Welti.
 
+# Fields
+- `m`: collection of neural networks, one for each exercise time.
+- `opt`: Flux optimizer rule used to train the stopping models.
+
 ## Arguments
 - `models::Vector{Flux.Chain}`: A vector of Flux.Chain where each model corresponds to a specific timestep from the timespan (tspan). The overall length of the vector should be `length(timesteps) - 1`.
 - `opt`: the optimization algorithm to be used to optimize the neural networks. Defaults to `ADAM(0.1)`.
@@ -32,7 +36,7 @@ prob = PIDEProblem(f, sigma, u0, tspan; payoff = g)
 models = [Chain(Dense(d + 1, 32, tanh), BatchNorm(32, tanh), Dense(32, 1, sigmoid))
           for i in 1:N]
 
-opt = Flux.Optimisers.Adam(0.01)
+opt = Flux.Adam(0.01)
 alg = NNStopping(models, opt)
 
 sol = solve(prob, alg, SRIW1(); dt = dt, trajectories = 1000, maxiters = 1000, verbose = true)
@@ -70,7 +74,7 @@ Arguments:
 - `trajectories`: The number of trajectories simulated for training. Defaults to `100`
 - Extra keyword arguments passed to `solve` will be further passed to the SDE solver.
 """
-function DiffEqBase.solve(
+function solve(
         prob::ParabolicPDEProblem,
         pdealg::NNStopping,
         sdealg;

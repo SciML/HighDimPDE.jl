@@ -1,5 +1,6 @@
 using Test, Flux, StochasticDiffEq
 using HighDimPDE
+using SciMLBase: solve
 using Distributions
 
 using Random

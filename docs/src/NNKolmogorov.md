@@ -4,11 +4,6 @@
 
  1. [`ParabolicPDEProblem`](@ref)
 
-```@autodocs
-Modules = [HighDimPDE]
-Pages   = ["NNKolmogorov.jl"]
-```
-
 `NNKolmogorov` obtains a
 
   - terminal solution for Forward Kolmogorov Equations of the form:

@@ -1,4 +1,5 @@
 using HighDimPDE
+using SciMLBase: solve
 using Random
 using Test
 using Statistics

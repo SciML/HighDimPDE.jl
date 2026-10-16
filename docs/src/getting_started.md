@@ -24,6 +24,7 @@ Let's solve the [Fisher KPP](https://en.wikipedia.org/wiki/Fisher%27s_equation) 
 
 ```@example MLP_local_PDE
 using HighDimPDE
+using SciMLBase: solve
 
 ## Definition of the problem
 d = 10 # dimension of the problem
@@ -54,6 +55,7 @@ where $\Omega = [-1/2, 1/2]^d$, and let's assume Neumann Boundary condition on $
 
 ```@example MLP_non_local_PDE
 using HighDimPDE
+using SciMLBase: solve
 
 ## Definition of the problem
 d = 10 # dimension of the problem
@@ -78,6 +80,7 @@ Let's solve the previous equation with [`DeepSplitting`](@ref deepsplitting).
 
 ```@example DeepSplitting_non_local_PDE
 using HighDimPDE
+using SciMLBase: solve
 using Flux # needed to define the neural network
 
 ## Definition of the problem
@@ -99,7 +102,7 @@ nn = Flux.Chain(Dense(d, hls, tanh),
     Dense(hls, hls, tanh),
     Dense(hls, 1)) # neural network used by the scheme
 
-opt = Flux.Optimise.Adam(1e-2)
+opt = Flux.Adam(1e-2)
 
 ## Definition of the algorithm
 alg = DeepSplitting(nn,

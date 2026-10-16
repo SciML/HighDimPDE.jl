@@ -6,6 +6,7 @@ In this example we will solve the high dimensional heat equation over a range of
 
 ```@example nnparamkolmogorov
 using HighDimPDE, Flux, StochasticDiffEq
+using SciMLBase: solve
 d = 10
 # models input is `d` for initial values, `d` for thermal diffusivity, and last dimension is for stopping time.
 m = Chain(Dense(d + 1 + 1, 32, relu), Dense(32, 16, relu), Dense(16, 8, relu), Dense(8, 1))
@@ -33,7 +34,7 @@ dps = (p_sigma = 0.1, p_mu = nothing, p_phi = nothing)
 
 dt = 0.01
 dx = 0.01
-opt = Flux.Optimisers.Adam(5e-2)
+opt = Flux.Adam(5e-2)
 
 prob = ParabolicPDEProblem(mu_,
     sigma_,
