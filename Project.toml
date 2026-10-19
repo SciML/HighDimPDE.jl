@@ -22,7 +22,7 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 [compat]
 CUDA = "6"
 Distributions = "v0.25.107"
-DocStringExtensions = "0.9.3"
+DocStringExtensions = "0.9.3, 0.10"
 Flux = "0.16"
 Functors = "0.4.11, 0.5"
 LinearAlgebra = "1.10, 1.11"
