@@ -18,8 +18,7 @@ jobs:
   build:
     # Runs on a GitHub-hosted CPU runner (not the self-hosted GPU box).
     # All executed `@example` blocks use `use_cuda = false`, so no GPU is
-    # required; the previous GPU-runner build segfaulted (exit 139) during
-    # example evaluation, which blocked every v2.x docs deploy.
+    # required.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
